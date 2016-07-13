@@ -1,0 +1,14 @@
+.dub/
+.project
+.settings/
+./aedi
+dub.selections.json
+.dlangidews
+.dlangidews.wssettings
+__dummy.html
+docs.json
+docs/
+libaedi.a
+aedi.iml
+out/
+.idea/
