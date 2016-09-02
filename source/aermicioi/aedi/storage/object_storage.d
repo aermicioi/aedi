@@ -190,6 +190,22 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
         }
         
         /**
+        Removes alias.
+        
+        Params:
+        	alias_ = alias to remove.
+
+        Returns:
+            this
+        	
+        **/
+        ObjectStorage unlink(KeyType alias_) {
+            this.aliasings.remove(alias_);
+            
+            return this;
+        }
+        
+        /**
         Resolve the alias to an element identity.
         
         Params:
@@ -206,32 +222,4 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
             }
         }
     }
-}
-
-unittest {
-    auto storage = new ObjectStorage!(int, string);
-    
-    storage.set("simple one", 1);
-    storage.set("simple two", 2);
-    storage.set("simple three", 3);
-    
-    storage.link("simple one", "simple one linked");
-    storage.link("simple two", "simple two linked");
-    storage.link("simple three", "simple three linked");
-    
-    storage.link("simple one linked", "simple one linked linked");
-    storage.link("simple two linked", "simple two linked linked");
-    storage.link("simple three linked", "simple three linked linked");
-    
-    assert(storage.get("simple one") == 1);
-    assert(storage.get("simple two") == 2);
-    assert(storage.get("simple three") == 3);
-    
-    assert(storage.get("simple one linked") == 1);
-    assert(storage.get("simple two linked") == 2);
-    assert(storage.get("simple three linked") == 3);
-    
-    assert(storage.get("simple one linked linked") == 1);
-    assert(storage.get("simple two linked linked") == 2);
-    assert(storage.get("simple three linked linked") == 3);
 }

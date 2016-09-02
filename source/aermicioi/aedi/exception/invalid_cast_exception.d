@@ -30,17 +30,19 @@ Authors:
 **/
 module aermicioi.aedi.exception.invalid_cast_exception;
 
+import aermicioi.aedi.exception.di_exception;
+
 /**
 It is thrown when a factory detects that fetched object from DI container cannot be casted to required interface/class 
 that should be passed to newly constructed object. 
 **/
-class InvalidCastException : Exception {
-	@safe pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+class InvalidCastException : AediException {
+	pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         super(msg, file, line, next);
     }
     
-    @safe pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, file, line, next);
     }

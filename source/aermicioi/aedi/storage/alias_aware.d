@@ -41,13 +41,25 @@ interface AliasAware(Type) {
         Alias a key to an alias_.
                 
         Params:
-        	key = the originial identity which is to be aliased.
+        	identity = the originial identity which is to be aliased.
         	alias_ = the alias of identity.
         	
 		Returns:
-			Type original identity.
+			this
         **/
         AliasAware link(Type identity, Type alias_);
+        
+        /**
+        Removes alias.
+        
+        Params:
+        	alias_ = alias to remove.
+
+        Returns:
+            this
+        	
+        **/
+        AliasAware unlink(Type alias_);
         
         /**
         Resolve an alias to original identity, if possible.

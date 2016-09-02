@@ -1,10 +1,4 @@
 /**
-Copyright:
-	Copyright (c) 2016 aermicioi.
-	All rights reserved. This program and the accompanying materials
-	are made available under the terms of the GPL v3.0
-	which is available at
-	www.gnu.org/licenses/gpl.html
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
     
@@ -35,14 +29,48 @@ Authors:
 **/
 module aermicioi.aedi.storage.wrapper;
 
+/**
+Wrapper over some data of type T.
+
+Wraps up a value of type T, and aliases itself to it. This object is used 
+wrap any data that is not of reference type (class or interface),
+in order to be saveable into an object storage.
+Also thanks to alias value this semantics, in D is possible to do automatic
+unboxing of values, just like Java does with simple values :P.
+**/
 class Wrapper(T) {
+    private {
+        T value_;
+    }
+    
     public {
-        T value;
         
         this(ref T value) {
-            this.value = value;
+            this.value_ = value;
+        }
+        
+        this(T value) {
+            this.value_ = value;
         }
         
         alias value this;
+        
+        T opCast(T)() {
+            return value;
+        }
+        
+        alias opEquals = Object.opEquals;
+        
+        bool opEquals(ref T value) {
+            return this.value == value;
+        }
+        
+        bool opEquals(T value) {
+            return this == value;
+        }
+        
+        @property ref T value() {
+            return this.value_;
+        } 
     }
 }

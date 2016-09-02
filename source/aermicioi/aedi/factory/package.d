@@ -1,5 +1,30 @@
 /**
+The package provides a set interfaces that standardise the implementation
+of Factory objects. It provides as well a basic set of such objects.
+ 
+The instantiators defined in instantiator package use them to construct
+the objects contained in them. 
 
+See:
+$(UL
+    $(LI factory.d -> provides basic interface for foactories that can be stored in 
+    library instantiators (DI containers). Implement a new kind of factory only when
+    a totally different instantiation logic is required comparing to default one in 
+    this package. )
+    $(LI genericfactory.d -> provides a set of interfaces that allows to split instantiation
+    logic in smaller parts, that are encapsulated in respective objects. It provides
+    a default implementation of GenericFactory which is an extension of Factory interface
+    that permits to build instantiation logic out of smaller parts. Use/create classes 
+    implementing interfaces provided here when, only a part of instantiation logic is
+    required to modify, or add. )
+    )
+
+Note:
+    Default implementations when encounter a LocatorReference in argument list for a 
+    constructor or method, interprets it as a reference to an object located in
+    container, and therefore fetches it from container and uses it as argument instead
+    of LocatorReference object.
+    
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
     

@@ -30,18 +30,20 @@ Authors:
 **/
 module aermicioi.aedi.exception.in_progress_exception;
 
+import aermicioi.aedi.exception.di_exception;
+
 /**
 Thrown when a new object is requested from factory when it is already in process of creating another one.
 
 Usually it tells the DI that there is a circular dependency when it tries to construct a object. 
 **/
-class InProgressException : Exception {
-	@safe pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+class InProgressException : AediException {
+	pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         super(msg, file, line, next);
     }
     
-    @safe pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, file, line, next);
     }

@@ -30,20 +30,20 @@ Authors:
 **/
 module aermicioi.aedi.exception.not_found_exception;
 
-import std.exception;
+import aermicioi.aedi.exception.di_exception;
 
 /**
 Thrown when something can not find required element/object.
 
 It is used by DI container to denote that a component that was requested is missing. 
 **/
-class NotFoundException : Exception {
-    @safe pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+class NotFoundException : AediException {
+    pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         super(msg, file, line, next);
     }
 
-    @safe pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, file, line, next);
     }

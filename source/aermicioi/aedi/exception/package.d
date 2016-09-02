@@ -1,5 +1,5 @@
 /**
-
+A set of exceptions used across the library.
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
     
@@ -33,3 +33,5 @@ module aermicioi.aedi.exception;
 public import aermicioi.aedi.exception.circular_reference_exception;
 public import aermicioi.aedi.exception.in_progress_exception;
 public import aermicioi.aedi.exception.not_found_exception;
+public import aermicioi.aedi.exception.invalid_cast_exception;
+public import aermicioi.aedi.exception.di_exception;

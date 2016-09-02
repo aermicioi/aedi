@@ -30,7 +30,7 @@ Authors:
 **/
 module aermicioi.aedi.exception.circular_reference_exception;
 
-import std.exception;
+import aermicioi.aedi.exception.di_exception;
 
 /**
 Exception denoting a circular dependency in DI container.
@@ -38,42 +38,28 @@ Exception denoting a circular dependency in DI container.
 Exception denoting a circular dependency in DI container.
 It is thrown when a DI gets an InProgressException, or it detected a circular dependency in other way.
 **/
-class CircularReferenceException : Exception {
+class CircularReferenceException : AediException {
     private {
-        string origMsg;
         string[] keys;
     }
     
     
     public {
         
-        @safe pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+        pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
         {
             super(msg, file, line, next);
         }
     
-        @safe pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+        pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
         {
             super(msg, file, line, next);
         }
         
         CircularReferenceException add(string key) {
-            
-            this.keys ~= key;
+            this.msg ~= " -> " ~ key;
             
             return this;
-        }
-        
-        override string toString() {
-            import std.array;
-            
-            string originalMsg = this.msg;
-//            this.msg ~= " " ~ join(this.msg, " -> ");
-            
-            auto result = super.toString();
-            this.msg = origMsg;
-            
-            return result;
         }
     }
 }

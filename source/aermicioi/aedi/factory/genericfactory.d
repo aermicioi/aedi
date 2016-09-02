@@ -30,7 +30,8 @@ Authors:
 **/
 module aermicioi.aedi.factory.genericfactory;
 
-import aermicioi.aedi.factory.factory;
+public import aermicioi.aedi.factory.factory;
+
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.exception.invalid_cast_exception;
@@ -114,7 +115,7 @@ interface GenericFactory(T : Object) : Factory {
         	Returns:
     			The GenericFactoryInstance
             **/
-            GenericFactory!T constructorFactory(InstanceFactory!T factory);
+            GenericFactory!T setConstructorFactory(InstanceFactory!T factory);
             
             /**
             Get the GenericFactory locator.
@@ -134,7 +135,7 @@ interface GenericFactory(T : Object) : Factory {
     	Returns:
     		The GenericFactoryInstance
         **/
-        GenericFactory!T propertyFactory(PropertyConfigurer!T configurer);
+        GenericFactory!T addPropertyFactory(PropertyConfigurer!T configurer);
     }
 }
 
@@ -203,7 +204,7 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
         
         @property {
             
-            GenericFactory!T constructorFactory(InstanceFactory!T factory) {
+            GenericFactory!T setConstructorFactory(InstanceFactory!T factory) {
                 this.factory_ = factory;
                 
                 return this;
@@ -219,7 +220,7 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
             }
         }
             
-        GenericFactory!T propertyFactory(PropertyConfigurer!T configurer) {
+        GenericFactory!T addPropertyFactory(PropertyConfigurer!T configurer) {
             
             this.configurers ~= configurer;
             
@@ -237,11 +238,7 @@ Implements a setter injection logic for a type T object and for property functio
 **/
 class MethodConfigurer(T, string property, Args...) : PropertyConfigurer!T, LocatorAware!()
 	if (
-	    hasMember!(T, property) &&
-        (__traits(getProtection, __traits(getMember, T, property)) == "public") &&
-        isSomeFunction!(__traits(getMember, T, property)) &&
-        (variadicFunctionStyle!(__traits(getMember, T, property)) == Variadic.no) &&
-        (Filter!(partialSuffixed!(isArgumentListCompatible, Args), MemberFunctionsTuple!(T, property)).length == 1)
+	    isObjectMethodCompatible!(T, property, Args)
     ) {
     
     private {
@@ -305,10 +302,7 @@ An implementation of InstanceFactory that uses T's constructor to construct a ne
 **/
 class ConstructorBasedFactory(T, Args...) : InstanceFactory!T, LocatorAware!()
 	if (
-	    hasMember!(T, "__ctor") &&
-	    (__traits(getProtection, __traits(getMember, T, "__ctor")) == "public") &&
-	    (variadicFunctionStyle!(__traits(getMember, T, "__ctor")) == Variadic.no) &&
-	    (Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor")).length == 1)
+	    isObjectConstructorCompatible!(T, Args)
 	) {
     
     private {
@@ -320,7 +314,7 @@ class ConstructorBasedFactory(T, Args...) : InstanceFactory!T, LocatorAware!()
     public {
         
         this(ref Args args) {
-            this.values = args;
+            this.values = tuple(args);
         }
         
         /**
@@ -372,24 +366,33 @@ class ConstructorBasedFactory(T, Args...) : InstanceFactory!T, LocatorAware!()
 }
 
 /**
-A simple callback factory implementation for now (to be improved in future).
+A callback based factory of objects.
 
+It accepts an delegate that is responsible to construct the object, and return it to the GenericFactory for further manipulation.
+A list of optional arguments are also possible to pass for delegate.
 **/
 class CallbackFactory(T, Args...) : InstanceFactory!T {
     
     private {
-        T delegate (Args) dg;
+        T delegate (Locator!(), Args) dg;
         Tuple!Args args;
+        Locator!() locator_;
     }
     
     public {
-        this(T delegate (Args) dg, ref Args args) {
+        this(T delegate (Locator!(), Args) dg, ref Args args) {
             this.dg = dg;
-            this.args = args;
+            this.args = tuple(args);
         }
         
         T factory() {
-            return this.dg(args);
+            return this.dg(this.locator_, args.expand);
+        }
+        
+        @property CallbackFactory!(T, Args) locator(Locator!() locator) {
+            this.locator_ = locator;
+            
+            return this;
         }
     }
 }
@@ -412,10 +415,10 @@ Params:
 Returns:
 	GenericFactory!T for which was set the ConstructorBasedFactory.
 **/
-auto constructor(T, Args...)(GenericFactory!T factory, Args args) {
+auto construct(T, Args...)(GenericFactory!T factory, Args args) {
     auto constr = new ConstructorBasedFactory!(T, Args)(args);
     constr.locator = factory.locator;
-    factory.constructorFactory = constr;
+    factory.setConstructorFactory = constr;
     
     return factory;
 }
@@ -434,24 +437,61 @@ Params:
 Returns:
 	GenericFactory!T for which was set the MethodConfigurer.
 **/
-auto method(string property, T, Args...)(GenericFactory!T factory, Args args) {
+auto set(string property, T, Args...)(GenericFactory!T factory, Args args) 
+    if (isObjectMethodCompatible!(T, property, Args)) {
     auto propertySetter = new MethodConfigurer!(T, property, Args)(args);
     propertySetter.locator = factory.locator;
-    factory.propertyFactory(propertySetter);
+    factory.addPropertyFactory(propertySetter);
     
     return factory;
 }
 
-auto autowire(alias ctor, T)(GenericFactory!T factory) 
-    if (__traits(identifier, ctor) == "__ctor") {
-    
-    return factory.constructor(staticMap!(toLref, Parameters!ctor));
+/**
+A convenient function that sets to generic factory, a CallbackFactory as object constructor for type T object.
+
+It accepts an delegate that is responsible to construct the object, and return it to the GenericFactory for further manipulation.
+A list of optional arguments are also possible to pass to delegate.
+
+Params:
+	factory = the factory in which to set the new ConstructorBasedFactory object.
+	dg = the delegate that is responsible for creating the object by factory.
+	args = the arguments that will be used to construct the new object.
+	
+Returns:
+	GenericFactory!T for which was set the ConstructorBasedFactory.
+**/
+auto fact(T, Args...)(GenericFactory!T factory, T delegate(Locator!(), Args) dg, Args args) {
+    auto constr = new CallbackFactory!(T, Args)(dg, args);
+    constr.locator = factory.locator;
+    factory.setConstructorFactory(constr);
+    return factory;
 }
 
-auto autowire(alias method, T)(GenericFactory!T factory) 
-    if (isSomeFunction!method && !(__traits(identifier, method) == "__ctor")) {
+/**
+A convenient function that automatically configures an object.
+
+This function if applied to T type, will alias itself to ConstructorBasedFactory with argument list from
+first method in overload set of __ctors.
+If applied to a method of T type, will alias itself to a MethodBasedFactory with argument list from first method in
+overload set of method function
+
+Params:
+    factory = GenericFactory where to inject the constructor or method configurer
     
-    return factory.method!(__traits(identifier, method))(staticMap!(toLref, Parameters!method));
+Return 
+    factory for further configuration
+**/
+auto autowire(T)(GenericFactory!T factory) 
+    if (getMembersWithProtection!(T, "__ctor", "public").length > 0) {
+    return factory.construct!(T)(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, "__ctor", "public")[0])));
+}
+
+/**
+ditto
+**/
+auto autowire(string member, T)(GenericFactory!T factory) 
+    if (getMembersWithProtection!(T, member, "public").length > 0) {
+    return factory.set!(member)(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, member, "public")[0])));
 }
 
 /**
@@ -484,6 +524,41 @@ template isArgumentListCompatible(alias func, ArgTuple...)
         }
     }
 }
+
+template isObjectConstructorCompatible(T, Args...) {
+    static assert(hasMember!(T, "__ctor"), identifier!T ~ " doesn't have any constructor to call.");
+    static assert(isProtection!(T, "__ctor", "public"), identifier!T ~ "'s constructor is not public.");
+    static assert(isSomeFunction!(__traits(getMember, T, "__ctor")), identifier!T ~ "'s constructor is not a function, probably a template.");
+    static assert(variadicFunctionStyle!(__traits(getMember, T, "__ctor")) == Variadic.no, identifier!T ~ "'s constructor is a variadic function. Only non-variadic constructors are supported.");
+    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor")).length == 1, "None, or multiple overloads found for " ~ identifier!T ~ "'s constructor with passed arguments.");
+    
+    auto isObjectConstructorCompatible() { 
+        return 
+            hasMember!(T, "__ctor") &&
+    	    isProtection!(T, "__ctor", "public") &&
+    	    isSomeFunction!(__traits(getMember, T, "__ctor")) &&
+    	    (variadicFunctionStyle!(__traits(getMember, T, "__ctor")) == Variadic.no) &&
+    	    (Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor")).length == 1);
+    }
+}
+
+template isObjectMethodCompatible(T, string method, Args...) {
+    static assert(hasMember!(T, method), identifier!T ~ "'s method" ~ method ~ " not found.");
+    static assert(isProtection!(T, method, "public"), identifier!T ~ "'s method " ~ method ~ " is not public");
+    static assert(isSomeFunction!(__traits(getMember, T, method)), identifier!T ~ "'s member " ~ method ~ " is not a function, probably a field, or a function.");
+    static assert(variadicFunctionStyle!(__traits(getMember, T, method)) == Variadic.no, identifier!T ~ "'s method " ~ method ~ "is variadic function. Only non-variadic methods are supported.");
+    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), MemberFunctionsTuple!(T, method)).length == 1, identifier!T ~ "'s " ~ method ~ " doesn't have overload matching passed arguments, or has several overloads that match.");
+    
+    auto isObjectMethodCompatible() {
+        return 
+            hasMember!(T, method) &&
+            isProtection!(T, method, "public") &&
+            isSomeFunction!(__traits(getMember, T, method)) &&
+            (variadicFunctionStyle!(__traits(getMember, T, method)) == Variadic.no) &&
+            (Filter!(partialSuffixed!(isArgumentListCompatible, Args), MemberFunctionsTuple!(T, method)).length == 1);
+    }
+}
+
 	
 private template isValueOfType(alias value, Type) {
     enum bool isValueOfType = is(typeof(value) == Type);
@@ -491,11 +566,4 @@ private template isValueOfType(alias value, Type) {
 
 private template isValueOfType(Value, Type) {
     enum bool isValueOfType = is(Value == Type);
-}
-
-private template toLref(Type) 
-    if (is(Type == class) || is(Type == interface)) {
-    auto toLref() {
-        return fullyQualifiedName!Type.lref;
-    }
 }

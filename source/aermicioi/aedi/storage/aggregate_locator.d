@@ -39,7 +39,7 @@ An implementation of AggregateLocator.
 **/
 class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = KeyType) : AggregateLocator!(Type, KeyType, LocatorKeyType) {
     
-    private {
+    protected {
         
         Locator!(Type, KeyType)[LocatorKeyType] locators;
     }
@@ -53,9 +53,11 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
         	key = key by which to identify the locator.
         	locator = the Locator that will be added to AggregateLocator
         **/
-        void add(LocatorKeyType key, Locator!(Type, KeyType) locator) {
+        AggregateLocatorImpl!(Type, KeyType, LocatorKeyType) set(LocatorKeyType key, Locator!(Type, KeyType) locator) {
             
             this.locators[key] = locator;
+            
+            return this;
         }
         
         /**
@@ -64,9 +66,11 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
         Params:
         	key = the identity of locator that should be removed.
         **/
-        void remove(LocatorKeyType key) {
+        AggregateLocatorImpl!(Type, KeyType, LocatorKeyType) remove(LocatorKeyType key) {
             
             this.locators.remove(key);
+            
+            return this;
         }
         
         /**
@@ -90,6 +94,10 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
                 }
             }
             
+            if ((identity in this.locators) !is null) {
+                return cast(Type) this.locators[identity];
+            }
+            
             throw new NotFoundException("Could not find an object with " ~ identity.to!string ~ " identity.");
         }
         
@@ -107,6 +115,10 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
         **/
         bool has(KeyType identity) inout {
             
+            if ((identity in this.locators) !is null) {
+                return true;
+            }
+            
             foreach (locator; this.locators) {
                 
                 if (locator.has(identity)) {
@@ -115,6 +127,32 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
             }
             
             return false;
+        }
+        
+        /**
+        Get a specific locator.
+        
+        Params:
+            key = the locator identity.
+        **/
+        Locator!(Type, KeyType) getLocator(LocatorKeyType key) {
+            
+            if (this.hasLocator(key)) {
+                return this.locators[key];
+            }
+            
+            throw new NotFoundException("Could not find any locator with identity of " ~ key);
+        }
+        
+        /**
+        Check if aggregate locator contains a specific locator.
+        
+        Params:
+        	key = the identity of locator in aggregate locator
+        **/
+        bool hasLocator(LocatorKeyType key) inout {
+            
+            return (key in this.locators) !is null;
         }
     }
 }

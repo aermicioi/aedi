@@ -1,5 +1,5 @@
 /**
-
+This module is a container for a set of templates that are used across library and aren't bound to some specific module.
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
     
@@ -335,5 +335,56 @@ public {
     
     template isReferenceType(Type) {
         enum bool isReferenceType = is(Type == class) || is(Type == interface);
+    }
+    
+    template getProtection(alias T, string member) {
+        
+        static if (__traits(compiles, __traits(getProtection, __traits(getMember, T, member)))) {
+            enum auto getProtection = __traits(getProtection, __traits(getMember, T, member));
+        } else {
+            enum auto getProtection = "private";
+        }
+    }
+
+    template getProtection(alias symbol) {
+        static if (__traits(compiles, __traits(getProtection, symbol))) {
+            enum auto getProtection = __traits(getProtection, symbol);
+        } else {
+            enum auto getProtection = "private";
+        }
+    }
+    
+    template isProtection(alias T, string member, string protection = "public") {
+        enum bool isProtection = getProtection!(T, member) == protection;
+    }
+    
+    template isProtection(T, string member, string protection = "public") {
+        enum bool isProtection = getProtection!(T, member) == protection;
+    }
+    
+    template isProtection(alias symbol, string protection) {
+        enum bool isProtection = getProtection!symbol == protection;
+    }
+    
+    template getMembersWithProtection(T, string member, string protection = "public") {
+        alias getMembersWithProtection = Filter!(
+            chain!(
+                eq!"public",
+                getProtection
+            ),
+            __traits(getOverloads, T, member)
+        );
+    }
+    
+    template StringOf(alias Symbol) {
+        enum auto StringOf = Symbol.stringof;
+    }
+    
+    template hasMembers(alias Symbol) {
+        enum bool hasMembers = __traits(compiles, __traits(allMembers, Symbol));
+    }
+    
+    template hasMembers(Symbol) {
+        enum bool hasMembers = __traits(compiles, __traits(allMembers, Symbol));
     }
 }

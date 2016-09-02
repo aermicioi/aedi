@@ -1,4 +1,5 @@
 /**
+This module provides api based configuration of instantiators.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
@@ -30,6 +31,8 @@ Authors:
 **/
 module aermicioi.aedi.configurer.configurer;
 
+public import aermicioi.aedi.factory.factory : lref;
+
 import aermicioi.aedi.configurer.configurer;
 import aermicioi.aedi.instantiator.instantiator;
 import aermicioi.aedi.storage.storage;
@@ -37,47 +40,15 @@ import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory;
 import aermicioi.aedi.factory.genericfactory;
 import aermicioi.util.traits : isReferenceType;
+import aermicioi.aedi.exception;
 
 import std.traits : fullyQualifiedName;
-
-/**
-A convenience structure that constructs GenericFactory implementations using predefined service locator, and stores it in a factory storage
-(i.e. a DI container).
-**/
-struct Registerer {
-    
-    private {
-        Locator!(Object, string) serviceLocator;
-    }
-    
-    public {
-        
-        Storage!(Factory, string) _factoryStorage;
-        alias _factoryStorage this;
-        
-        this(Storage!(Factory, string) storage, Locator!(Object, string) locator) {
-            this._factoryStorage = storage;
-            this.serviceLocator = locator;
-        }
-        
-        auto register(Type)() {
-        	return _factoryStorage.register!Type(serviceLocator);
-        }
-        
-        auto register(Type)(string id) {
-            return _factoryStorage.register!Type(serviceLocator, id);
-        }
-        
-        auto register(Interface, Type)() {
-            return _factoryStorage.register!(Interface, Type);
-        }
-    }
-}
 
 /**
 Register a new factory for type T object into storage/DI container by id.
 
 Params:
+    Type = the type of object registered in storage
 	storage = the storage where factory will be stored.
 	locator = the locator that will be used by GenericFactory implementation to fetch required objects.
 	id = the identity by which to register the factory in storage.
@@ -85,8 +56,7 @@ Params:
 Returns:
 	GenericFactory implementation for further configuration.
 **/
-auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator, string id)
-    if (isReferenceType!Type) {
+auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator, string id) {
     auto fact = new GenericFactoryImpl!Type(locator);
     storage.set(id, fact);
     return fact;
@@ -95,23 +65,22 @@ auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) 
 /**
 ditto
 **/
-auto register(Type)(ConfigurableInstantiator storage, string id)
-    if (isReferenceType!Type) {
+auto register(Type)(ConfigurableInstantiator storage, string id) {
     return register!Type(storage, storage, id);
 }
 
 /**
-Register a new factory for type T object into storage/DI container by it's fully qualified name.
+Register a new factory for type Type object into storage/DI container by it's fully qualified name.
 
 Params:
+    Type = the type of object registered in storage
 	storage = the storage where factory will be stored.
 	locator = the locator that will be used by GenericFactory implementation to fetch required objects.
 	
 Returns:
 	GenericFactory implementation for further configuration.
 **/
-auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator)
-    if (isReferenceType!Type) {
+auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator) {
     auto fact = new GenericFactoryImpl!Type(locator);
     storage.set(fullyQualifiedName!Type, fact);
     return fact;
@@ -120,8 +89,7 @@ auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) 
 /**
 ditto
 **/
-auto register(Type)(ConfigurableInstantiator storage)
-    if (isReferenceType!Type) {
+auto register(Type)(ConfigurableInstantiator storage) {
     return register!Type(storage, storage);
 }
 
@@ -129,6 +97,8 @@ auto register(Type)(ConfigurableInstantiator storage)
 Register a new factory for type T object into storage/DI container by Interface fully qualified name.
 
 Params:
+    Type = the type of object registered in storage
+    Interface = interface implemented by object registered in storage
 	storage = the storage where factory will be stored.
 	locator = the locator that will be used by GenericFactory implementation to fetch required objects.
 	
@@ -145,68 +115,115 @@ auto register(Interface, Type)(Storage!(Factory, string) storage, Locator!(Objec
 /**
 ditto
 **/
-auto register(Interface, Type)(ConfigurableInstantiator storage)
-    if (isReferenceType!Type) {
+auto register(Interface, Type)(ConfigurableInstantiator storage) {
     return register!(Interface, Type)(storage, storage);
 }
 
 /**
-Register an object into an object storage.
+Register an object into a storage by storageId located in storageLocator.
 
 Params:
-    storage = the storage in which to contain the object
-    object = the actual object contained
-    id = the identity of object, used to extract it from container.
+    Type = the type of object registered in storage
+    storageLocator = locator containing the storage where to store object.
+    locator = locator used to fetch dependencies for registered object
+    id = the id of object registered in storage
+    storageId = the id of storage where object is stored.
+    
+Throws:
+    NotFoundException when storage with storageId is not found.
     
 Returns:
-    The storage instance that was object saved.
+    storageLocator for further configuration
 **/
-auto register(Type)(Storage!(Object, string) storage, Type object, string id) 
-    if (isReferenceType!Type) {
+auto register(Type, R : Locator!())(R storageLocator, Locator!() locator, string id, string storageId = "singleton") 
+    if (!is(R : Storage!(Factory, string))) {
+    import std.algorithm;
+
+    Object storageObj;
+    try {
+        
+        foreach (identity; storageId.splitter('.')) {
+            storageObj = storageLocator.get(identity);
+        }
+        
+        auto storage = cast(Storage!(Factory, string)) storageObj;
+        if (storage !is null) {
+            
+            return storage.register!(Type)(locator, id);
+        }
+    } catch (NotFoundException e) {
+        
+    }
     
-    storage.set(id, object);
-    return storage;
+    throw new NotFoundException("Could not find a storage with id " ~ storageId);
+}
+    
+/**
+ditto
+**/
+auto registerInto(Type, R : Locator!())(R storageLocator, Locator!() locator, string storageId = "singleton") 
+    if (!is(R : Storage!(Factory, string))) {
+    
+    return storageLocator.register!Type(locator, fullyQualifiedName!Type, storageId);
 }
 
 /**
-Register an object into an object storage identified by it's type.
-
-Params:
-    storage = the storage in which to contain the object
-    object = object to be saved
-    
-Returns:
-    The storage instance were object was saved.
+ditto
 **/
-auto register(Type)(Storage!(Object, string) storage, Type object) 
-    if (isReferenceType!Type) {
+auto register(Type, R : Locator!())(R locator, string id, string storageId = "singleton") 
+    if (!is(R : Storage!(Factory, string))) {
     
-    return storage.register!Type(object, fullyQualifiedName!Type);
+    return locator.register!Type(locator, id, storageId);
+}
+    
+/**
+ditto
+**/
+auto registerInto(Type, R : Locator!())(R locator, string storageId = "singleton") 
+    if (!is(R : Storage!(Factory, string))) {
+    
+    return locator.registerInto!Type(locator, storageId);
 }
 
 /**
-Register an object into an object storage by implemented interface.
+Register an object into a storage by storageId located in storageLocator with id being FQN of an Interface that object implements.
 
 Params:
-    storage = the storage in which to contain the object
-    object = the object to be saved.
+    Interface = interface that object implements
+    Type = the type of object registered in storage
+    storageLocator = locator containing the storage where to store object.
+    locator = locator used to fetch dependencies for registered object
+    storageId = the id of storage where object is stored.
+    
+Throws:
+    NotFoundException when storage with storageId is not found.
     
 Returns:
-    The storage instance were object was saved.
+    storageLocator for further configuration
 **/
-auto register(Interface, Type)(Storage!(Object, string) storage, Type object) 
-    if (is(Type : Interface) && isReferenceType!Type) {
-    
-    return storage.register!Type(object, fullyQualifiedName!Interface);
+auto register(Interface, Type, R : Locator!())(R storageLocator, Locator!() locator, string storageId = "singleton") 
+    if (!is(R : Storage!(Factory, string))) {
+        
+    return storageLocator.register!Type(locator, fullyQualifiedName!Interface, storageId);
 }
 
+/**
+ditto
+**/
+auto register(Interface, Type, R : Locator!())(R locator, string storageId = "singleton") 
+    if (!is(R : Storage!(Factory, string))) {
+        
+    return locator.register!Type(locator, fullyQualifiedName!Interface, storageId);
+}
 
 /**
-Register value type data into an object storage.
+Register data into an object storage.
 
-Wraps up any copy-by-value data into an object, and saves it into storage.
+Wraps up any already instantiated data that is not reference type into an object, and saves it into storage.
+Any data that is of reference type is just saved in storage
 
 Params:
+    Type = the type of object registered in storage
     storage = the storage were data is saved
     data = actual data to be saved
     id = the identity of data that is to be saved.
@@ -214,28 +231,95 @@ Params:
 Returns:
     the storage were data was saved.
 **/
-auto register(Type)(Storage!(Object, string) storage, Type data, string id)
-    if(!isReferenceType!Type) {
+auto register(Type)(Storage!(Object, string) storage, Type data, string id) {
     import aermicioi.aedi.storage.wrapper : Wrapper;
     
-    auto wrapper = new Wrapper!Type(data);
-    storage.set(id, wrapper);
+    static if (!isReferenceType!Type) {
+        
+        auto wrapper = new Wrapper!Type(data);
+        storage.set(id, wrapper);
+    } else {
+        
+        storage.set(id, data);
+    }
+    
     return storage;
 }
 
 /**
-Register value type data inta a object storage identified by it's type.
+Register data inta a object storage identified by it's type.
 
 Wraps up any copy-by-value data into an object, and saves it into storage by it's type.
 
 Params:
+    Type = the type of object registered in storage
     storage = the storage were data is saved
     data = actual data to be saved
 
 Returns:
     the storage were data was saved.
 **/
-auto register(Type)(Storage!(Object, string) storage, Type data)
-    if (!isReferenceType!Type) {
+auto register(Type)(Storage!(Object, string) storage, Type data) {
     return storage.register(data, fullyQualifiedName!Type);
+}
+
+/**
+Register data into an object storage identified by implemented interface.
+
+Wraps up any copy-by-value data into an object, and saves it into storage by it's type.
+
+Params:
+    Interface = interface that object implements
+    Type = the type of object registered in storage
+    storage = the storage were data is saved
+    data = actual data to be saved
+
+Returns:
+    the storage were data was saved.
+**/
+auto register(Interface, Type)(Storage!(Object, string) storage, Type data) {
+    return storage.register(data, fullyQualifiedName!Interface);
+}
+
+/**
+Register data into an object storage located in locator by storageId.
+
+Params:
+    Type = the type of object registered in storage
+    locator = locator containing object storage were data is saved.
+    data = the actual data saved in storage
+    id = the id by which data will be identified
+    storageId = identity of storage in locator
+**/
+auto register(Type, R : Locator!())(R locator, Type data, string id, string storageId = "parameters")
+    if (!is(R : Storage!(Object, string))) {
+    import aermicioi.aedi.storage.wrapper : Wrapper;
+
+    auto storage = locator.locate!(Storage!(Object, string))(storageId);
+    
+    if (storage !is null) {
+        
+        storage.register!Type(data, id);
+        
+        return locator;
+    }
+    
+    throw new NotFoundException("Could not find storage for already instantiated data by id " ~ storageId);
+}
+
+/**
+ditto
+**/
+auto registerInto(Type, R : Locator!())(R locator, Type data, string storageId = "parameters")
+    if (!is(R : Storage!(Object, string))) {
+    
+    return locator.register(data, fullyQualifiedName!Type, storageId);
+}
+
+/**
+ditto
+**/
+auto register(Interface, Type, R : Locator!())(R storage, Type object, string storageId = "parameters") 
+    if (is(Type : Interface) && !is(R : Storage!(Object, string))) {
+    return storage.register!Type(object, fullyQualifiedName!Interface, storageId);
 }

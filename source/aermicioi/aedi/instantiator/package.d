@@ -1,4 +1,20 @@
 /**
+Defines interface for objects that are able to instantiate and manage lifetime for
+instantiated objects. Provides a singleton, and prototype implementation of defined
+interface.
+
+The main task of an instantiator container, is to manage the lifetime of 
+objects contained in them. Therefore they can manage when an object registered
+is created, how much it lives, and when it dies. This package provides containers 
+for managed objects (singleton, and prototype for now). Singleton container
+instantiates all registered objects at once, and keeps them alive until it itself
+is destroyed/collected by garbage collector. Prototype on other hand, just creates
+them and leave management of created objects to the rest of application.
+
+See:
+$(UL
+    $(LI instantiator.d -> contains the interfaces for instantiators. )
+    )
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
@@ -33,3 +49,4 @@ module aermicioi.aedi.instantiator;
 public import aermicioi.aedi.instantiator.instantiator;
 public import aermicioi.aedi.instantiator.prototype_instantiator;
 public import aermicioi.aedi.instantiator.singleton_instantiator;
+public import aermicioi.aedi.instantiator.application_instantiator;

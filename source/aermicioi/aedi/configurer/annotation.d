@@ -1,4 +1,5 @@
 /**
+This module implements annotation based configuration of instantiators.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
@@ -30,88 +31,989 @@ Authors:
 **/
 module aermicioi.aedi.configurer.annotation;
 
+public import aermicioi.aedi.factory.factory : lref;
+
 import aermicioi.aedi.configurer.configurer;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.instantiator.instantiator;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.genericfactory;
+import aermicioi.aedi.exception;
 import aermicioi.util.traits;
 
 import std.traits;
 import std.meta;
 import std.typecons;
 import std.conv : to;
+import std.algorithm;
 
-struct Component(T) {
-    
-    auto factory() {
-        return new GenericFactoryImpl!T;
+/**
+Annotation used to denote an instantiatable object that should be stored into an instantiator.
+
+A simple alias to original struct to conform to functional style below (Since type inferring is not required no need to define a function for it).
+**/
+alias component = Component;
+
+/**
+Annotation used to mark constructor or method for auto wiring.
+
+A simple alias to original struct to conform to functional style below (Since type inferring is not required no need to define a function for it).
+Marking a method/constructor with autowired annotation will make instantiator to call it with arguments fetched from
+locator by types of them.
+
+Note: even if a method/constructor from an overloaded set is marked with autowired annotation, the first method from overload set
+will be used. Due to that autowired annotation is recommended to use on methods/constrcutors that are not overloaded.
+
+**/
+alias autowired = Autowired;
+
+/**
+Annotation used to denote an instantiatable object that should be stored into an instantiator.
+**/
+struct Component {
+    GenericFactory!T factory(T)(Locator!() locator) {
+        return new GenericFactoryImpl!(T)(locator);
     }
 }
 
-struct Constructor(T...) {
-    Tuple!T args;
+/**
+Annotation used to mark a constructor to be used for instantiating of it (constructor injection).
+
+Params:
+    Args = tuple of argument types for arguments to be passed into a constructor.
+**/
+struct Constructor(Args...) {
+    Tuple!Args args;
     
-    this(ref T args) {
+    this(Args args) {
         this.args = args;
     }
     
-    auto factory(T)(GenericFactory!T factory) {
-        factory.constructor(args);
+    InstanceFactory!T factoryInstantiator(T, string property)(Locator!() locator) {
+        auto constructor = new ConstructorBasedFactory!(T, Args)(args.expand);
+        constructor.locator = locator;
         
-        return factory;
+        return constructor;
+        
     }
 }
 
-struct Method(T...) {
-    Tuple!T args;
+/**
+Annotation used to mark a method to be called to configure instantiated object by instantiator (setter injection).
+
+Note: if an overloaded method is annotated with Setter, the method from overload set that matches argument list in Setter annotation 
+will be called.
+
+Params:
+    Args = the argument types of arguments passed to method
+**/
+struct Setter(Args...) {
+    Tuple!Args args;
     
-    this(ref T args) {
+    this(Args args) {
         this.args = args;
     }
     
-    auto factory(T)(GenericFactory!T factory) {
-        factory.method(args);
+    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator) {
+        auto method = new MethodConfigurer!(T, method, Args)(args.expand);
+        method.locator = locator;
         
-        return factory;
+        return method;
     }
 }
 
-private template canDeclareFactory(T) {
-    enum bool canDeclareFactory = 
-    hasMember!(T, "factory") && 
-    isProtection!(T, "factory", "public") &&
-    (MemberFunctionsTuple!(T, "factory").length == 1) &&
-    (variadicFunctionStyle!(getMember!(T, "factory")) == Variadic.no) &&
-    (arity!(getMember!(T, "factory")) == 0) &&
-    is(ReturnType!(getMember!(T, "factory")) : GenericFactory!T, T);
+/**
+Annotation used to mark constructor or method for auto wiring.
+
+Marking a method/constructor with autowired annotation will make instantiator to call it with arguments fetched from
+locator by types of them.
+
+Note: even if a method/constructor from an overloaded set is marked with autowired annotation, the first method from overload set
+will be used. Due to that autowired annotation is recommended to use on methods/constrcutors that are not overloaded.
+
+**/
+struct Autowired {
+    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator) {
+        
+        alias params = Parameters!(__traits(getOverloads, T, method)[0]);
+        auto references = tuple(staticMap!(toLref, params));
+        
+        auto method = new MethodConfigurer!(T, method, staticMap!(toLrefType, params))(references.expand);
+        method.locator = locator;
+        
+        return method;
+    }
+    
+    PropertyConfigurer!T factoryInstantiator(T)(Locator!() locator) {
+        
+        alias params = Parameters!(__traits(getOverloads, T, "__ctor")[0]);
+        auto references = tuple(staticMap!(toLref, params));
+        
+        auto method = new ConstructorBasedFactory!(T, staticMap!(toLrefType, params))(references.expand);
+        method.locator = locator;
+        
+        return method;
+    }
 }
 
-private template canFactoryInstance(T) {
-    // TODO
+/**
+An annotation used to provide custom identity for an object in instantiator.
+**/
+struct Qualifier {
+    string id;
 }
 
-private template canConfigureInstance(T) {
-    // TODO
+/**
+When objects are registered into an aggregate instantiator, this annotation marks in which sub-instantiator it is required to store.
+**/
+struct Instantiator {
+    string id;
 }
 
-private template isValue(Z, Z t) {
-    enum bool isValue = true;
+/**
+Annotation used to mark a constructor to be used for instantiating of it (constructor injection).
+
+This function is a convenince function to automatically infer required types for underlying annotation.
+
+Params:
+    Args = tuple of argument types for arguments to be passed into a constructor.
+    args = tuple of arguments to be passed into a constructor.
+**/
+auto constructor(Args...)(Args args) {
+    return Constructor!Args(args);
+}
+
+/**
+Annotation used to mark a method to be called to configure instantiated object by instantiator (setter injection).
+
+This function is a convenince function to automatically infer required types for underlying annotation.
+Note: if an overloaded method is annotated with Setter, the method from overload set that matches argument list in Setter annotation 
+will be called.
+
+Params:
+    Args = the argument types of arguments passed to method
+    args = the arguments passed to method
+**/
+auto setter(Args...)(Args args) {
+    return Setter!Args(args);
+}
+
+/**
+An annotation used to provide custom identity for an object in instantiator.
+
+This function is a convenince function to automatically infer required types for underlying annotation.
+
+Params:
+    id = identity of object in instantiator
+**/
+auto qualifier(string id) {
+    return Qualifier(id);
+}
+
+/**
+An annotation used to provide custom identity for an object in instantiator by some interface.
+
+This function is a convenince function to automatically infer required types for underlying annotation.
+
+Params:
+    I = identity of object in instantiator
+**/
+auto qualifier(I)()
+    if (is(I == interface) || is(I == class)) {
+    return Qualifier(fullyQualifiedName!I);
+}
+
+/**
+When objects are registered into an aggregate instantiator, this annotation marks in which sub-instantiator it is required to store.
+
+This function is a convenince function to automatically infer required types for underlying annotation.
+
+Params:
+    id = identity of instantiator where to store the object.
+**/
+auto instantiator(string id) {
+    return Instantiator(id);
+}
+
+/**
+Register an object into storage using annotations provided in it.
+
+An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    T = type of object to be registered
+    storage = the storage where to register the object
+    locator = the locator used to find object dependencies
+    id = identity by which object will be stored in storage
+**/
+auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator, string id)
+    if (is(T == class)) {
+    auto factory = componentScanImpl!T(locator);
+    
+    alias SubComponents = staticMap!(
+        partialPrefixed!(
+            getMember,
+            T
+        ),
+        Filter!(
+            templateAnd!(
+                partialPrefixed!(
+                    partialSuffixed!(
+                        isProtection,
+                        "public"
+                    ),
+                    T
+                ),
+                chain!(
+                    isType,
+                    partialPrefixed!(
+                        getMember,
+                        T
+                    )
+                ),
+                chain!(
+                    isClass,
+                    partialPrefixed!(
+                        getMember,
+                        T
+                    )
+                )
+            ),
+            __traits(allMembers, T)
+        )
+    );
+    
+    static if (SubComponents.length > 0) {
+        storage.componentScan!SubComponents(locator);
+    }
+    
+    if (factory !is null) {
+        storage.set(id, factory);
+    }
+    
+    return storage;
+}
+
+/**
+Register an object into storage by it's type FQN using annotations provided in it.
+
+An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    T = type of object to be registered
+    storage = the storage where to register the object
+**/
+auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator)
+    if (is(T == class)) {
+        
+    alias qualifiers = Filter!(isQualifier, allUDAs!T);
+
+    static if (qualifiers.length > 0) {
+        return storage.storage.componentScan!T(locator, qualifiers[0].id);
+    } else {
+        return storage.componentScan!T(locator, fullyQualifiedName!T);
+    }
+}
+
+/**
+ditto
+**/
+auto componentScan(T)(ConfigurableInstantiator storage)
+    if (is(T == class)) {
+    
+    return storage.componentScan!T(storage);
+}
+
+/**
+Register an object into storage by I's interface FQN that it implements using annotations provided in it.
+
+An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    I = the inteface that object implements.
+    T = type of object to be registered
+    storage = the storage where to register the object
+**/
+auto componentScan(I, T)(Storage!(Factory, string) storage, Locator!() locator)
+    if (is(I == interface) && is(T == class) && is(T : I)) {
+    
+    alias qualifiers = Filter!(
+        isQualifier,
+        allUDAs!I
+    );
+    
+    static if (qualifiers.length > 0) {
+        return storage.componentScan!T(locator, qualifier[0].id);
+    } else {
+        return storage.componentScan!T(locator, fullyQualifiedName!I);
+    }
+}
+
+/**
+ditto
+**/
+auto componentScan(I, T)(ConfigurableInstantiator storage)
+    if (is(I == interface) && is(T == class) && is(T : I)) {
+    
+    return storage.componentScan!(I, T)(storage);
+}
+
+/**
+Register a set of objects by it's type, or implemented interface into a storage.
+
+When registering an object by it's interface, next to interface it is required to specify the original type of object.
+Note: An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    I = the inteface that object implements.
+    T = type of object to be registered
+    storage = the storage where to register the object
+**/
+auto componentScan(T, V...)(Storage!(Factory, string) storage, Locator!() locator)
+    if (is(T == class)) {
+    storage.componentScan!T(locator);
+    
+    return storage.componentScan!V(locator);
+}
+
+/**
+ditto
+**/
+auto componentScan(T, V...)(ConfigurableInstantiator storage)
+    if (is(T == class)) {
+    
+    return storage.componentScan!(T, V)(storage);
+}
+    
+/**
+ditto
+**/
+auto componentScan(I, T, V...)(Storage!(Factory, string) storage, Locator!() locator)
+    if (is(I == interface) && is(T == class) && is(T : I)) {
+    storage.componentScan!(I, T)(locator);
+
+    return storage.componentScan!(V)(locator);
+}
+
+/**
+ditto
+**/
+auto componentScan(I, T, V...)(ConfigurableInstantiator storage)
+    if (is(I == interface) && is(T == class) && is(T : I)) {
+    
+    return storage.componentScan!(I, T, V)(storage);
+}
+
+/**
+Scan a module and register all public objects that are annotated with @component annotation.
+
+Note: An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    Module = module to scan for components.
+    storage = the storage where to register the object
+    locator = the locator used to fetch registered object's dependencies.
+**/
+auto componentScan(alias Module)(Storage!(Factory, string) storage, Locator!() locator) 
+    if (startsWith(Module.stringof, "module ")) {
+    
+    alias components = staticMap!(
+        partialPrefixed!(
+            getMember,
+            Module
+        ),
+        Filter!(
+            templateAnd!(
+                partialSuffixed!(
+                    partialPrefixed!(
+                        isProtection,
+                        Module
+                    ),
+                    "public"
+                ),
+                chain!(
+                    isType,
+                    partialPrefixed!(
+                        getMember,
+                        Module
+                    )
+                ),
+                chain!(
+                    isClass,
+                    partialPrefixed!(
+                        getMember,
+                        Module
+                    )
+                )
+            ),
+            __traits(allMembers, Module)
+        )
+    );
+    
+    storage.componentScan!components(locator);
+    
+    return storage;
+}
+
+/**
+ditto
+**/
+auto componentScan(alias M)(ConfigurableInstantiator storage)
+    if (startsWith(M.stringof, "module")) {
+    
+    return storage.componentScan!(M)(storage);
+}
+
+/**
+Scan a set of modules and register all public objects that are annotated with @component annotation.
+
+Due to limitations of D language currently it is impossible to recursively scan all public imports of a module to register all 
+depencies of a package. Each particular module should be specified in order to register dependencies.
+Note: An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    M = current module to scan.
+    V = rest set of modules waiting for scan.
+    storage = the storage where to register the object
+    locator = the locator used to fetch registered object's dependencies.
+**/
+auto componentScan(alias M, V...)(Storage!(Factory, string) storage, Locator!() locator)
+    if (startsWith(M.stringof, "module")) {
+    storage.componentScan!M(locator);
+    return storage.componentScan!V(locator);
+}
+
+/**
+ditto
+**/
+auto componentScan(alias M, V...)(ConfigurableInstantiator storage)
+    if (startsWith(M.stringof, "module")) {
+    
+    return storage.componentScan!(M, V)(storage);
+}
+
+/**
+Register an object into a storage contained in storageLocator and identified by @instantiator annotation using annotations provided in it.
+
+An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    T = type of object to be registered
+    storageLocator = the locator from which to fetch storage for object
+    locator = locator used to find dependencies for object
+    id = identity by which object will be stored in storage
+**/
+auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator, string id) 
+    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    
+    alias instantiators = Filter!(
+        isInstantiator,
+        allUDAs!T
+    );
+    
+    static if (instantiators.length > 0) {
+        string storageId = instantiators[0].id;
+    } else {
+        string storageId = "singleton";
+    }
+    
+    auto storage = storageLocator.locate!(Storage!(Factory, string))(storageId);
+    
+    if (storage !is null) {
+        
+        storage.componentScan!T(locator, id);
+    } else {
+        
+        throw new NotFoundException("Could not find storage to save factory for object of identity " ~ id);
+    }
+    
+    return storageLocator;
+}
+
+/**
+ditto
+**/
+auto componentScan(T, R : Locator!())(R locator, string id)
+    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    return locator.componentScan!T(locator, id);
+}
+
+/**
+ditto
+**/
+auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator)
+    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    
+    alias qualifiers = Filter!(
+        isQualifier,
+        allUDAs!T
+    );
+    
+    static if (qualifiers.length > 0) {
+        return storageLocator.componentScan!T(locator, qualifiers[0].id);
+    } else {
+        return storageLocator.componentScan!T(locator, fullyQualifiedName!T);
+    }
+}
+
+/**
+ditto
+**/
+auto componentScan(T, R : Locator!())(R locator)
+    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    return locator.componentScan!T(locator);
+}
+
+/**
+ditto
+**/
+template componentScan(T, V...)
+    if(is (T == class) && (V.length > 0)) {
+        
+    /**
+    ditto
+    **/
+    auto componentScan(R : Locator!())(R storageLocator, Locator!() locator) 
+        if (!is(R : Storage!(Factory, string))) {
+        .componentScan!T(storageLocator, locator);
+        
+        return .componentScan!V(storageLocator, locator);
+    }
+    
+    /**
+    ditto
+    **/
+    auto componentScan(R : Locator!())(R locator) 
+        if (!is(R : Storage!(Factory, string))) {
+        .componentScan!T(locator, locator);
+        
+        return .componentScan!V(locator, locator);
+    }
+}
+
+/**
+Register an object into a storage contained in storageLocator and identified by @instantiator annotation using annotations provided in it.
+
+An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    I = interface implemented by object, by which to register it.
+    T = type of object to be registered
+    storageLocator = locator used to find storage for object
+    locator = locator used to find dependencies for object
+**/
+auto componentScan(I, T, R : Locator!())(R storageLocator, Locator!() locator)
+    if (is (I == interface) && is (T == class) && is (T : I) && !is(R : Storage!(Factory, string))) {
+    alias qualifiers = Filter!(
+        isQualifier,
+        allUDAs!I
+    );
+    
+    static if (qualifiers.length > 0) {
+        return storageLocator.componentScan!T(locator, qualifiers[0].id);
+    } else {
+        return storageLocator.componentScan!T(locator, fullyQualifiedName!I);
+    }
+}
+
+/**
+ditto
+**/
+auto componentScan(I, T, R : Locator!())(R locator)
+    if (is (I == interface) && is (T == class) && is (T : I) && !is(R : Storage!(Factory, string))) {
+    
+    return locator.componentScan!(I, T)(locator);
+}
+
+/**
+ditto
+**/
+template componentScan(I, T, V...) 
+    if (is (I == interface) && is (T == class) && is (T : I) && (V.length > 0)) {
+        
+    /**
+    ditto
+    **/
+    auto componentScan(R : Locator!())(R storageLocator, Locator!() locator)
+        if (!is(R : Storage!(Factory, string))) {
+
+        .componentScan!(I, T)(storageLocator, locator);
+        
+        return .componentScan!(V)(storageLocator, locator);
+    }
+
+    /**
+    ditto
+    **/
+    auto componentScan(R : Locator!())(R locator)
+        if (!is(R : Storage!(Factory, string))) {
+        
+        .componentScan!(I, T)(locator);
+        
+        return .componentScan!(V)(locator);
+    }
+}
+
+/**
+Register module's objects into a storage contained in storageLocator and identified by @instantiator annotation using annotations provided in it.
+
+An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
+annotation is found, object is not registered in storage.
+
+Params:
+    M = module to scan for instantiable objects.
+    storageLocator = locator used to find storage for objects
+    locator = locator used to find object dependencies
+**/
+auto componentScan(alias M, R : Locator!())(R storageLocator, Locator!() locator) 
+    if (M.stringof.startsWith("module ") && !is(R : Storage!(Factory, string)))  {
+    
+    alias components = getPossibleComponents!M;
+    
+    storageLocator.componentScan!components(locator);
+    
+    return storageLocator;
+}
+
+/**
+ditto
+**/
+auto componentScan(alias M, R : Locator!())(R locator) 
+    if (M.stringof.startsWith("module ") && !is(R : Storage!(Factory, string)))  {
+    
+    locator.componentScan!M(locator);
+    
+    return locator;
+}
+
+/**
+ditto
+**/
+template componentScan(alias M, V...) 
+    if (M.stringof.startsWith("module ") && (V.length > 0)) {
+        
+    /**
+    ditto
+    **/
+    auto componentScan(R : Locator!())(R locatorStorage, Locator!() locator)
+        if (!is(R : Storage!(Factory, string))) {
+        
+        .componentScan!M(locatorStorage, locator);
+        return .componentScan!V(locatorStorage, locator);
+    }
+        
+    /**
+    ditto
+    **/
+    auto componentScan(R : Locator!())(R locator)
+        if (!is(R : Storage!(Factory, string))) {
+        
+        .componentScan!M(locator);
+        return .componentScan!V(locator);
+    }
+}
+
+/**
+Checks if a structure has factory method for GenericFactory.
+
+This static interface is used by annotation system to identify annotations that mark an object as instantiable by instantiator.
+The @component annotation is such a structure that implements this static interface and therefore it is possible to use it to 
+mark components instantiable. A "@component" annotation must have a factory method that returns a GenericFactory instance that
+further will be used to configure an instantiable object. In such a way it is possbile to define other custom annotations that
+return GenericFactory implementations that add/or behave differrently comparing to default implementation of GenericFactory.
+
+Examples:
+--------------------
+    struct Component {
+        GenericFactory!T factory(T)(Locator!() locator) {
+            return new GenericFactoryImpl!(T)(locator);
+        }
+    }
+--------------------
+Params:
+    T = the structure to be tested for interface compatibility
+    Z = the type of object that T has to instantiate
+    
+Returns:
+    true in case of structure implementing static interface, false otherwise.
+**/
+template canFactoryGenericFactory(alias T, Z) 
+    if (!isTemplate!T) {
+    alias canFactoryGenericFactory = canFactoryGenericFactory!(typeof(T), Z);
+}
+
+/**
+ditto
+**/
+template canFactoryGenericFactory(T, Z)
+    if (isAggregateType!T) {
+    static if (hasMember!(T, "factory")) {
+        alias factory = getMember!(T, "factory");
+        
+        enum bool canFactoryGenericFactory = is(ReturnType!(factory!Z) : GenericFactory!Z);
+    } else {
+        
+        enum bool canFactoryGenericFactory = false;
+    }
+}
+
+/**
+Checks if a structure has factoryInstantiator method for InstanceFactory.
+
+This static interface is used to find annotations that can provide a InstanceFactory for GenericFactory to be used by it to instantiate
+the object. The @constructor annotation implements this annotation and therefore it is possible to use it to mark a constructor to be used
+for object construction. Any annotation implementing this interface can be used by annotation system to configure objects.
+
+Examples:
+--------------------
+    struct Constructor(Args...) {
+        Tuple!Args args;
+        
+        this(Args args) {
+            this.args = args;
+        }
+        
+        InstanceFactory!T factoryInstantiator(T, string property)(Locator!() locator) {
+            auto constructor = new ConstructorBasedFactory!(T, Args)(args.expand);
+            constructor.locator = locator;
+            
+            return constructor;
+            
+        }
+    }
+--------------------
+Params:
+    T = the structure to be tested for interface compatibility
+    Z = the type of object that T has to instantiate
+    
+Returns:
+    true in case of structure implementing static interface, false otherwise.
+**/
+template canFactoryInstanceFactory(alias T, Z, string property = "__ctor") {
+    alias canFactoryInstanceFactory = canFactoryInstanceFactory!(typeof(T), Z, property);
+}
+
+/**
+ditto
+**/
+template canFactoryInstanceFactory(T, Z, string property = "__ctor") {
+    static if (hasMember!(T, "factoryInstantiator")) {
+        alias factory = getMember!(T, "factoryInstantiator");
+        
+        enum bool canFactoryInstanceFactory = is(ReturnType!(factory!(Z, property)) : InstanceFactory!Z);
+    } else {
+        
+        enum bool canFactoryInstanceFactory = false;
+    }
+}
+
+/**
+Checks if a structure has factoryConfigurer method for PropertyConfigurer.
+
+This static interface is used to find annotations that can provide a PropertyConfigurer for GenericFactory to be used by it to configure
+the object. The @setter annotation implements this annotation and therefore it is possible to use it to mark a setter to be used
+for object construction. Any annotation implementing this interface can be used by annotation system to configure objects.
+
+Examples:
+--------------------
+    struct Setter(Args...) {
+        Tuple!Args args;
+        
+        this(Args args) {
+            this.args = args;
+        }
+        
+        PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator) {
+            auto method = new MethodConfigurer!(T, method, Args)(args.expand);
+            method.locator = locator;
+            
+            return method;
+        }
+    }
+--------------------
+Params:
+    T = the structure to be tested for interface compatibility
+    Z = the type of object that T has to call T's property method
+    property = the method of Z that T has to call
+Returns:
+    true in case of structure implementing static interface, false otherwise.
+**/
+template canFactoryPropertyConfigurer(alias T, Z, string property) {
+    alias canFactoryPropertyConfigurer = canFactoryPropertyConfigurer!(typeof(T), Z, property);
+}
+
+/**
+ditto
+**/
+template canFactoryPropertyConfigurer(T, Z, string property) {
+    static if (hasMember!(T, "factoryConfigurer")) {
+        alias factory = getMember!(T, "factoryConfigurer");
+        
+        enum bool canFactoryPropertyConfigurer = is(ReturnType!(factory!(Z, property)) : PropertyConfigurer!Z);
+    } else {
+        
+        enum bool canFactoryPropertyConfigurer = false;
+    }
+}
+
+private auto componentScanImpl(T)(Locator!() locator)
+    if (is (T == class)) {
+    debug {
+        pragma(msg, "Scanning ", fullyQualifiedName!T);
+    }
+    alias Components = Filter!(
+        partialSuffixed!(
+            canFactoryGenericFactory,
+            T
+        ),
+        allUDAs!T
+    );
+    
+    static if (Components.length > 0) {
+        GenericFactory!T factory = toValue!(Components[0]).factory!T(locator);
+        
+        debug {
+            pragma(msg, "Found component");
+        }
+        
+        alias headUdas = Filter!(
+            partialSuffixed!(
+                canFactoryInstanceFactory,
+                T
+            ),
+            allUDAs!T
+        );
+        
+        
+        static if (headUdas.length > 0) {
+            debug {
+                pragma(msg, "Found instantiator right on ", fullyQualifiedName!T);
+            }
+            
+            factory.setConstructorFactory(headUdas[0].factoryInstantiator!(T, fullyQualifiedName!T)(locator));
+        } else {
+            alias instantiators = Filter!(
+                templateAnd!(
+                    partialSuffixed!(
+                        partialPrefixed!(
+                            isProtection,
+                            T
+                        ),
+                        "public"
+                    ),
+                    chain!(
+                        isSomeFunction,
+                        partialPrefixed!(
+                            getMember,
+                            T
+                        )
+                    )
+                ),
+                __traits(allMembers, T)
+            );
+            
+            static if (instantiators.length > 0) {
+                foreach (instantiator; instantiators) {
+                    foreach (overload; __traits(getOverloads, T, instantiator)) {
+                        alias udas = Filter!(
+                            partialSuffixed!(
+                                canFactoryInstanceFactory,
+                                T
+                            ),
+                            allUDAs!overload
+                        );
+                        
+                        
+                        static if (udas.length > 0) {
+                            debug {
+                                pragma(msg, "Found custom constructor for component on ", instantiator, " with arguments ", Parameters!overload);
+                            }
+                            
+                            factory.setConstructorFactory(udas[0].factoryInstantiator!(T, instantiator)(locator));
+                        }
+                    }
+                }
+            }
+        }
+        
+        alias methods = Filter!(
+            templateAnd!(
+                partialSuffixed!(
+                    partialPrefixed!(
+                        isProtection,
+                        T
+                    ),
+                    "public"
+                ),
+                chain!(
+                    isSomeFunction,
+                    partialPrefixed!(
+                        getMember,
+                        T
+                    )
+                )
+            ),
+            __traits(allMembers, T)
+        );
+        
+        foreach (method; methods) {
+            foreach (overload; MemberFunctionsTuple!(T, method)) {
+                alias udas = Filter!(
+                    partialSuffixed!(
+                        canFactoryPropertyConfigurer,
+                        T,
+                        method
+                    ),
+                    allUDAs!overload
+                );
+
+                static if (udas.length > 0) {
+                    debug {
+                        pragma(msg, "Found configurer for ", method);
+                    }
+                    
+                    factory.addPropertyFactory(toValue!(udas[0]).factoryConfigurer!(T, method)(locator));
+                }
+            }
+        }
+        
+        return factory;
+    } else {
+        debug {
+            pragma(msg, "Not a component");
+        }
+        
+        return null;
+    }
+}
+
+private template isQualifier(alias T) {
+    alias isQualifier = isQualifier!(typeof(T));
+}
+
+private template isQualifier(T) {
+    enum bool isQualifier = is(T == Qualifier);
+}
+
+private template isInstantiator(alias T) {
+    alias isInstantiator = isInstantiator!(typeof(T));
+}
+
+private template isInstantiator(T) {
+    enum bool isInstantiator = is(T == Instantiator);
 }
 
 private template isValue(T) {
-    enum bool isValue = false;
-}
-
-private template getProtection(T, string member) {
-    static if (__traits(compiles, __traits(getProtection, __traits(getMember, T, member)))) {
-        enum auto getProtection = __traits(getProtection, __traits(getMember, T, member));
-    }
-}
-
-private template isProtection(T, string member, string protection = "public") {
-    enum bool isProtection = getProtection!(T, member) == protection;
+    enum bool isValue = is (typeof(T));
 }
 
 private template isReturnTypeEq(alias symbol, Type)
@@ -135,8 +1037,8 @@ private template instantiatonToTemplate(alias T, alias Template = T) {
     }
 }
 
-enum bool isTemplateInstantiationOf(T, alias Template) = is(T : Template!(Z), Z...);
-enum bool isTemplateInstantiationOf(alias T, alias Template) = is(typeof(T) : Template!(Z), Z...);
+private enum bool isTemplateInstantiationOf(T, alias Template) = is(T : Template!(Z), Z...);
+private enum bool isTemplateInstantiationOf(alias T, alias Template) = is(typeof(T) : Template!(Z), Z...);
 
 private template identifierEq(alias T, string identity) {
     enum bool identifierEq = identifier!T == identity;
@@ -154,4 +1056,78 @@ private template toValue(alias T) {
     alias toValue = T;
 }
 
-alias isType(T) = templateNot!(isValue!T);
+private template isType(alias T) {
+    static if (__traits(compiles, () { T z = T.init; })) {
+        
+        enum bool isType = true;
+    } else {
+    
+        enum bool isType = false;
+    }
+}
+
+private template isClass(alias T) {
+    enum bool isClass = is(typeof(T) == class);
+}
+
+private template isClass(T) {
+    enum bool isClass = is(T == class);
+}
+
+private template getPublicAggregateMembers(alias Symbol) {
+    alias getPublicAggregateMembers = Filter!(
+        templateAnd!(
+            partialSuffixed!(
+                partialPrefixed!(
+                    isProtection,
+                    Symbol
+                ),
+                "public"
+            ),
+            chain!(
+                hasMembers,
+                partialPrefixed!(
+                    getMember,
+                    Symbol
+                )
+            )
+        ),
+        __traits(allMembers, Symbol)
+    );
+}
+
+private template getPossibleComponents(alias Symbol) {
+    alias getPossibleComponents = staticMap!(
+        partialPrefixed!(
+            getMember,
+            Symbol
+        ),
+        Filter!(
+            templateAnd!(
+                partialSuffixed!(
+                    partialPrefixed!(
+                        isProtection,
+                        Symbol
+                    ),
+                    "public"
+                ),
+                chain!(
+                    isType,
+                    partialPrefixed!(
+                        getMember,
+                        Symbol
+                    )
+                ),
+                chain!(
+                    isClass,
+                    partialPrefixed!(
+                        getMember,
+                        Symbol
+                    )
+                )
+            ),
+            __traits(allMembers, Symbol)
+        )
+    );
+}
+

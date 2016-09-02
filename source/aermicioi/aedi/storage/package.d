@@ -1,5 +1,55 @@
 /**
+The purpose of package, is to provide common interface for locating, storing,
+aliasing of object. It does provide interface for objects that are implementing
+service locator pattern.
 
+There is a basic implementation of such object ObjectStorage.
+
+Example:
+---------------
+    auto storage = new ObjectStorage!()();
+    storage.set(new Object, "some object id");
+    storage.get("some object id");
+    storage.remove("some object id");
+---------------
+
+It does provide an interface for compositing multiple locators into one
+composited locator. An object implementing it is AggregateLocatorImpl!().
+
+Example:
+----------------
+    auto locator = new AggregateLocatorImpl!()();
+    locator.set(new ObjectStorage!(), "first");
+    locator.set(new ObjectStorage!(), "second");
+    locator.get("some object id");
+----------------
+
+It does provide an interface for aliasing an object identifier to another 
+identifier, and resolving the alias of it.
+
+Example:
+----------------
+    auto storage = new ObjectStorage!()();
+    storage.set(new Object, "some object");
+    storage.link("some object", "an alias");
+    assert(storage.resolve("an alias") == "some object");
+    assert(storage.get("an alias") == storage.get("some object");
+----------------
+
+See:
+$(UL
+    $(LI storage.d -> module that contains the object storage interface.
+        It is used in library to declare instantiators as able to save Factory 
+        for objects that are registered in instantiators.)
+    $(LI locator.d -> module that contains the object locator interface.
+        It is used in library to decliare instantiators as able to locate 
+        objects required by your application, or other objects that depend on 
+        required object. It provides an interface for aggregate locator, as well
+        as a convenient function for automatic cast of objects from Locators to
+        desired type. )
+    $(LI alias_aware.d -> module that declares interface for aliasing capabilities. )
+    )
+ 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
     
@@ -38,3 +88,4 @@ public import aermicioi.aedi.storage.parent_aware;
 public import aermicioi.aedi.storage.storage;
 public import aermicioi.aedi.storage.delegating_locator;
 public import aermicioi.aedi.storage.aggregate_locator;
+public import aermicioi.aedi.storage.wrapper;

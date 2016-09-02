@@ -1,5 +1,6 @@
 /**
 
+
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
     
@@ -76,10 +77,11 @@ interface Factory : LocatorAware!() {
 }
 
 /**
-Represents a reference to an object present in a (service) locator.
+Represents a reference to an object in a locator/instantiator.
 
-It is used in configuration step of instantiator, to mark an parameter of constructor, or
-method, that it is a reference to an object present in a (service) locator.
+Any object of this type encountered in factories should be treated as a declaration that required argument for
+object construction/configuration is located into a locator/instantiator, and should be fetched and used instead
+of LocatorReference.
 **/
 class LocatorReference {
 	private {
@@ -131,4 +133,14 @@ ditto
 **/
 auto lref(string name)() {
     return name.lref;
+}
+
+template toLref(Type) {
+    auto toLref() {
+        return fullyQualifiedName!Type.lref;
+    }
+}
+
+template toLrefType(Type) {
+    alias toLrefType = LocatorReference;
 }

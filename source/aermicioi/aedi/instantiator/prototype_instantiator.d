@@ -100,6 +100,12 @@ class PrototypeInstantiator : ConfigurableInstantiator {
             return this;
         }
         
+        PrototypeInstantiator unlink(string alias_) {
+            this.factories.unlink(alias_);
+            
+            return this;
+        }
+        
         const(string) resolve(string key) const {
             return this.factories.resolve(key);
         }

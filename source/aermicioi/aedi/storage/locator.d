@@ -31,6 +31,8 @@ Authors:
 
 module aermicioi.aedi.storage.locator;
 
+import aermicioi.aedi.storage.storage;
+
 /**
  Interface for objects that can serevr Type elements.
 **/
@@ -71,49 +73,93 @@ interface Locator(Type = Object, KeyType = string) {
 /**
 Interface for a Locator that can serve objects from passed locators in it.
 **/
-interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : Locator!(Type, KeyType) {
+interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : 
+    Locator!(Type, KeyType), Storage!(Locator!(Type, KeyType), LocatorKeyType) {
     
     public {
         
         /**
-        Add a Locator by key.
+        Get a specific locator.
         
         Params:
-        	key = key by which to identify the locator.
-        	locator = the Locator that will be added to AggregateLocator
+            key = the locator identity.
         **/
-        void add(LocatorKeyType key, Locator!(Type, KeyType) locator);
+        Locator!(Type, KeyType) getLocator(LocatorKeyType key);
         
         /**
-        Removes a Locator by key.
+        Check if aggregate locator contains a specific locator.
         
         Params:
-        	key = the identity of locator that should be removed.
+        	key = the identity of locator in aggregate locator
         **/
-        void remove(LocatorKeyType key);
+        bool hasLocator(LocatorKeyType key) inout;
     }
 }
 
-auto locate(T)(Locator!(Object, string) locator, string id) 
-	if (is(T == class) || is(T == interface)) {
+/**
+Given a locator, locates an object and attempts to convert to T type.
+
+Given a locator, locates an object and attempts to convert to T type.
+When an object of T type is located, it is simply casted to T type.
+When an value of T type is located, the func attempts to cast the requested object to
+Wrapper!T, and will return it, instead of T directly.
+In case of failure an InvalidCastException is thrown in debug environment.
+
+Params:
+	locator = the locator that contains the data with id as identity
+	id = identity of object contained in locator
+
+Throws:
+	InvalidCastException in debug mode when actual type of object is not of type that is requested.
+
+Returns:
+	Object casted to desired type.
+**/
+@trusted auto locate(T)(Locator!(Object, string) locator, string id) 
+	if (is(T == class) || is(T == interface)) 
+out(result) {
+    import aermicioi.aedi.exception.invalid_cast_exception;
+    
+    if (result is null) {
+        throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
+    }
+}
+body {
     return cast(T) locator.get(id);
 }
 
-auto locate(T)(Locator!(Object, string) locator)
+/**
+ditto
+**/
+@trusted auto locate(T)(Locator!(Object, string) locator)
 	if (is(T == class) || is(T == interface)) {
     import std.traits : fullyQualifiedName;
     
     return locate!T(locator, fullyQualifiedName!T);
 }
 	
-auto locate(T)(Locator!(Object, string) locator, string id)
-    if (!is(T == class) && !is(T == interface)) {
+/**
+ditto
+**/
+@trusted auto locate(T)(Locator!(Object, string) locator, string id)
+    if (!is(T == class) && !is(T == interface))
+out(result) {
+    import aermicioi.aedi.exception.invalid_cast_exception;
+    
+    if (result is null) {
+        throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
+    }
+}
+body {
     import aermicioi.aedi.storage.wrapper;
     
     return cast(Wrapper!T) locator.get(id);
 }
-    
-auto locate(T)(Locator!(Object, string) locator)
+
+/**
+ditto
+**/
+@trusted auto locate(T)(Locator!(Object, string) locator)
     if (!is(T == class) && !is(T == interface))  {
     import std.traits : fullyQualifiedName;
     

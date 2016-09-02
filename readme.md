@@ -1,480 +1,296 @@
-AEDI
-====
+#Aedi, a dependency injection library.
+## Why should it be used:
+- Eases the development of applications by taking the task of wiring the interdependent code (objects).
+- Helps in decopling of different components of application.
+- Eases the management of dependencies between application components.
+## When should it be used:
+- When a project has a high number of interdependent components.
+## How should it be used:
+**It's simple:**
+	1. Spawn a container.
+	2. Register an object.
+	3. Configure object.
+	4. Repeat 2-3, if another object needs to be in container.
+	5. Done
+**Here is an example:**
+```d
+class D {
 
-------
+	public {
+		int i_;
 
-A library that provides dependency injection containers (prototype, and singleton for now).
-Preliminary version.
-More description is available in library docs (you can generate them with `dub build --build=docs` or `dub build --build=ddox`).
-
-#Installation
-
------
-Just add it as dependency in dub.json, or clone repository.
-	
-	"dependencies" : {
-		"aermicioi/aedi" : "~master"
-	}
-	
-#Usage
------
-
-Simply, create a container, and register objects into it.
-
-	import aermicioi.aedi;
-	
-	class D {
-	
-		public {
-			int i_;
-
-			this(int i) {
-				this.i_ = i;
-			}
+		this(int i) {
+			this.i_ = i;
 		}
 	}
-	
-	class O {
-		public {
-			D dependency_;
+}
 
-			void setDependency(D dep) {
-				this.dependency_ = dep;
-			}
-			
+class O {
+	public {
+		D dependency_;
+
+		void setDependency(D dep) {
+			this.dependency_ = dep;
 		}
-	}
-	
-	auto singleton = new SingletonInstantiator;
-	
-	singleton.register!O
-		.method!"setDependency"(
-			lref!D
-		);
 		
-	singleton.register!D
-		.constructor(10);
-		
-	singleton.instantiate();
-	
-	auto o = singleton.locate!O;
-	
-It is possible to configure dependencies of objects through setter, and constructor injection.
-For setter injection chain method!"methodName" after register operation.
-For construction injection chain constructor after register operation.
-Multiple setter and constructor injections calls can be done in chain.
-
-If you want a prototype container, just use PrototypeInstantiator.
-
-Also singleton and prototype containers supports aliasing of object identities to other identities.
-Example:
-
-	singleton.link("originalIdentity", "additionalIdentity");
-
-#Constructor and setter injections
-
---------
-
-Here is an example of more ways how constructor and injection can be used.
-
-	import aermicioi.aedi;
-	
-	class Test {
-	    
 	}
-	
-	class MTest : MTestInterface {
-	    
-	}
-	
-	class Test1 {
-	    
-	    Test obj;
-	    MTestInterface firstObj;
-	    MTestInterface secondObj;
-	    string id;
-	    double d;
-	    
-	    this(
-	        Test obj,
-	        MTestInterface firstObj,
-	        MTestInterface secondObj,
-	        string id,
-	        double d
-	    ) {
-	        this.obj = obj;
-	        this.firstObj = firstObj;
-	        this.secondObj = secondObj;
-	        this.id = id;
-	        this.d = d;
-	//        Do some init stuff, and assigning dependencies
-	    };
-	    
-	    void setTest(Test t) {
-	//        Set t dependency
-	    }
-	}
-	
-	interface MTestInterface {
-	    
-	}
-	
-	void main(string[] args) {
-		auto container = new SingletonInstantiator(); // Created a singleton container.
-		
-		container.register!Test();
-		
-		// It is possible to register an object, by it's type, interface or custom string. Registering by type or interface will result in registering an object with fully qualified name of Type or Interface.
-		container.register!Test(
-			"CustomId"
-		);
-		
-		// In this case we registered, an object of type Moo by it's fully qualified type (ex. "app.Moo" if Moo class is located in app module.
-		container.register!MTest();
-		
-		// Now registered a new instance of Moo object by MooInterface fully qualified name.
-		container.register!(MTestInterface, MTest)(); 
-		
-		container.register!Test1
-		.constructor(
-			"CustomId".lref,
-			lref!MTest, // Search by fully qualified type name,
-			lref!MTestInterface,
-			"A simple string passed as fourth argument",
-			10.9, // A double/float passed as fourth argument.
-		)
-		.method!"setTest"(lref!Test); // Passing arguments to methods of object (Setter injection).
-		
-		// It is important to boot container before use of it. Failing to do so, will mean undefined behavior, if used.
-		container.instantiate(); 
-		
-		// Will return a object casted to Foo, with id as fully qualified name of Foo.
-		Test1 test1 = container.locate!Test1; 
-		 // Will return a object casted to Test, with id as fully qualified name of Test.
-		auto test = container.locate!Test();
-		// Will return a object casted to Test, with id "CustomId".
-		auto testCustom = container.locate!Test("CustomId");
-		// Will return a object casted to MooInterface, with id as fully qualified name of MooInterface.
-		auto mtestinterface = container.locate!MTestInterface;
-		auto mtest = container.locate!MTest;
-		
-		assert (test1.obj == testCustom);
-		assert (test1.obj != test);
-		assert (test1.firstObj == mtest);
-		assert (test1.secondObj == mtestinterface);
-		assert (mtestinterface != mtest);
-		assert (test1.id == "A simple string passed as fourth argument");
-		assert (test1.d == 10.9);
-	}
+}
 
-In this example, a singleton container is created and objects are loaded into it. To indicate that an argument from constructor or setter is a reference to another object in container use lref!(Dependency) or "some object id".lref.
+auto singleton = new SingletonInstantiator;
 
-## Register, constructor and method
-The register call returns a factory object which is used to configure further the object in container. Further calls of constructor and method operate on it, and returns the factory object back, for a chained sequence of calls. This factory object is used internally by container to factory and configure object.
-
-Example:
-
-	// Return a configuration object for Test object
-	auto conf = container.register!(Test) 
-	// Set the arguments for constructor of this object.
-	conf.constructor("some data");
-	// Set the arguments for method setProp that will be called during construction of Test.
-	conf.method!"setProp"("some data"); 
-	
-Note: singleton and prototype containers accept only factories for objects. Passing already instantiated object will end in a compiler error. For building a container with object already instantiated, see composing containers chapter.
-
-##Getting an object from storage
-If there is necessity to extract get an object from container use locate family of functions to do this.
-Note if the object is present but it is not of type indicated in test, null will be returned. If it doesn't exist, an exception will be thrown.
-
-Example:
-
-	// Will search for Test object
-	auto object = container.locate!Test();
-	// Will search for Test object with customId identity
-	auto customObject = container.locate!Test("customId"); 
-	
-## Registering non object type.
-
-It is possible to register data that is not an Object with a container that accepts Objects instead of factories. All data that are not Objects will be wrapped into a object and stored in container.
-To register a struct or int, just call register on container as done in examples above. 
-Note: configuring structs as objects is not possible at the moment. Invoking constructor, or method will end in compiler error.
-
-To fetch data from container call locate as with objects in example above. It will return wrapper object that encapsulates the data. The data is stored in value property of Wrapper which is also subtyped by Wrapper (`alias value this`). So before using the value, check if the data is returned (i.e. it is not null).
-
-Example:
-
-	auto objectStorage = new ObjectStorage!();
-	
-	objectStorage.register(10L, "a int");
-	objectStorage.register(tuple(10L, "a"), "id");
-	
-	assert (objectStorage.locate!long("a int").value == 10);
-	assert (objectStorage.locate!(Tuple!(long, string))("id").value == tuple(10L, "a"));
-	
-Note: it is possible to indicate as dependency non object types as well, using lref family of functions.
-
-#Composition of multiple containers.
-
-If singleton container is not enough for application, say prototype or a storage of data that are not objects (structs, strings, etc.) is needed. It is possible to compose a set of containers into one.
-
-Here is an example of how to do it:
-
-	import aermicioi.aedi;
-	
-	class Test {
-	    
-	}
-	
-	class MTest : MTestInterface {
-	    
-	}
-	
-	class Test1 {
-	    
-	    Test obj;
-	    MTestInterface firstObj;
-	    MTestInterface secondObj;
-	    string id;
-	    double d;
-	    
-	    this(
-	        Test obj,
-	        MTestInterface firstObj,
-	        MTestInterface secondObj,
-	        string id,
-	        double d
-	    ) {
-	        this.obj = obj;
-	        this.firstObj = firstObj;
-	        this.secondObj = secondObj;
-	        this.id = id;
-	        this.d = d;
-	//        Do some init stuff, and assigning dependencies
-	    };
-	    
-	    void setTest(Test t) {
-	//        Set t dependency
-	    }
-	}
-	
-	interface MTestInterface {
-	    
-	}
-	
-	void main(string[] args) {
-		auto singleton = new SingletonInstantiator;
-		auto prototype = new PrototypeInstantiator;
-		auto parameters = new ObjectStorage!();
-		
-		AggregateLocator!() aggregateContainer = new AggregateLocatorImpl!();
-		aggregateContainer.add("singleton", singleton);
-		aggregateContainer.add("prototype", prototype);
-		aggregateContainer.add("parameters", parameters);
-	}
-	
-To compose a set of containers into one, create an aggregate locator that will be used to search for dependencies for objects, as well data for them.
-
-Registering of objects for an aggregated container should be done for each subcontainer separately, with addition of supplying the aggregate locator as source of dependencies for contained object. Instantiaton for each container is done separately as well.
-
-Example (insert code at end of previous example):
-
-	prototype.register!Test(aggregateContainer);
-	prototype.register!Test(
-	    aggregateContainer,
-		"CustomId"
+singleton.register!O
+	.set!"setDependency"(
+		lref!D
 	);
-	parameters.register!string("A simple string passed as fourth argument");
-	parameters.register!double(10.9, "param.id");
 	
-	singleton.register!MTest(aggregateContainer);
-	singleton.register!(MTestInterface, MTest)(aggregateContainer);
+singleton.register!D
+	.construct(10);
 	
-	singleton.register!Test1(aggregateContainer)
-	.constructor(
-		"CustomId".lref,
-		lref!MTest,
-		lref!MTestInterface,
-		lref!string,
-		"param.id".lref,
-	)
-	.method!"setTest"(lref!Test);
-	
-	singleton.instantiate();
-	prototype.instantiate();
-	
-	Test1 test1 = aggregateContainer.locate!Test1;
-	auto test = aggregateContainer.locate!Test();
-	auto testCustom = aggregateContainer.locate!Test("CustomId");
-	auto mtestinterface = aggregateContainer.locate!MTestInterface;
-	auto mtest = aggregateContainer.locate!MTest;
-	
-	assert (test1.obj != testCustom);
-	assert (test1.obj != test);
-	assert (test1.firstObj == mtest);
-	assert (test1.secondObj == mtestinterface);
-	assert (mtestinterface != mtest);
-	assert (test1.id == "A simple string passed as fourth argument");
-	assert (test1.d == 10.9);
-	
-Running the example, we can see that all tests pass, hence while constructing of Test1 object, factory was able to get the required dependencies (even the double and string from parameters storage). Register family of functions accepts additionally source of dependencies for constructed object. If source of dependencies is not passed to register function, it is assumed that the container in which an object is registered is a source of objects for dependencies.
+singleton.instantiate();
 
-## Eliminating need of passing locator on each register call.
+auto o = singleton.locate!O;
+```
+Instead of configuring by code, it is possible to configure by annotation.
+**Here are basic annotations that can be used out of the box:**
+	1. component -> Denotes that class shoud be registered in container.
+	2. constructor -> Calls annotated constructor, with arguments passed in it.
+	3. setter -> Calls annotated method, with arguments passed in it.
+	4. autowired -> Calls annotated constructor or method, with arguments being references to arguments in annotated list.
+**An example of annotation based configuration:**
+```d
+@component
+class D {
 
-Passing each time locator object to register function may be cumbersome. To eliminate the need of passing locator object, wrap instantiator into a Registerer struct which accepts a locator that will be passed to register function during container configuration.
+	public {
+		int i_;
+//        Uncomment one of it to apply it
+//        @constructor(20)
+//        @autowire
+		this(int i) {
+			this.i_ = i;
+		}
+	}
+}
 
-Example:
-
-	void main(string[] args) {
-		auto singleton = new SingletonInstantiator;
-		auto prototype = new PrototypeInstantiator;
-		auto parameters = new ObjectStorage!();
+@component
+class O {
+	public {
+		D dependency_;
+//        Uncomment one of it to apply it
+//        @setter(lref!D)
+//        @autowire
+		void setDependency(D dep) {
+			this.dependency_ = dep;
+		}
 		
-		AggregateLocator!() aggregateContainer = new AggregateLocatorImpl!();
-		aggregateContainer.add("singleton", singleton);
-		aggregateContainer.add("prototype", prototype);
-		aggregateContainer.add("parameters", parameters);
-		
-		auto registerer = new Registerer(singleton, aggregateContainer);
-		
-		registerer.register!MTest();
-		registerer.register!(MTestInterface, MTest)();
 	}
+}
+
+auto singleton = new SingletonInstantiator;
+
+singleton.componentScan!(D, O); // We can pass a list of classes that are annotated with @component
+singleton.componentScan!(app); // Or we just can pass, a module that contains @component annotated classes.
 	
-Configuring container through a registerer instance eliminates the need to pass "aggregateContainer" at each call of register function.
+singleton.instantiate();
 
-#Extending containers behavior
+auto o = singleton.locate!O;
+```
 
-There a two ways to extend library logic.
+Currently the library provides 2 containers:
+    1. singleton -> Serve same object, during it's lifetime.
+    2. prototype -> Serve new object, on each access.
+    
+We can use on both of them, annotation based, as well as code based configuration, just do not forget instantiating both of them.
 
-1. Create a custom factory, that is responsible to construct a object for container.
-2. Create a container, or extend existing one.
+### Container for parameters, or already instantiated data:
 
-##Creating/extending containers.
+Aedi provides an implementation of a container that can store already instatiated data.
+Be it, a string, object, int, double, or even function, the ObjectStorage!() and code api
+is able to handle it nicely.
 
-The main role of containers is manipulation of with lifetime of contained objects (hence it should decide whether an object should live or die).
+**Here is an example of how to fill in the container:** 
+```d
+ObjectStorage!() parameters = new ObjectStorage!();
 
-As reference let's show the chain of interfaces that SingletonInstantiator implements:
-SingletonInstantiator -> ConfigurableInstantiator -> Instantiator -> Locator!(Object, String)
-ConfigurableInstantiator -> Instantiator, Storage!(Factory, string), AliasAware!(string)
+parameters.register(new D(10));
+parameters.register(new D(10), "custom identity");
+parameters.register(10);	// The container will store this int by its type, hence the id will be just "int"
+parameters.register(10, "custom int");
+parameters.register(delegate () {
+    import std.stdio;
+    writeln("hello world");
+});
 
+parameters.locate!D; // Returns first object
+parameters.locate!D("custom identity"); // Returns second object
+parameters.locate!int; // Returns the first int.
+parameters.locate!(void delegate ()); // When, locating a function, specify it's inferred atrributes as well. Failing to do so will generate an exception.
+```
 
-The minimal requirement for a container to work with the rest of application/library is implementation of Locator!(Object, string).
-Hence, a container should provide means to check if it contains an object, and fetch it from container. How objects are stored in container is responsibility of implementor to define.
+Any instantiated data saved using register function, can be fetched only by it's type. 
+No implicit conversion from one type to another type is possible at the moment 
+(ex: locating a int while casting it to long will raise an exception)
 
+For already instantiated data, no annotation based api is available at the moment.
 
-Instantiator interface defines an additional instantiate method over Locator interface, which is used to prepare container for future use by client code. Any container that requires an initial preparation before use, should implement this interface.
+### Composition of multiple containers:
 
+Sometimes, it is required, to use objects that have, prototype scope, along with singleton scope, or a set of parameters.
+Aedi, does allow to compose a set of containers into one. 
 
-ConfigurableInstantiator as seen above, implements Storage!(Factory, string) interface additionally. For containers that are intended to be configurable through register function family, and require an instantiation phase before usage, ConfigurableInstantiator should be choosen as interface for implementation.
+Here is an example:
+```d
+PrototypeInstantiator prototype = new PrototypeInstantiator;
+SingletonInstantiator singleton = new SingletonInstantiator;
+ObjectStorage!() parameters = new ObjectStorage!();
+AggregateLocator!() locator = new AggregateLocatorImpl!();
 
-Note: register family of functions, work with Storage!(Factory, string) objects to store object factories, that are returned further for configuration. Any container implementing Storage!(Factory, string) interface will work with register function family.
-Note: in future versions of library, configuration through annotation is planned, and it will use register family of functions to do it's job, so it's recommended that containers implement ConfigurableInstantiator if instantiaton phase is needed or, implement Storage!(Factory, string) as well.
+locator.set("prototype", prototype);
+locator.set("singleton", singleton);
+locator.set("parameters", parameters);
 
-##Creating/Extending object factories.
-
-Singleton and prototype containers, use Factory objects to instantiate contained objects, hence a Factory objects encapsulates the logic required to create and configure contained object. Extending object factories is useful when it is required to modify/add the construction/configuration logic for an object contained in singleton or prototype containers (or any container implementing Storage!(Factory, string)).
-
-To define points of extending let's look at interface chain of factory returned by register family of functions:
-
-GenericFactoryImpl -> GenericFactory -> Factory
-
-A minimal requirement for an object factory for it to be usable in singleton or prototype container is to implement a Factory interface, which defines a factory() method constructs an object (ex. singleton calls factory() method of factory object for respective object if object is not already instantiated).
-For a total control of object construction and configuration, implement Factory interface.
-
-It is not required to implement a new Factory, if it is required to add/modify only a part of instantiation process. It is enough to create objects implementing interfaces discussed below.
-GenericFactory is a factory that splits the process instantiation into two configurable phases:
-
-1. Construction of object (Allocation, and construction of object).
-2. Configuration of object (Calls to methods/properties of object with data);
-
-Each instantiation phase is encapsulated in a object implementing specific interface:
-
-1. Construction phase is encapsulated in object implementing InstanceFactory(T) interface.
-2. Configuration phase is encapsulated in object implementing PropertyConfigurer(T) interface.
-
-So, if only a part of construction/configuration is required to modify or to add, it is enough to encapsulate it into objects implementing respective interface for phase.
-
-Example of extending configuration phase of GenericFactory:
+// Use registerInto to register object by it's type into a container, on composite container.
+locator.registerInto!O
+	.set!"setDependency"(
+		lref!D
+	);
 	
-	import aermicioi.aedi;
-	import vibe.http.router;
-	import vibe.http.server;
-	import vibe.web.web;
+locator.registerInto!D("prototype")
+	.construct(10);
 	
-	/**
-	Let's say that Test is a web interface for vibed library (if you are unfamiliar with vibed, check code.dlang.org for vibed).
-	**/
-	class Test {
-	    
-	    private {
-	        int i;
-	    }
-	    
-	    public {
-	        this(int value) {
-	            this.i = value;
-	        }
-	        
-	        auto index() {
-	            writeln("Have we get here?");
-	    		render!("index.dt");
-	        }
-	    }
-	}
+locator.register("Some string", "id");
+locator.register(10, "an int by id");
 	
-	class RouteConfigurer(T) : PropertyConfigurer!T {
-	    
-	    private {
-	        URLRouter router;
-	    }
-	    
-	    public {
-	        
-	        this(URLRouter router) {
-	            this.router = router;
-	        }
-	        
-	        void configure(ref T object) {
-	            this.router.registerWebInterface(object);
-	        }
-	    }
-	}
-	
-	GenericFactory!T route(T)(GenericFactory!T factory, URLRouter router) {
-	    factory.propertyFactory(new RouteConfigurer!T(router));
-	    
-	    return factory;
-	}
-	
-	SingletonInstantiator singleton;
-	
-	shared static this()
-	{
-		auto router = new URLRouter;
-		singleton = new SingletonInstantiator;
-		singleton.register!Test()
-		.constructor(10)
-		.route(router);
-		
-		singleton.instantiate;
-	
-		auto settings = new HTTPServerSettings;
-		settings.port = 8081;
-		settings.sessionStore = new MemorySessionStore;
-		listenHTTP(settings, router);
-	}
+prototype.instantiate;
+singleton.instantiate;
 
-Note: once configuration/creation logic is encapsulated, it is advised to define a function that creates custom factory, and inserts it into GenericFactory (see constructor, or method functions used after register function during configuration). It will allow your custom logic to be chained with constructor and method calls.
+assert(locator.locate!D != locator.locate!D);
+assert(locator.locate!O == locator.locate!O);
+assert(locator.locate!string == "Some string");
+assert(locator.locate!int("an int by id") == 10);
+```
 
-Note: the register, method, constructor set of family actually use GenericFactory, and it's phases to configure an object contained in a container. register family function family inserts into container a GenericFactory and returns it back. The returned factory, is used afterwards with constructor and method functions that injects InstantiationFactory and PropertyConfigurer objects into GenericFactory. 
+From example we can see that register api, works well with composited containers.
+The difference between composited and single containers is, that when registering
+an object, pass the name of underlying container (where to save the object). 
 
-#Planned development
-- Unit tests.
-- More thorough type check of passed arguments to constructors and methods.
-- Support for annotation based configuration.
-- Support for yaml based configuration.
-- Better Extensibility.
-- Stable api.
-- Usage of allocators.
-- A way to allow, singleton objects to access objects that are in instantiators with a narrower scope.
+By default on registering, it is assumed that a "singleton" container is available
+in composite one. If there is no such container, an exception is raised, due to
+inability to find underlying container.
+
+When registering, already instantiated data (ints, strings, etc.), register api
+assumes that a container named "parameters" is available in composite one.
+If not an exception is raised.
+
+For annotation based registering in composite container, additional annotations are
+available that control how, and where the components will be stored:
+
+1. @qualifier -> denotes how a component will be named in container
+2. @instantiator -> specifies in which container should be component stored
+
+Same convention, as with code api, is available in annotation api. By not
+specifying @instantiator annotation, container by "singleton" id will be searched
+in composite container, and the object will be registered in that container. Failing
+to provide a "singleton" container in composite one, while class (object), does not
+have @instantiator annotation, an exception will be raised.
+
+**Note:**
+As a convenience, a composite container called ApplicationInstantiator is available,
+containing singleton, prototype and parameters containers. It's usually enough for
+basic usage.
+
+###Extending:
+
+Aedi does allow, two directions in where to extend the library:
+    1. Container extension.
+    2. Factory extension.
+    
+####Container extending:
+
+In aedi, a container serves not only as a holder of objects. It does manage the lifetime of the objects contained in them. For a singleton container this implies that it will store objects as long as it itself is alive,
+while prototype container, will spawn as many objects as requested, and forget them.
+**Note:**
+Implement a new container, when more complex logic is required in handling
+the lifetime of contained objects.
+
+To implement a new container, it has to implement Instantiator interface
+(see aermicioi.aedi.instantiator.instantiator.d). Implementing this interface
+allows your container to interact with rest of aedi library, except of configurer
+package of aedi library. To allow a container to interact with configurer package
+implement in your container ConfigurableInstantiator interface, or Storage!(Factory, string)
+(ConfigurableInstantiator extends AliasAware interface to allow aliasing of contained objects).
+
+####Factory extending:
+
+While container, is used to manage and contain, objects, factories in aedi are used
+to instantiate, and dispose (note: not at the moment, but in next release) objects.
+Singleton, and prototype containers actually, accept factories, for registered objects,
+and when they are instantiated, or objects are accessed, they use, factories, to actually
+instantiate objects that are requested. Therefore, under the hood, the register api, as well
+as annotation api, are actually spawning factories for each registered object in container,
+and container uses them to create contained objects.
+
+**Note:**
+1. Implement a new factory when, a different instantiation logic is required than the provided one in aedi (See: aermicioi.aedi.factory.factory.d for basic interface).
+2. Implemented factories in aedi, use LocatorReference objects, to identify that, an argument is actually a reference in container. Implement additional logic, for recognizing LocatorReferences, in case when, factory may accept lref arguments (ex: lref!Object, "id".lref).
+
+Aedi does provide on top Factory interface (located in aermicioi.aedi.factory.factory.d), a GenericFactory
+that splits up the instantiation process into two steps:
+
+1. Object creation
+2. Object configuration
+
+Each building step is encapsulated in objects that extend InstanceFactory interface (1),
+and PropertyConfigurer (2). InstanceFactories, are used to instantiate the object,
+and constructor call, in examples above does actually create a InstanceFactory,
+that calls objects constructor with arguments passed in. GenericFactory
+should use InstanceFactory to instantiate the object, while PropertyConfigurers
+should be used to configure further the spawned object.
+PropertyConfigurer objects, are used by GenericFactory to configure spawned object.
+The set call, or setter annotation, in examples above do create a PropertyConfigurer, 
+that calls the method, with passed arguments.
+GenericFactory will call a InstanceFactory first, and then will invoke underlying
+PropertyConfigurers to configure the object, and return it once it is finished.
+
+Implement a InstanceFactory, or PropertyConfigurer, when only a part of instantiation
+process is required to change (ex: register a controller in URLRouter of vibe.d library,
+or deserialize an object from some source).
+
+####Extending configurer package:
+
+Both, code api, and annotation api are based, on GenericFactory factories. Therefore
+register, or @component actually spawns a GenericFactory implementation, that is
+configured further with custom InstanceFactory and PropertyConfigurers.
+
+Once a new factory is implemented, it's recommended to wrap creation of such factory
+into a function of such form:
+```d
+GenericFactory!T factoryName(T)(GenericFactory!T factory, Args....)
+```
+
+Such format will allow seamless integration with code api, and will allow
+function chaining (as in examples above).
+
+It is possible to extend annotation api as well. To do so, create an annotation
+that implements one of the following static interfaces:
+
+- canFactoryGenericFactory -> Struct, will be treated as a source of GenericFactory
+- canFactoryInstanceFactory -> Struct, will be treated as a source of InstanceFactory
+- canFactoryPropertyConfigurer -> Struct, will be treated as a source of PropertyConfigurer
+
+Any of interfaces from the list, have a method that returns one type of factory, a GenericFactory,
+a InstanceFactory, or a PropertyConfigurer. Returned factories, are used to spawn the object.
+Once annotation implements one of following interfaces, annotation system, will use it to spawn
+the object. @component implements canFactoryGenericFactory interface while @constructor and @setter
+annotation implement canFactoryInstanceFactory and canFactoryPropertyConfigurer respectively.
+See:  aermicioi.aedi.configurer.annotation.d for provided interfaces.
+ 
+##Features to be implemented:
+1. A way to allow, singleton objects to access objects that are in instantiators with a narrower scope.
+2. More unit tests.
+3. More thorough type check of passed arguments to constructors and methods.
+4. Support for yaml based configuration.
+5. Better Extensibility.
+6. Stable api.
+7. Usage of allocators.
+

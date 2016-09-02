@@ -69,4 +69,4 @@ interface Storage(Type, KeyType) {
 /**
  ditto
 **/
-alias Aggregator(Type = Object, KeyType = string) = Storage!(Type, KeyType);
+alias Aggregator(Type = Object, KeyType = string, StorageIdentityType = KeyType) = Storage!(Type, KeyType);

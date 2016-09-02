@@ -45,7 +45,7 @@ interface Instantiator : Locator!(Object, string) {
         /**
         Sets up the internal state of instantiator.
         
-        Sets up the internal state of instantiator (Ex, for singleton container it will spawn all objects that locator contains.
+        Sets up the internal state of instantiator (Ex, for singleton container it will spawn all objects that locator contains).
         **/
         Instantiator instantiate();
     }

@@ -119,6 +119,13 @@ class SingletonInstantiator : ConfigurableInstantiator {
             return this;
         }
         
+        SingletonInstantiator unlink(string alias_) {
+            this.singletons.unlink(alias_);
+            this.factories.unlink(alias_);
+            
+            return this;
+        }
+        
         const(string) resolve(string key) const {
             return this.factories.resolve(key);
         }
