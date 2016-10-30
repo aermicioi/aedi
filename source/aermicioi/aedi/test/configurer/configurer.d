@@ -33,22 +33,22 @@ import aermicioi.aedi.test.fixture;
 import aermicioi.aedi;
 
 unittest {
-    auto instantiator = new SingletonInstantiator;
+    auto container = new SingletonContainer;
     auto parameters = new ObjectStorage!();
     
-    instantiator.register!(Employee)(parameters, "employee.custom");
-    instantiator.register!(Person)("person.custom");
-    instantiator.register!(Company)(parameters);
-    instantiator.register!(Employee)();
-    instantiator.register!(Person, Employee)(parameters);
-    instantiator.register!(Identifiable!ulong, Employee)();
+    container.register!(Employee)(parameters, "employee.custom");
+    container.register!(Person)("person.custom");
+    container.register!(Company)(parameters);
+    container.register!(Employee)();
+    container.register!(Person, Employee)(parameters);
+    container.register!(Identifiable!ulong, Employee)();
     
-    assert(instantiator.locate!(Employee)("employee.custom") !is null);
-    assert(instantiator.locate!(Person)("person.custom") !is null);
-    assert(instantiator.locate!(Company) !is null);
-    assert(instantiator.locate!(Employee)() !is null);
-    assert(instantiator.locate!Employee(name!Person) !is null);
-    assert(instantiator.locate!Employee(name!(Identifiable!ulong)) !is null);
+    assert(container.locate!(Employee)("employee.custom") !is null);
+    assert(container.locate!(Person)("person.custom") !is null);
+    assert(container.locate!(Company) !is null);
+    assert(container.locate!(Employee)() !is null);
+    assert(container.locate!Employee(name!Person) !is null);
+    assert(container.locate!Employee(name!(Identifiable!ulong)) !is null);
 }
 
 unittest {
@@ -115,17 +115,17 @@ unittest {
 }
 
 unittest {
-    auto instantiator = new ApplicationInstantiator;
-    SingletonInstantiator singleton = instantiator.locate!SingletonInstantiator("singleton");
-    PrototypeInstantiator prototype = instantiator.locate!PrototypeInstantiator("prototype");
-    ObjectStorage!() parameters = instantiator.locate!(ObjectStorage!())("parameters");
+    auto container = new ApplicationContainer;
+    SingletonContainer singleton = container.locate!SingletonContainer("singleton");
+    PrototypeContainer prototype = container.locate!PrototypeContainer("prototype");
+    ObjectStorage!() parameters = container.locate!(ObjectStorage!())("parameters");
     
-    instantiator.register!(Employee)(parameters, "employee.custom", "singleton");
-    instantiator.register!(Person)("person.custom", "singleton");
-    instantiator.registerInto!(Company)(parameters, "singleton");
-    instantiator.registerInto!(Employee)("singleton");
-    instantiator.register!(Person, Employee)(parameters, "singleton");
-    instantiator.register!(Identifiable!ulong, Employee)("singleton");
+    container.register!(Employee)(parameters, "employee.custom", "singleton");
+    container.register!(Person)("person.custom", "singleton");
+    container.registerInto!(Company)(parameters, "singleton");
+    container.registerInto!(Employee)("singleton");
+    container.register!(Person, Employee)(parameters, "singleton");
+    container.register!(Identifiable!ulong, Employee)("singleton");
     
     assert(singleton.locate!(Employee)("employee.custom") !is null);
     assert(singleton.locate!(Person)("person.custom") !is null);
@@ -134,12 +134,12 @@ unittest {
     assert(singleton.locate!Employee(name!Person) !is null);
     assert(singleton.locate!Employee(name!(Identifiable!ulong)) !is null);
     
-    instantiator.register!(Employee)(parameters, "employee.custom", "prototype");
-    instantiator.register!(Person)("person.custom", "prototype");
-    instantiator.registerInto!(Company)(parameters, "prototype");
-    instantiator.registerInto!(Employee)("prototype");
-    instantiator.register!(Person, Employee)(parameters, "prototype");
-    instantiator.register!(Identifiable!ulong, Employee)("prototype");
+    container.register!(Employee)(parameters, "employee.custom", "prototype");
+    container.register!(Person)("person.custom", "prototype");
+    container.registerInto!(Company)(parameters, "prototype");
+    container.registerInto!(Employee)("prototype");
+    container.register!(Person, Employee)(parameters, "prototype");
+    container.register!(Identifiable!ulong, Employee)("prototype");
     
     assert(prototype.locate!(Employee)("employee.custom") !is null);
     assert(prototype.locate!(Person)("person.custom") !is null);
@@ -150,7 +150,7 @@ unittest {
 }
 
 unittest {
-    auto instantiator = new SingletonInstantiator;
+    auto container = new SingletonContainer;
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -158,22 +158,22 @@ unittest {
     parameters.register("Simple name");
     parameters.register!ubyte(30);
 
-    instantiator.componentScan!Company(parameters, "company.custom");
-    instantiator.componentScan!Employee(parameters);
-    instantiator.componentScan!Job();
-    instantiator.componentScan!(Identifiable!ulong, Person)();
+    container.componentScan!Company(parameters, "company.custom");
+    container.componentScan!Employee(parameters);
+    container.componentScan!Job();
+    container.componentScan!(Identifiable!ulong, Person)();
     
-    instantiator.instantiate();
+    container.instantiate();
     
-    assert(instantiator.locate!Company("company.custom") !is null);
-    assert(instantiator.locate!Employee !is null);
-    assert(instantiator.locate!Job() !is null);
-    assert(instantiator.locate!(Person)(name!(Identifiable!ulong)) !is null);
+    assert(container.locate!Company("company.custom") !is null);
+    assert(container.locate!Employee !is null);
+    assert(container.locate!Job() !is null);
+    assert(container.locate!(Person)(name!(Identifiable!ulong)) !is null);
 }
 
 unittest {
-    auto first = new SingletonInstantiator;
-    auto second = new SingletonInstantiator;
+    auto first = new SingletonContainer;
+    auto second = new SingletonContainer;
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -193,8 +193,8 @@ unittest {
 
 unittest {
     
-    auto first = new SingletonInstantiator;
-    auto second = new SingletonInstantiator;
+    auto first = new SingletonContainer;
+    auto second = new SingletonContainer;
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -214,8 +214,8 @@ unittest {
 
 unittest {
     
-    auto first = new SingletonInstantiator;
-    auto second = new SingletonInstantiator;
+    auto first = new SingletonContainer;
+    auto second = new SingletonContainer;
     auto parameters = new ObjectStorage!();
     
     import fixture_second = aermicioi.aedi.test.fixture_second;
@@ -242,8 +242,8 @@ unittest {
 }
 
 unittest {
-    auto first = new SingletonInstantiator;
-    auto second = new SingletonInstantiator;
+    auto first = new SingletonContainer;
+    auto second = new SingletonContainer;
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -263,7 +263,7 @@ unittest {
 }
 
 unittest {
-    auto instantiator = new ApplicationInstantiator;
+    auto container = new ApplicationContainer;
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -271,25 +271,25 @@ unittest {
     parameters.register("Simple name");
     parameters.register!ubyte(30);
 
-    instantiator.componentScan!(Company)("company.custom");
-    instantiator.componentScan!(Identifiable!ulong, Employee);
-    instantiator.componentScan!(Employee)(parameters, "employee.custom"); 
-    instantiator.componentScan!Company(parameters);
-    instantiator.componentScan!Employee;
-    instantiator.componentScan!Job;
+    container.componentScan!(Company)("company.custom");
+    container.componentScan!(Identifiable!ulong, Employee);
+    container.componentScan!(Employee)(parameters, "employee.custom"); 
+    container.componentScan!Company(parameters);
+    container.componentScan!Employee;
+    container.componentScan!Job;
     
-    instantiator.instantiate();
+    container.instantiate();
     
-    assert(instantiator.locate!Company("company.custom").employees[0] != parameters.locate!Employee);
-    assert(instantiator.locate!Employee(name!(Identifiable!ulong)) != parameters.locate!Employee);
-    assert(instantiator.locate!Employee("employee.custom").job == parameters.locate!Job);
-    assert(instantiator.locate!Company.employees[0] == parameters.locate!Employee);
-    assert(instantiator.locate!Employee.job == instantiator.locate!Job);
+    assert(container.locate!Company("company.custom").employees[0] != parameters.locate!Employee);
+    assert(container.locate!Employee(name!(Identifiable!ulong)) != parameters.locate!Employee);
+    assert(container.locate!Employee("employee.custom").job == parameters.locate!Job);
+    assert(container.locate!Company.employees[0] == parameters.locate!Employee);
+    assert(container.locate!Employee.job == container.locate!Job);
 }
 
 unittest {
-    auto first = new ApplicationInstantiator;
-    auto second = new ApplicationInstantiator;
+    auto first = new ApplicationContainer;
+    auto second = new ApplicationContainer;
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -311,8 +311,8 @@ unittest {
 }
 
 unittest {
-    auto first = new ApplicationInstantiator;
-    auto second = new ApplicationInstantiator;
+    auto first = new ApplicationContainer;
+    auto second = new ApplicationContainer;
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -336,8 +336,8 @@ unittest {
 }
 
 unittest {
-    auto first = new ApplicationInstantiator;
-    auto second = new ApplicationInstantiator;
+    auto first = new ApplicationContainer;
+    auto second = new ApplicationContainer;
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
@@ -359,8 +359,8 @@ unittest {
 unittest {
     import s = aermicioi.aedi.test.fixture_second;
 
-    auto first = new ApplicationInstantiator;
-    auto second = new ApplicationInstantiator;
+    auto first = new ApplicationContainer;
+    auto second = new ApplicationContainer;
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));

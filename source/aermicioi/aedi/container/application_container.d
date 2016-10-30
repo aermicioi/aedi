@@ -28,25 +28,25 @@ Authors:
 	aermicioi
 **/
 
-module aermicioi.aedi.instantiator.application_instantiator;
+module aermicioi.aedi.container.application_container;
 
-import aermicioi.aedi.instantiator;
+import aermicioi.aedi.container;
 import aermicioi.aedi.storage;
 import aermicioi.aedi.exception;
 
 /**
-Application instantiator
+Application container
 
-A default instantiator that provides singleton, and prototype instantiators as well as a storage for 
+A default container that provides singleton, and prototype containers as well as a storage for 
 already instantiated data. It should be sufficient for usages, when no specific hierarchy of storages
 is required.
 
 **/
-class ApplicationInstantiator : Instantiator {
+class ApplicationContainer : Container {
     
     private {
-        SingletonInstantiator singleton;
-        PrototypeInstantiator prototype;
+        SingletonContainer singleton;
+        PrototypeContainer prototype;
         ObjectStorage!() parameters;
     }
     
@@ -63,17 +63,17 @@ class ApplicationInstantiator : Instantiator {
         }
         
         this() {
-            this.singleton = new SingletonInstantiator;
-            this.prototype = new PrototypeInstantiator;
+            this.singleton = new SingletonContainer;
+            this.prototype = new PrototypeContainer;
             this.parameters = new ObjectStorage!();
         }
         
         /**
-        Sets up the internal state of instantiator.
+        Sets up the internal state of container.
         
-        Sets up the internal state of instantiator (Ex, for singleton container it will spawn all objects that locator contains).
+        Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
         **/
-        ApplicationInstantiator instantiate() {
+        ApplicationContainer instantiate() {
             
             singleton.instantiate();
             prototype.instantiate();

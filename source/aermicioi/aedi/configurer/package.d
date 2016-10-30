@@ -1,14 +1,14 @@
 /**
 This module provides a set of interfaces used to register objects, into 
-instantiators/containers (singleton, prototype, etc.) as well as other data.
+containers/containers (singleton, prototype, etc.) as well as other data.
 
 See:
 $(UL
     $(LI configurer.d -> implements a cleaner api for registering objects into 
-    instantiators/containers, instead of manually storing factories into
-    instantiators/containers. )
+    containers/containers, instead of manually storing factories into
+    containers/containers. )
     $(LI annotation.d -> implements annotation based logic of object registration
-    into instantiators/containers. )
+    into containers/containers. )
     ) 
 
 License:

@@ -39,10 +39,10 @@ Example:
 See:
 $(UL
     $(LI storage.d -> module that contains the object storage interface.
-        It is used in library to declare instantiators as able to save Factory 
-        for objects that are registered in instantiators.)
+        It is used in library to declare containers as able to save Factory 
+        for objects that are registered in containers.)
     $(LI locator.d -> module that contains the object locator interface.
-        It is used in library to decliare instantiators as able to locate 
+        It is used in library to decliare containers as able to locate 
         objects required by your application, or other objects that depend on 
         required object. It provides an interface for aggregate locator, as well
         as a convenient function for automatic cast of objects from Locators to

@@ -1,5 +1,5 @@
 /**
-This module provides api based configuration of instantiators.
+This module provides api based configuration of containers.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
@@ -34,15 +34,13 @@ module aermicioi.aedi.configurer.configurer;
 public import aermicioi.aedi.factory.factory : lref;
 
 import aermicioi.aedi.configurer.configurer;
-import aermicioi.aedi.instantiator.instantiator;
+import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory;
 import aermicioi.aedi.factory.genericfactory;
 import aermicioi.util.traits : isReferenceType;
 import aermicioi.aedi.exception;
-
-import std.traits : fullyQualifiedName;
 
 /**
 Register a new factory for type T object into storage/DI container by id.
@@ -65,7 +63,7 @@ auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) 
 /**
 ditto
 **/
-auto register(Type)(ConfigurableInstantiator storage, string id) {
+auto register(Type)(ConfigurableContainer storage, string id) {
     return register!Type(storage, storage, id);
 }
 
@@ -82,14 +80,14 @@ Returns:
 **/
 auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator) {
     auto fact = new GenericFactoryImpl!Type(locator);
-    storage.set(fullyQualifiedName!Type, fact);
+    storage.set(name!Type, fact);
     return fact;
 }
 
 /**
 ditto
 **/
-auto register(Type)(ConfigurableInstantiator storage) {
+auto register(Type)(ConfigurableContainer storage) {
     return register!Type(storage, storage);
 }
 
@@ -108,14 +106,14 @@ Returns:
 auto register(Interface, Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator)
 	if (is(Type : Interface) && isReferenceType!Type) {
     auto fact = new GenericFactoryImpl!Type(locator);
-    storage.set(fullyQualifiedName!Interface, fact);
+    storage.set(name!Interface, fact);
     return fact;
 }
 
 /**
 ditto
 **/
-auto register(Interface, Type)(ConfigurableInstantiator storage) {
+auto register(Interface, Type)(ConfigurableContainer storage) {
     return register!(Interface, Type)(storage, storage);
 }
 
@@ -164,7 +162,7 @@ ditto
 auto registerInto(Type, R : Locator!())(R storageLocator, Locator!() locator, string storageId = "singleton") 
     if (!is(R : Storage!(Factory, string))) {
     
-    return storageLocator.register!Type(locator, fullyQualifiedName!Type, storageId);
+    return storageLocator.register!Type(locator, name!Type, storageId);
 }
 
 /**
@@ -204,7 +202,7 @@ Returns:
 auto register(Interface, Type, R : Locator!())(R storageLocator, Locator!() locator, string storageId = "singleton") 
     if (!is(R : Storage!(Factory, string))) {
         
-    return storageLocator.register!Type(locator, fullyQualifiedName!Interface, storageId);
+    return storageLocator.register!Type(locator, name!Interface, storageId);
 }
 
 /**
@@ -213,7 +211,7 @@ ditto
 auto register(Interface, Type, R : Locator!())(R locator, string storageId = "singleton") 
     if (!is(R : Storage!(Factory, string))) {
         
-    return locator.register!Type(locator, fullyQualifiedName!Interface, storageId);
+    return locator.register!Type(locator, name!Interface, storageId);
 }
 
 /**
@@ -260,7 +258,7 @@ Returns:
     the storage were data was saved.
 **/
 auto register(Type)(Storage!(Object, string) storage, Type data) {
-    return storage.register(data, fullyQualifiedName!Type);
+    return storage.register(data, name!Type);
 }
 
 /**
@@ -278,7 +276,7 @@ Returns:
     the storage were data was saved.
 **/
 auto register(Interface, Type)(Storage!(Object, string) storage, Type data) {
-    return storage.register(data, fullyQualifiedName!Interface);
+    return storage.register(data, name!Interface);
 }
 
 /**
@@ -313,7 +311,7 @@ ditto
 auto registerInto(Type, R : Locator!())(R locator, Type data, string storageId = "parameters")
     if (!is(R : Storage!(Object, string))) {
     
-    return locator.register(data, fullyQualifiedName!Type, storageId);
+    return locator.register(data, name!Type, storageId);
 }
 
 /**
@@ -321,5 +319,5 @@ ditto
 **/
 auto register(Interface, Type, R : Locator!())(R storage, Type object, string storageId = "parameters") 
     if (is(Type : Interface) && !is(R : Storage!(Object, string))) {
-    return storage.register!Type(object, fullyQualifiedName!Interface, storageId);
+    return storage.register!Type(object, name!Interface, storageId);
 }

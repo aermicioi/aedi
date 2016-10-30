@@ -28,7 +28,7 @@ License:
 Authors:
 	Alexandru Ermicioi
 **/
-module aermicioi.aedi.instantiator.instantiator;
+module aermicioi.aedi.container.container;
 
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.locator;
@@ -38,22 +38,22 @@ import aermicioi.aedi.storage.alias_aware;
 /**
 Interface for objects that instantiate and manage the lifetime of objects in it.
 **/
-interface Instantiator : Locator!(Object, string) {
+interface Container : Locator!(Object, string) {
 
     public {
         
         /**
-        Sets up the internal state of instantiator.
+        Sets up the internal state of container.
         
-        Sets up the internal state of instantiator (Ex, for singleton container it will spawn all objects that locator contains).
+        Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
         **/
-        Instantiator instantiate();
+        Container instantiate();
     }
 }
 
 /**
  Buildable/configurable instantiatiator with factories, and aliasing. 
 **/
-interface ConfigurableInstantiator : Instantiator, Storage!(Factory, string), AliasAware!(string) {
+interface ConfigurableContainer : Container, Storage!(Factory, string), AliasAware!(string) {
 	
 }

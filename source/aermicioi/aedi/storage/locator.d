@@ -71,7 +71,7 @@ interface Locator(Type = Object, KeyType = string) {
 }
 
 /**
-Interface for a Locator that can serve objects from passed locators in it.
+Interface for a Locator that can set objects from passed locators in it.
 **/
 interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : 
     Locator!(Type, KeyType), Storage!(Locator!(Type, KeyType), LocatorKeyType) {
@@ -133,9 +133,9 @@ ditto
 **/
 @trusted auto locate(T)(Locator!(Object, string) locator)
 	if (is(T == class) || is(T == interface)) {
-    import std.traits : fullyQualifiedName;
+    import aermicioi.aedi.factory.factory : name;
     
-    return locate!T(locator, fullyQualifiedName!T);
+    return locate!T(locator, name!T);
 }
 	
 /**
@@ -161,7 +161,7 @@ ditto
 **/
 @trusted auto locate(T)(Locator!(Object, string) locator)
     if (!is(T == class) && !is(T == interface))  {
-    import std.traits : fullyQualifiedName;
+    import aermicioi.aedi.factory.factory : name;
     
-    return locate!T(locator, fullyQualifiedName!T);
+    return locate!T(locator, name!T);
 }

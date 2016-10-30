@@ -60,7 +60,7 @@ static class O {
 }
 
 unittest {
-    auto singleton = new SingletonInstantiator;
+    auto singleton = new SingletonContainer;
     
     singleton.register!O
     	.set!"setDependency"(
@@ -76,7 +76,7 @@ unittest {
 }
 
 unittest {
-    auto singleton = new SingletonInstantiator;
+    auto singleton = new SingletonContainer;
     
     singleton.componentScan!(D, O); // We can pass a list of classes that are annotated with @component
     singleton.componentScan!(aermicioi.aedi.test.example); // Or we just can pass, a module that contains @component annotated classes.
@@ -97,6 +97,7 @@ unittest {
         import std.stdio;
         writeln("hello world");
     });
+    
     parameters.locate!D; // Returns first object
     parameters.locate!D("custom identity"); // Returns second object
     parameters.locate!int; // Returns the first int.
@@ -104,8 +105,8 @@ unittest {
 }
 
 unittest {
-    PrototypeInstantiator prototype = new PrototypeInstantiator;
-    SingletonInstantiator singleton = new SingletonInstantiator;
+    PrototypeContainer prototype = new PrototypeContainer;
+    SingletonContainer singleton = new SingletonContainer;
     ObjectStorage!() parameters = new ObjectStorage!();
     AggregateLocator!() locator = new AggregateLocatorImpl!();
     

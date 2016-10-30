@@ -50,7 +50,7 @@ class O {
 	}
 }
 
-auto singleton = new SingletonInstantiator;
+auto singleton = new SingletonContainer;
 
 singleton.register!O
 	.set!"setDependency"(
@@ -104,7 +104,7 @@ class O {
 	}
 }
 
-auto singleton = new SingletonInstantiator;
+auto singleton = new SingletonContainer;
 
 singleton.componentScan!(D, O); // We can pass a list of classes that are annotated with @component
 singleton.componentScan!(app); // Or we just can pass, a module that contains @component annotated classes.
@@ -116,8 +116,8 @@ auto o = singleton.locate!O;
 
 Currently the library provides 2 containers:
 $(OL
-    $(LI singleton -> Serve same object, during it's lifetime. )
-    $(LI prototype -> Serve new object, on each access. )
+    $(LI singleton -> set same object, during it's lifetime. )
+    $(LI prototype -> set new object, on each access. )
     )
     
 We can use on both of them, annotation based, as well as code based configuration, just do not forget instantiating both of them.
@@ -160,8 +160,8 @@ Aedi, does allow to compose a set of containers into one.
 
 Here is an example:
 --------------
-PrototypeInstantiator prototype = new PrototypeInstantiator;
-SingletonInstantiator singleton = new SingletonInstantiator;
+PrototypeContainer prototype = new PrototypeContainer;
+SingletonContainer singleton = new SingletonContainer;
 ObjectStorage!() parameters = new ObjectStorage!();
 AggregateLocator!() locator = new AggregateLocatorImpl!();
 
@@ -204,16 +204,16 @@ For annotation based registering in composite container, additional annotations 
 available that control how, and where the components will be stored:
 $(OL
     $(LI @qualifier -> denotes how a component will be named in container )
-    $(LI @instantiator -> specifies in which container should be component stored )
+    $(LI @contained -> specifies in which container should be component stored )
 )
 Same convention, as with code api, is available in annotation api. By not
-specifying @instantiator annotation, container by "singleton" id will be searched
+specifying @contained annotation, container by "singleton" id will be searched
 in composite container, and the object will be registered in that container. Failing
 to provide a "singleton" container in composite one, while a class (object), does not
-have @instantiator annotation, an exception will be raised.
+have @contained annotation, will rise an exception.
 
 $(B Note:)
-As a convenience, a composite container called ApplicationInstantiator is available,
+As a convenience, a composite container called ApplicationContainer is available,
 containing singleton, prototype and parameters containers. It's usually enough for
 basic usage.
 
@@ -227,7 +227,7 @@ $(OL
     
 $(BIG $(B Container extending: ))
 
-In aedi, a container serves not only as a holder of objects. It does manage
+In aedi, a container sets not only as a holder of objects. It does manage
 the lifetime of the objects contained in them. For a singleton container
 this implies that it will store objects as long as it itself is alive,
 while prototype container, will spawn as many objects as requested, and forget
@@ -236,12 +236,12 @@ them.
 Implement a new container, when more complex logic is required in handling
 the lifetime of contained objects.
 
-To implement a new container, it has to implement Instantiator interface
-(see aermicioi.aedi.instantiator.instantiator.d). Implementing this interface
+To implement a new container, it has to implement Container interface
+(see aermicioi.aedi.container.container.d). Implementing this interface
 allows your container to interact with rest of aedi library, except of configurer
 package of aedi library. To allow a container to interact with configurer package
-implement in your container ConfigurableInstantiator interface, or Storage!(Factory, string)
-(ConfigurableInstantiator extends AliasAware interface to allow aliasing of contained objects).
+implement in your container ConfigurableContainer interface, or Storage!(Factory, string)
+(ConfigurableContainer extends AliasAware interface to allow aliasing of contained objects).
 
 $(BIG $(B Factory extending: ))
 
@@ -317,7 +317,7 @@ $(B See: ) aermicioi.aedi.configurer.annotation.d for provided interfaces.
  
 $(BIG $(B Features to be implemented: ))
 $(OL
-    $(LI A way to allow, singleton objects to access objects that are in instantiators with a narrower scope. )
+    $(LI A way to allow, singleton objects to access objects that are in containers with a narrower scope. )
     $(LI More unit tests. )
     $(LI More thorough type check of passed arguments to constructors and methods. )
     $(LI Support for yaml based configuration. )
@@ -359,5 +359,5 @@ module aermicioi.aedi;
 public import aermicioi.aedi.exception;
 public import aermicioi.aedi.configurer;
 public import aermicioi.aedi.factory;
-public import aermicioi.aedi.instantiator;
+public import aermicioi.aedi.container;
 public import aermicioi.aedi.storage;

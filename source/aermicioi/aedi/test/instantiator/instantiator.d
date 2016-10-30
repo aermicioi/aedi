@@ -27,10 +27,10 @@ License:
 Authors:
 	aermicioi
 **/
-module aermicioi.aedi.test.instantiator.instantiator;
+module aermicioi.aedi.test.container.container;
 
 import aermicioi.aedi.test.fixture;
-import aermicioi.aedi.instantiator;
+import aermicioi.aedi.container;
 import aermicioi.aedi.storage;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.factory;
@@ -52,6 +52,10 @@ class MockFactory(T) : Factory {
         }
         
         @property {
+            TypeInfo type() @safe nothrow pure {
+            	return typeid(T);
+            }
+            
             MockFactory!T locator(Locator!() loc) {
                 this.locator_ = loc;
                 
@@ -86,23 +90,23 @@ class CircularFactoryMock(T) : MockFactory!T {
 unittest {
     import std.range;
     import std.conv;
-    SingletonInstantiator instantiator = new SingletonInstantiator;
+    SingletonContainer container = new SingletonContainer;
     
-    instantiator.set("mockObject", new MockFactory!Person());
-    instantiator.set("mockObject1", new MockFactory!Person());
-    instantiator.set("mock", new CircularFactoryMock!Person().locator(instantiator));
+    container.set("mockObject", new MockFactory!Person());
+    container.set("mockObject1", new MockFactory!Person());
+    container.set("mock", new CircularFactoryMock!Person().locator(container));
     try {
-        instantiator.instantiate();
+        container.instantiate();
     } catch (CircularReferenceException e) {
         
     }
     
-    assert(instantiator.get("mockObject") !is null);
-    assert(instantiator.get("mockObject") == instantiator.get("mockObject"));
-    assert(instantiator.get("mockObject") != instantiator.get("mockObject1"));
+    assert(container.get("mockObject") !is null);
+    assert(container.get("mockObject") == container.get("mockObject"));
+    assert(container.get("mockObject") != container.get("mockObject1"));
     
     try {
-        assert(instantiator.get("unknown") !is null);
+        assert(container.get("unknown") !is null);
     } catch (NotFoundException e) {
         
     }
@@ -111,23 +115,65 @@ unittest {
 unittest {
     import std.range;
     import std.conv;
-    PrototypeInstantiator instantiator = new PrototypeInstantiator;
+    PrototypeContainer container = new PrototypeContainer;
     
-    instantiator.set("mockObject", new MockFactory!Person());
-    instantiator.set("mockObject1", new MockFactory!Person());
-    instantiator.set("mock", new CircularFactoryMock!Person().locator(instantiator));
+    container.set("mockObject", new MockFactory!Person());
+    container.set("mockObject1", new MockFactory!Person());
+    container.set("mock", new CircularFactoryMock!Person().locator(container));
     try {
-        instantiator.instantiate();
+        container.instantiate();
     } catch (CircularReferenceException e) {
         
     }
     
-    assert(instantiator.get("mockObject") !is null);
-    assert(instantiator.get("mockObject") != instantiator.get("mockObject"));
-    assert(instantiator.get("mockObject") != instantiator.get("mockObject1"));
+    assert(container.get("mockObject") !is null);
+    assert(container.get("mockObject") != container.get("mockObject"));
+    assert(container.get("mockObject") != container.get("mockObject1"));
     
     try {
-        assert(instantiator.get("unknown") !is null);
+        assert(container.get("unknown") !is null);
+    } catch (NotFoundException e) {
+        
+    }
+}
+
+unittest {
+    import std.range;
+    import std.conv;
+    import std.traits;
+    
+    SingletonContainer singleton = new SingletonContainer;
+    InheritanceContainer container = new InheritanceContainer(singleton);
+    
+    container.set("mockObject", new MockFactory!Person());
+    container.set("mockObject1", new MockFactory!Company());
+    container.set("mockObject2", new MockFactory!Job());
+    container.set("mock", new CircularFactoryMock!Job().locator(container));
+    
+    container.link("mockObject", name!Person);
+    container.link("mockObject1", name!Company);
+    container.link("mockObject2", name!Job);
+
+    try {
+        container.instantiate();
+    } catch (CircularReferenceException e) {
+        container.remove("mock");
+        assert(!container.has("mock"));
+    }
+    
+    container.instantiate();
+
+    assert(container.get(name!Nameable) !is null);
+    assert(container.get(name!Payable) !is null);
+    assert(container.get(name!Nameable) == container.get("mockObject"));
+    assert(container.get(name!Nameable) != container.get("mockObject1"));
+    assert(container.get(name!Payable) == container.get("mockObject2"));
+    container.remove("mockObject");
+    assert(container.get(name!Nameable) !is null);
+    assert(container.get(name!Nameable) == container.get("mockObject2"));
+    
+    try {
+        assert(container.get(name!Nameable) !is null);
     } catch (NotFoundException e) {
         
     }

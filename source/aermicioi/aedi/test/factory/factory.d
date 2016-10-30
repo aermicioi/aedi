@@ -30,22 +30,22 @@ Authors:
 module aermicioi.aedi.test.factory;
 
 import aermicioi.aedi.factory;
-import aermicioi.aedi.instantiator;
+import aermicioi.aedi.container;
 import aermicioi.aedi.storage;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.test.fixture;
 
 unittest {
-    SingletonInstantiator instantiator = new SingletonInstantiator;
-    GenericFactory!Employee employee = new GenericFactoryImpl!Employee(instantiator);
-    GenericFactory!Company company = new GenericFactoryImpl!Company(instantiator);
-    GenericFactory!Job job = new GenericFactoryImpl!Job(instantiator);
+    SingletonContainer container = new SingletonContainer;
+    GenericFactory!Employee employee = new GenericFactoryImpl!Employee(container);
+    GenericFactory!Company company = new GenericFactoryImpl!Company(container);
+    GenericFactory!Job job = new GenericFactoryImpl!Job(container);
     
-    instantiator.set("employee", employee);
-    instantiator.set("company", company);
-    instantiator.set("job", job);
+    container.set("employee", employee);
+    container.set("company", company);
+    container.set("job", job);
     
-    instantiator.instantiate();
+    container.instantiate();
 }
 
 unittest {

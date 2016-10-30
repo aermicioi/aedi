@@ -1,5 +1,5 @@
 /**
-This module implements annotation based configuration of instantiators.
+This module implements annotation based configuration of containers.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
@@ -36,7 +36,7 @@ public import aermicioi.aedi.factory.factory : lref;
 import aermicioi.aedi.configurer.configurer;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.storage;
-import aermicioi.aedi.instantiator.instantiator;
+import aermicioi.aedi.container.container;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.genericfactory;
 import aermicioi.aedi.exception;
@@ -49,7 +49,7 @@ import std.conv : to;
 import std.algorithm;
 
 /**
-Annotation used to denote an instantiatable object that should be stored into an instantiator.
+Annotation used to denote an instantiatable object that should be stored into an container.
 
 A simple alias to original struct to conform to functional style below (Since type inferring is not required no need to define a function for it).
 **/
@@ -59,7 +59,7 @@ alias component = Component;
 Annotation used to mark constructor or method for auto wiring.
 
 A simple alias to original struct to conform to functional style below (Since type inferring is not required no need to define a function for it).
-Marking a method/constructor with autowired annotation will make instantiator to call it with arguments fetched from
+Marking a method/constructor with autowired annotation will make container to call it with arguments fetched from
 locator by types of them.
 
 Note: even if a method/constructor from an overloaded set is marked with autowired annotation, the first method from overload set
@@ -69,7 +69,7 @@ will be used. Due to that autowired annotation is recommended to use on methods/
 alias autowired = Autowired;
 
 /**
-Annotation used to denote an instantiatable object that should be stored into an instantiator.
+Annotation used to denote an instantiatable object that should be stored into an container.
 **/
 struct Component {
     GenericFactory!T factory(T)(Locator!() locator) {
@@ -90,7 +90,7 @@ struct Constructor(Args...) {
         this.args = args;
     }
     
-    InstanceFactory!T factoryInstantiator(T, string property)(Locator!() locator) {
+    InstanceFactory!T factoryContainer(T, string property)(Locator!() locator) {
         auto constructor = new ConstructorBasedFactory!(T, Args)(args.expand);
         constructor.locator = locator;
         
@@ -100,7 +100,7 @@ struct Constructor(Args...) {
 }
 
 /**
-Annotation used to mark a method to be called to configure instantiated object by instantiator (setter injection).
+Annotation used to mark a method to be called to configure instantiated object by container (setter injection).
 
 Note: if an overloaded method is annotated with Setter, the method from overload set that matches argument list in Setter annotation 
 will be called.
@@ -126,7 +126,7 @@ struct Setter(Args...) {
 /**
 Annotation used to mark constructor or method for auto wiring.
 
-Marking a method/constructor with autowired annotation will make instantiator to call it with arguments fetched from
+Marking a method/constructor with autowired annotation will make container to call it with arguments fetched from
 locator by types of them.
 
 Note: even if a method/constructor from an overloaded set is marked with autowired annotation, the first method from overload set
@@ -145,7 +145,7 @@ struct Autowired {
         return method;
     }
     
-    PropertyConfigurer!T factoryInstantiator(T)(Locator!() locator) {
+    PropertyConfigurer!T factoryContainer(T)(Locator!() locator) {
         
         alias params = Parameters!(__traits(getOverloads, T, "__ctor")[0]);
         auto references = tuple(staticMap!(toLref, params));
@@ -158,16 +158,16 @@ struct Autowired {
 }
 
 /**
-An annotation used to provide custom identity for an object in instantiator.
+An annotation used to provide custom identity for an object in container.
 **/
 struct Qualifier {
     string id;
 }
 
 /**
-When objects are registered into an aggregate instantiator, this annotation marks in which sub-instantiator it is required to store.
+When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
 **/
-struct Instantiator {
+struct Contained {
     string id;
 }
 
@@ -185,7 +185,7 @@ auto constructor(Args...)(Args args) {
 }
 
 /**
-Annotation used to mark a method to be called to configure instantiated object by instantiator (setter injection).
+Annotation used to mark a method to be called to configure instantiated object by container (setter injection).
 
 This function is a convenince function to automatically infer required types for underlying annotation.
 Note: if an overloaded method is annotated with Setter, the method from overload set that matches argument list in Setter annotation 
@@ -200,40 +200,40 @@ auto setter(Args...)(Args args) {
 }
 
 /**
-An annotation used to provide custom identity for an object in instantiator.
+An annotation used to provide custom identity for an object in container.
 
 This function is a convenince function to automatically infer required types for underlying annotation.
 
 Params:
-    id = identity of object in instantiator
+    id = identity of object in container
 **/
 auto qualifier(string id) {
     return Qualifier(id);
 }
 
 /**
-An annotation used to provide custom identity for an object in instantiator by some interface.
+An annotation used to provide custom identity for an object in container by some interface.
 
 This function is a convenince function to automatically infer required types for underlying annotation.
 
 Params:
-    I = identity of object in instantiator
+    I = identity of object in container
 **/
 auto qualifier(I)()
     if (is(I == interface) || is(I == class)) {
-    return Qualifier(fullyQualifiedName!I);
+    return Qualifier(name!I);
 }
 
 /**
-When objects are registered into an aggregate instantiator, this annotation marks in which sub-instantiator it is required to store.
+When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
 
 This function is a convenince function to automatically infer required types for underlying annotation.
 
 Params:
-    id = identity of instantiator where to store the object.
+    id = identity of container where to store the object.
 **/
-auto instantiator(string id) {
-    return Instantiator(id);
+auto contained(string id) {
+    return Contained(id);
 }
 
 /**
@@ -314,14 +314,14 @@ auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator)
     static if (qualifiers.length > 0) {
         return storage.storage.componentScan!T(locator, qualifiers[0].id);
     } else {
-        return storage.componentScan!T(locator, fullyQualifiedName!T);
+        return storage.componentScan!T(locator, name!T);
     }
 }
 
 /**
 ditto
 **/
-auto componentScan(T)(ConfigurableInstantiator storage)
+auto componentScan(T)(ConfigurableContainer storage)
     if (is(T == class)) {
     
     return storage.componentScan!T(storage);
@@ -349,14 +349,14 @@ auto componentScan(I, T)(Storage!(Factory, string) storage, Locator!() locator)
     static if (qualifiers.length > 0) {
         return storage.componentScan!T(locator, qualifier[0].id);
     } else {
-        return storage.componentScan!T(locator, fullyQualifiedName!I);
+        return storage.componentScan!T(locator, name!I);
     }
 }
 
 /**
 ditto
 **/
-auto componentScan(I, T)(ConfigurableInstantiator storage)
+auto componentScan(I, T)(ConfigurableContainer storage)
     if (is(I == interface) && is(T == class) && is(T : I)) {
     
     return storage.componentScan!(I, T)(storage);
@@ -384,7 +384,7 @@ auto componentScan(T, V...)(Storage!(Factory, string) storage, Locator!() locato
 /**
 ditto
 **/
-auto componentScan(T, V...)(ConfigurableInstantiator storage)
+auto componentScan(T, V...)(ConfigurableContainer storage)
     if (is(T == class)) {
     
     return storage.componentScan!(T, V)(storage);
@@ -403,7 +403,7 @@ auto componentScan(I, T, V...)(Storage!(Factory, string) storage, Locator!() loc
 /**
 ditto
 **/
-auto componentScan(I, T, V...)(ConfigurableInstantiator storage)
+auto componentScan(I, T, V...)(ConfigurableContainer storage)
     if (is(I == interface) && is(T == class) && is(T : I)) {
     
     return storage.componentScan!(I, T, V)(storage);
@@ -464,7 +464,7 @@ auto componentScan(alias Module)(Storage!(Factory, string) storage, Locator!() l
 /**
 ditto
 **/
-auto componentScan(alias M)(ConfigurableInstantiator storage)
+auto componentScan(alias M)(ConfigurableContainer storage)
     if (startsWith(M.stringof, "module")) {
     
     return storage.componentScan!(M)(storage);
@@ -493,14 +493,14 @@ auto componentScan(alias M, V...)(Storage!(Factory, string) storage, Locator!() 
 /**
 ditto
 **/
-auto componentScan(alias M, V...)(ConfigurableInstantiator storage)
+auto componentScan(alias M, V...)(ConfigurableContainer storage)
     if (startsWith(M.stringof, "module")) {
     
     return storage.componentScan!(M, V)(storage);
 }
 
 /**
-Register an object into a storage contained in storageLocator and identified by @instantiator annotation using annotations provided in it.
+Register an object into a storage contained in storageLocator and identified by @container annotation using annotations provided in it.
 
 An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
 annotation is found, object is not registered in storage.
@@ -514,13 +514,13 @@ Params:
 auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator, string id) 
     if (is (T == class) && !is(R : Storage!(Factory, string))) {
     
-    alias instantiators = Filter!(
-        isInstantiator,
+    alias containers = Filter!(
+        isContained,
         allUDAs!T
     );
     
-    static if (instantiators.length > 0) {
-        string storageId = instantiators[0].id;
+    static if (containers.length > 0) {
+        string storageId = containers[0].id;
     } else {
         string storageId = "singleton";
     }
@@ -560,7 +560,7 @@ auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator)
     static if (qualifiers.length > 0) {
         return storageLocator.componentScan!T(locator, qualifiers[0].id);
     } else {
-        return storageLocator.componentScan!T(locator, fullyQualifiedName!T);
+        return storageLocator.componentScan!T(locator, name!T);
     }
 }
 
@@ -600,7 +600,7 @@ template componentScan(T, V...)
 }
 
 /**
-Register an object into a storage contained in storageLocator and identified by @instantiator annotation using annotations provided in it.
+Register an object into a storage contained in storageLocator and identified by @container annotation using annotations provided in it.
 
 An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
 annotation is found, object is not registered in storage.
@@ -621,7 +621,7 @@ auto componentScan(I, T, R : Locator!())(R storageLocator, Locator!() locator)
     static if (qualifiers.length > 0) {
         return storageLocator.componentScan!T(locator, qualifiers[0].id);
     } else {
-        return storageLocator.componentScan!T(locator, fullyQualifiedName!I);
+        return storageLocator.componentScan!T(locator, name!I);
     }
 }
 
@@ -664,7 +664,7 @@ template componentScan(I, T, V...)
 }
 
 /**
-Register module's objects into a storage contained in storageLocator and identified by @instantiator annotation using annotations provided in it.
+Register module's objects into a storage contained in storageLocator and identified by @container annotation using annotations provided in it.
 
 An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
 annotation is found, object is not registered in storage.
@@ -725,7 +725,7 @@ template componentScan(alias M, V...)
 /**
 Checks if a structure has factory method for GenericFactory.
 
-This static interface is used by annotation system to identify annotations that mark an object as instantiable by instantiator.
+This static interface is used by annotation system to identify annotations that mark an object as instantiable by container.
 The @component annotation is such a structure that implements this static interface and therefore it is possible to use it to 
 mark components instantiable. A "@component" annotation must have a factory method that returns a GenericFactory instance that
 further will be used to configure an instantiable object. In such a way it is possbile to define other custom annotations that
@@ -767,7 +767,7 @@ template canFactoryGenericFactory(T, Z)
 }
 
 /**
-Checks if a structure has factoryInstantiator method for InstanceFactory.
+Checks if a structure has factoryContainer method for InstanceFactory.
 
 This static interface is used to find annotations that can provide a InstanceFactory for GenericFactory to be used by it to instantiate
 the object. The @constructor annotation implements this annotation and therefore it is possible to use it to mark a constructor to be used
@@ -782,7 +782,7 @@ Examples:
             this.args = args;
         }
         
-        InstanceFactory!T factoryInstantiator(T, string property)(Locator!() locator) {
+        InstanceFactory!T factoryContainer(T, string property)(Locator!() locator) {
             auto constructor = new ConstructorBasedFactory!(T, Args)(args.expand);
             constructor.locator = locator;
             
@@ -806,8 +806,8 @@ template canFactoryInstanceFactory(alias T, Z, string property = "__ctor") {
 ditto
 **/
 template canFactoryInstanceFactory(T, Z, string property = "__ctor") {
-    static if (hasMember!(T, "factoryInstantiator")) {
-        alias factory = getMember!(T, "factoryInstantiator");
+    static if (hasMember!(T, "factoryContainer")) {
+        alias factory = getMember!(T, "factoryContainer");
         
         enum bool canFactoryInstanceFactory = is(ReturnType!(factory!(Z, property)) : InstanceFactory!Z);
     } else {
@@ -896,12 +896,12 @@ private auto componentScanImpl(T)(Locator!() locator)
         
         static if (headUdas.length > 0) {
             debug {
-                pragma(msg, "Found instantiator right on ", fullyQualifiedName!T);
+                pragma(msg, "Found container right on ", fullyQualifiedName!T);
             }
             
-            factory.setConstructorFactory(headUdas[0].factoryInstantiator!(T, fullyQualifiedName!T)(locator));
+            factory.setConstructorFactory(headUdas[0].factoryContainer!(T, name!T)(locator));
         } else {
-            alias instantiators = Filter!(
+            alias containers = Filter!(
                 templateAnd!(
                     partialSuffixed!(
                         partialPrefixed!(
@@ -921,9 +921,9 @@ private auto componentScanImpl(T)(Locator!() locator)
                 __traits(allMembers, T)
             );
             
-            static if (instantiators.length > 0) {
-                foreach (instantiator; instantiators) {
-                    foreach (overload; __traits(getOverloads, T, instantiator)) {
+            static if (containers.length > 0) {
+                foreach (container; containers) {
+                    foreach (overload; __traits(getOverloads, T, container)) {
                         alias udas = Filter!(
                             partialSuffixed!(
                                 canFactoryInstanceFactory,
@@ -935,10 +935,10 @@ private auto componentScanImpl(T)(Locator!() locator)
                         
                         static if (udas.length > 0) {
                             debug {
-                                pragma(msg, "Found custom constructor for component on ", instantiator, " with arguments ", Parameters!overload);
+                                pragma(msg, "Found custom constructor for component on ", container, " with arguments ", Parameters!overload);
                             }
                             
-                            factory.setConstructorFactory(udas[0].factoryInstantiator!(T, instantiator)(locator));
+                            factory.setConstructorFactory(udas[0].factoryContainer!(T, container)(locator));
                         }
                     }
                 }
@@ -1004,12 +1004,12 @@ private template isQualifier(T) {
     enum bool isQualifier = is(T == Qualifier);
 }
 
-private template isInstantiator(alias T) {
-    alias isInstantiator = isInstantiator!(typeof(T));
+private template isContained(alias T) {
+    alias isContained = isContained!(typeof(T));
 }
 
-private template isInstantiator(T) {
-    enum bool isInstantiator = is(T == Instantiator);
+private template isContained(T) {
+    enum bool isContained = is(T == Contained);
 }
 
 private template isValue(T) {

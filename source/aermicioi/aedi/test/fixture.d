@@ -37,6 +37,14 @@ interface Identifiable(T) {
     }
 }
 
+interface Nameable {
+    string name() @safe nothrow pure;
+}
+
+interface Payable {
+    ulong payment();
+}
+
 @component
 class Company : Identifiable!ulong {
     private {
@@ -98,7 +106,7 @@ class Company : Identifiable!ulong {
 }
 
 @component
-@instantiator("prototype")
+@contained("prototype")
 class Employee : Person {
     private {
         Company company_;
@@ -166,8 +174,8 @@ class Employee : Person {
 }
 
 @component
-@instantiator("prototype")
-class Person : Identifiable!ulong {
+@contained("prototype")
+class Person : Identifiable!ulong, Nameable {
     private {
         ubyte age_;
         string name_;
@@ -246,7 +254,7 @@ class Person : Identifiable!ulong {
 }
 
 @component
-class Job : Identifiable!ulong {
+class Job : Identifiable!ulong, Nameable, Payable {
     private {
         string name_;
         ulong payment_;

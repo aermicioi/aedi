@@ -38,7 +38,7 @@ Interface for objects that create objects.
 
 It is used to store different types of object factories in DI containers. 
 Any factory extending this interface will encapsulate logic required to construct an object that will be 
-served by DI container to client application.
+setd by DI container to client application.
 If there is need to implement custom logic for creation of some kind of objects, a client should encapsulate
 factory logic into a class which inherits Factory interface, afterwards, this factory will be acceptable by all
 DI containers, and DI containers will call this factory when a new object is required.
@@ -64,6 +64,14 @@ interface Factory : LocatorAware!() {
 		@property {
 		    
 		    /**
+    		Get the type info of object that is created.
+    		
+    		Returns:
+    			TypeInfo object of created object.
+    		**/
+    		TypeInfo type();
+		    
+		    /**
 		    Checks if the factory is currently building an object.
 		    
 		    This method is used by DI containers, in order to check circular reference errors. Ex of usage is when
@@ -77,10 +85,10 @@ interface Factory : LocatorAware!() {
 }
 
 /**
-Represents a reference to an object in a locator/instantiator.
+Represents a reference to an object in a locator/container.
 
 Any object of this type encountered in factories should be treated as a declaration that required argument for
-object construction/configuration is located into a locator/instantiator, and should be fetched and used instead
+object construction/configuration is located into a locator/container, and should be fetched and used instead
 of LocatorReference.
 **/
 class LocatorReference {
@@ -125,7 +133,7 @@ ditto
 auto lref(T)() {
     import std.traits;
     
-    return fullyQualifiedName!T.lref;
+    return name!T.lref;
 }
 
 /**
@@ -137,7 +145,7 @@ auto lref(string name)() {
 
 template toLref(Type) {
     auto toLref() {
-        return fullyQualifiedName!Type.lref;
+        return name!Type.lref;
     }
 }
 

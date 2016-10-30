@@ -167,7 +167,7 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
         **/
         T factory() {
             if (this.inProcess) {
-                throw new InProgressException("Object is already instantiating, type: " ~ fullyQualifiedName!T);
+                throw new InProgressException("Object is already instantiating, type: " ~ name!T);
             }
             
             this.inProcess_ = true;
@@ -218,6 +218,16 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
             Locator!() locator() {
                 return this.locator_;
             }
+            
+            /**
+    		Get the type info of object that is created.
+    		
+    		Returns:
+    			TypeInfo object of created object.
+    		**/
+    		TypeInfo type() {
+    		    return typeid(T);
+    		}            
         }
             
         GenericFactory!T addPropertyFactory(PropertyConfigurer!T configurer) {

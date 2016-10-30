@@ -28,19 +28,19 @@ License:
 Authors:
 	Alexandru Ermicioi
 **/
-module aermicioi.aedi.instantiator.prototype_instantiator;
+module aermicioi.aedi.container.prototype_container;
 
-import aermicioi.aedi.instantiator.instantiator;
+import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception;
 
 /**
- Prototype instantiator.
+ Prototype container.
  
  Instantiates a new object using passed Factory implementation, on each request of it by some part of an application.
 **/
-class PrototypeInstantiator : ConfigurableInstantiator {
+class PrototypeContainer : ConfigurableContainer {
     
     private {
         
@@ -53,13 +53,13 @@ class PrototypeInstantiator : ConfigurableInstantiator {
             this.factories = new ObjectStorage!(Factory, string);
         }
         
-        PrototypeInstantiator set(string key, Factory object) {
+        PrototypeContainer set(string key, Factory object) {
             this.factories.set(key, object);
             
             return this;
         }
         
-        PrototypeInstantiator remove(string key) {
+        PrototypeContainer remove(string key) {
             this.factories.remove(key);
             
             return this;
@@ -89,18 +89,18 @@ class PrototypeInstantiator : ConfigurableInstantiator {
             return this.factories.has(key);
         }
         
-        PrototypeInstantiator instantiate() {
+        PrototypeContainer instantiate() {
             
             return this;
         }
         
-        PrototypeInstantiator link(string key, string alias_) {
+        PrototypeContainer link(string key, string alias_) {
             this.factories.link(key, alias_);
             
             return this;
         }
         
-        PrototypeInstantiator unlink(string alias_) {
+        PrototypeContainer unlink(string alias_) {
             this.factories.unlink(alias_);
             
             return this;

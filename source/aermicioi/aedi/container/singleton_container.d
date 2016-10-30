@@ -28,9 +28,9 @@ License:
 Authors:
 	Alexandru Ermicioi
 **/
-module aermicioi.aedi.instantiator.singleton_instantiator;
+module aermicioi.aedi.container.singleton_container;
 
-import aermicioi.aedi.instantiator.instantiator;
+import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.storage.locator;
@@ -38,11 +38,11 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception;
 
 /**
- Singleton instantiator.
+ Singleton container.
  
- It creates objects from Factory implementations and serves them as long as it lives in application.
+ It creates objects from Factory implementations and sets them as long as it lives in application.
 **/
-class SingletonInstantiator : ConfigurableInstantiator {
+class SingletonContainer : ConfigurableContainer {
     
     private {
         
@@ -57,13 +57,13 @@ class SingletonInstantiator : ConfigurableInstantiator {
             this.factories = new ObjectStorage!(Factory, string);
         }
         
-        SingletonInstantiator set(string key, Factory object) {
+        SingletonContainer set(string key, Factory object) {
             this.factories.set(key, object);
             
             return this;
         }
         
-        SingletonInstantiator remove(string key) {
+        SingletonContainer remove(string key) {
             this.factories.remove(key);
             this.singletons.remove(key);
             
@@ -100,7 +100,7 @@ class SingletonInstantiator : ConfigurableInstantiator {
             return this.factories.has(key);
         }
         
-        SingletonInstantiator instantiate() {
+        SingletonContainer instantiate() {
             import std.algorithm : filter;
             foreach (pair; this.factories.contents.byKeyValue.filter!((pair) => pair.key !in this.singletons.contents)) {
                 this.singletons.set(
@@ -112,14 +112,14 @@ class SingletonInstantiator : ConfigurableInstantiator {
             return this;
         }
         
-        SingletonInstantiator link(string key, string alias_) {
+        SingletonContainer link(string key, string alias_) {
             this.singletons.link(key, alias_);
             this.factories.link(key, alias_);
             
             return this;
         }
         
-        SingletonInstantiator unlink(string alias_) {
+        SingletonContainer unlink(string alias_) {
             this.singletons.unlink(alias_);
             this.factories.unlink(alias_);
             
