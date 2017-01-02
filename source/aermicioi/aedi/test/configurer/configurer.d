@@ -42,6 +42,7 @@ unittest {
     container.register!(Employee)();
     container.register!(Person, Employee)(parameters);
     container.register!(Identifiable!ulong, Employee)();
+    container.register!(StructFixtureFactory);
     
     assert(container.locate!(Employee)("employee.custom") !is null);
     assert(container.locate!(Person)("person.custom") !is null);
@@ -49,6 +50,8 @@ unittest {
     assert(container.locate!(Employee)() !is null);
     assert(container.locate!Employee(name!Person) !is null);
     assert(container.locate!Employee(name!(Identifiable!ulong)) !is null);
+    assert(container.locate!StructFixtureFactory !is null);
+    assert(container.locate!StructFixtureFactory.value == StructFixtureFactory());
 }
 
 unittest {
@@ -57,10 +60,10 @@ unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     locator.set("parameters", storage);
     
-    storage.register(new Job("Salesman", 20), "salesman");
-    storage.register(new Job("Trader", 20));
+    storage.register(new Job("Salesman", Currency(20)), "salesman");
+    storage.register(new Job("Trader", Currency(20)));
     storage.register!(Person)(new Employee("Zack", cast(ubyte) 20));
-    locator.register(new Job("Fishkeeper", 39), "fishkeeper", "parameters");
+    locator.register(new Job("Fishkeeper", Currency(39)), "fishkeeper", "parameters");
     locator.registerInto(new Employee("Nick", cast(ubyte) 21), "parameters");
     locator.register!(Identifiable!ulong)(new Person("Kick", 22), "parameters");
     
@@ -141,12 +144,24 @@ unittest {
     container.register!(Person, Employee)(parameters, "prototype");
     container.register!(Identifiable!ulong, Employee)("prototype");
     
+    container.registerInto!(StructFixtureFactory);
+    container.registerInto!(StructFixtureFactory)("prototype");
+    container.register!(StructFixtureFactory)("factory");
+    container.register!(StructFixtureFactory)("protoFactory", "prototype");
+    
     assert(prototype.locate!(Employee)("employee.custom") !is null);
     assert(prototype.locate!(Person)("person.custom") !is null);
     assert(prototype.locate!(Company) !is null);
     assert(prototype.locate!(Employee)() !is null);
     assert(prototype.locate!Employee(name!Person) !is null);
     assert(prototype.locate!Employee(name!(Identifiable!ulong)) !is null);
+    
+    assert(singleton.locate!StructFixtureFactory !is null);
+    assert(singleton.locate!StructFixtureFactory !is singleton.locate!StructFixtureFactory("factory"));
+    assert(singleton.locate!StructFixtureFactory.value == singleton.locate!StructFixtureFactory("factory"));
+    
+    assert(prototype.locate!StructFixtureFactory !is prototype.locate!StructFixtureFactory("protoFactory"));
+    assert(prototype.locate!StructFixtureFactory.value == prototype.locate!StructFixtureFactory("protoFactory"));
 }
 
 unittest {
@@ -154,14 +169,17 @@ unittest {
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
 
     container.componentScan!Company(parameters, "company.custom");
     container.componentScan!Employee(parameters);
     container.componentScan!Job();
+    container.componentScan!Person();
+    container.componentScan!Company();
     container.componentScan!(Identifiable!ulong, Person)();
+    container.componentScan!StructFixtureFactory;
     
     container.instantiate();
     
@@ -169,6 +187,27 @@ unittest {
     assert(container.locate!Employee !is null);
     assert(container.locate!Job() !is null);
     assert(container.locate!(Person)(name!(Identifiable!ulong)) !is null);
+    
+    assert(container.locate!StructFixtureFactory !is null);
+    assert(container.locate!StructFixtureFactory.job is container.locate!Job);
+    assert(container.locate!StructFixtureFactory.person is container.locate!Person);
+    assert(container.locate!StructFixtureFactory.employee is container.locate!Employee);
+}
+
+unittest {
+    auto container = new SingletonContainer;
+    auto parameters = new ObjectStorage!();
+    
+    parameters.register(new Employee("Zack", cast(ubyte) 20));
+    parameters.register(new Job("Magician", Currency(49)));
+    parameters.register("Simple name");
+    parameters.register!ubyte(30);
+
+    container.componentScan!Company(parameters);
+    container.componentScan!Employee(parameters);
+    container.componentScan!Person(parameters);
+    
+    container.instantiate();
 }
 
 unittest {
@@ -177,7 +216,7 @@ unittest {
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
     
@@ -198,9 +237,11 @@ unittest {
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
+    parameters.register(new Company);
+    parameters.register(new Person);
     
     first.componentScan!(aermicioi.aedi.test.fixture)(parameters);
     second.componentScan!(aermicioi.aedi.test.fixture)();
@@ -221,13 +262,17 @@ unittest {
     import fixture_second = aermicioi.aedi.test.fixture_second;
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
     parameters.register(new fixture_second.Employee("Zack", cast(ubyte) 20));
-    parameters.register(new fixture_second.Job("Magician", 49));
+    parameters.register(new fixture_second.Job("Magician", fixture_second.Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
+    parameters.register(new fixture_second.Company);
+    parameters.register(new fixture_second.Person);
+    parameters.register(new Company);
+    parameters.register(new Person);
     
     first.componentScan!(aermicioi.aedi.test.fixture, aermicioi.aedi.test.fixture_second)(parameters);
     second.componentScan!(aermicioi.aedi.test.fixture, aermicioi.aedi.test.fixture_second)();
@@ -247,9 +292,11 @@ unittest {
     auto parameters = new ObjectStorage!();
     
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
+    parameters.register(new Company);
+    parameters.register(new Person);
     
     first.componentScan!(aermicioi.aedi.test.fixture)(parameters);
     second.componentScan!(aermicioi.aedi.test.fixture)();
@@ -267,9 +314,11 @@ unittest {
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
+    parameters.register(new Company);
+    parameters.register(new Person);
 
     container.componentScan!(Company)("company.custom");
     container.componentScan!(Identifiable!ulong, Employee);
@@ -293,9 +342,11 @@ unittest {
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
+    parameters.register(new Company);
+    parameters.register(new Person);
     
     first.componentScan!(Identifiable!ulong, Employee)(parameters);
     first.componentScan!(Job);
@@ -316,9 +367,11 @@ unittest {
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
+    parameters.register(new Company);
+    parameters.register(new Person);
     
     first.componentScan!(Company, Employee, Job, Identifiable!ulong, Company)(parameters);
     second.componentScan!(Company, Employee, Job, Identifiable!ulong, Company);
@@ -341,9 +394,11 @@ unittest {
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
+    parameters.register(new Company);
+    parameters.register(new Person);
 
     first.componentScan!(aermicioi.aedi.test.fixture)(parameters);
     second.componentScan!(aermicioi.aedi.test.fixture);
@@ -364,11 +419,15 @@ unittest {
     auto parameters = new ObjectStorage!();
 
     parameters.register(new Employee("Zack", cast(ubyte) 20));
-    parameters.register(new Job("Magician", 49));
+    parameters.register(new Job("Magician", Currency(49)));
     parameters.register("Simple name");
     parameters.register!ubyte(30);
     parameters.register(new s.Employee("Zack", cast(ubyte) 20));
-    parameters.register(new s.Job("Magician", 49));
+    parameters.register(new s.Job("Magician", s.Currency(49)));
+    parameters.register(new Company);
+    parameters.register(new Person);
+    parameters.register(new s.Company);
+    parameters.register(new s.Person);
     
     first.componentScan!(
         aermicioi.aedi.test.fixture,

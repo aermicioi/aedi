@@ -42,7 +42,7 @@ interface Nameable {
 }
 
 interface Payable {
-    ulong payment();
+    Currency payment();
 }
 
 @component
@@ -217,7 +217,7 @@ class Person : Identifiable!ulong, Nameable {
         	return this.id_;
         }
         
-        @setter(10)
+        @setter(cast(ubyte) 10)
         Person age(ubyte age) {
         	this.age_ = age;
         
@@ -257,16 +257,18 @@ class Person : Identifiable!ulong, Nameable {
 class Job : Identifiable!ulong, Nameable, Payable {
     private {
         string name_;
-        ulong payment_;
+        Currency payment_;
         ulong id_;
     }
     
     public {
+        Company company;
+        
         this() {
             
         }
         
-        this(string name, ulong payment) {
+        this(string name, Currency payment) {
             this.name = name;
             this.payment = payment;
         }
@@ -305,16 +307,156 @@ class Job : Identifiable!ulong, Nameable, Payable {
         	return this.name_;
         }
         
-        @setter(2000UL)
-        Job payment(ulong payment) {
+        @setter(Currency(2000UL))
+        Job payment(Currency payment) {
         	this.payment_ = payment;
         
         	return this;
         }
         
-        ulong payment() {
+        Currency payment() {
         	return this.payment_;
         }
         
+        Currency averagePayment;
+    }
+}
+
+@component
+struct Currency {
+    import std.traits;
+    public {
+        ptrdiff_t amount_;
+
+        this(ptrdiff_t amount) {
+            this.amount = amount;
+        }
+        
+        @property {
+            @setter(cast(ptrdiff_t) 100)
+            ref Currency amount(ptrdiff_t amount) @safe nothrow pure {
+            	this.amount_ = amount;
+            
+            	return this;
+            }
+            
+            ptrdiff_t amount() @safe nothrow pure {
+            	return this.amount_;
+            }
+        }
+        
+        bool opEquals(T)(T amount)
+            if (isNumeric!T) {
+            return this.amount == amount;
+        }
+            
+        bool opEquals(Currency currency) {
+            return this.amount == currency.amount;
+        }
+    }
+}
+
+@component
+class FixtureFactory {
+    private {
+        static Company company_;
+        Job job_;
+    }
+    
+    public {
+        static this() {
+            company = new Company(20);
+        }
+        
+        @autowired
+        this(Job job) {
+            this.job = job;
+            person = new Person("Ali Armen", 30);
+        }
+        
+        @autowired
+        Employee employee;
+        
+        @setter(lref!Person)
+        Person person;
+        
+        @autowired
+        static void company(Company company) @safe nothrow {
+        	company_ = company;
+        }
+        
+        static Company company() @safe nothrow {
+        	return company_;
+        }
+        
+        FixtureFactory job(Job job) @safe nothrow pure {
+        	this.job_ = job;
+        
+        	return this;
+        }
+        
+        Job job() @safe nothrow pure {
+        	return this.job_;
+        }
+    }
+}
+
+@component
+struct StructFixtureFactory {
+    private {
+        static Company company_;
+        Job job_;
+        Currency currency_;
+    }
+    
+    public {
+        static this() {
+            company = new Company(20);
+        }
+        
+        @constructor(lref!Job)
+        this(Job job) {
+            this.job = job;
+            person = new Person("Ali Armen", 30);
+        }
+        
+        @autowired
+        Employee employee;
+        
+        @setter(lref!Person)
+        Person person;
+        
+        @setter(lref!Company)
+        static void company(Company company) @safe nothrow {
+        	company_ = company;
+        }
+        
+        static Company company() @safe nothrow {
+        	return company_;
+        }
+        
+        ref StructFixtureFactory job(Job job) @safe nothrow pure {
+        	this.job_ = job;
+        
+        	return this;
+        }
+        
+        Job job() @safe nothrow pure {
+        	return this.job_;
+        }
+        
+        static Currency basicPayment(ptrdiff_t amount) {
+            return Currency(amount);
+        }
+        
+        ref StructFixtureFactory currency(Currency currency) @safe nothrow pure {
+        	this.currency_ = currency;
+        
+        	return this;
+        }
+        
+        Currency currency() @safe nothrow pure {
+        	return this.currency_;
+        }
     }
 }

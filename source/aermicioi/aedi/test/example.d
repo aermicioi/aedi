@@ -32,105 +32,422 @@ module aermicioi.aedi.test.example;
 import aermicioi.aedi;
 
 @component
-static class D {
-
-	public {
-		int i_;
-//        Uncomment one of it to apply it
-        @constructor(20)
-//        @autowire
-		this(int i) {
-			this.i_ = i;
-		}
-	}
+struct Color {
+    @setter(cast(ubyte) 200)
+    ubyte r;
+    
+    @setter(cast(ubyte) 200)
+    ubyte g;
+    
+    @setter(cast(ubyte) 200)
+    ubyte b;
 }
 
 @component
-static class O {
-	public {
-		D dependency_;
-//        Uncomment one of it to apply it
-        @setter(lref!D)
-//        @autowire
-		void setDependency(D dep) {
-			this.dependency_ = dep;
-		}
-		
-	}
+struct Size {
+    
+    @setter(295)
+    ulong width;
+    
+    @setter(210)
+    ulong height;
 }
 
-unittest {
-    auto singleton = new SingletonContainer;
+@component // mark an aggregate as a component managed by di container.
+@qualifier("page.paper") // use it, to name a component other that by it's type.
+class Paper {
+    public {
+        enum Quality {
+            low,
+            medium,
+            high
+        }
+    }
     
-    singleton.register!O
-    	.set!"setDependency"(
-    		lref!D
-    	);
-    	
-    singleton.register!D
-    	.construct(10);
-    	
-    singleton.instantiate();
+    private {
+        Quality quality_;
+        Color color_;
+    }
     
-    auto o = singleton.locate!O;
+    public {
+        
+        @constructor(lref!(Paper.Quality), "color.white".lref) // Use constructor annotation to denote that component is buildable using a constructor.
+        this(Quality q, Color c) {
+            this.quality(q);
+            this.color(c);
+        }
+        
+        Paper quality(Quality quality) @safe nothrow pure {
+        	this.quality_ = quality;
+        
+        	return this;
+        }
+        
+        Quality quality() @safe nothrow pure {
+        	return this.quality_;
+        }
+        
+        Paper color(Color color) @safe nothrow pure {
+        	this.color_ = color;
+        
+        	return this;
+        }
+        
+        Color color() @safe nothrow pure {
+        	return this.color_;
+        }
+    }
 }
 
-unittest {
-    auto singleton = new SingletonContainer;
+@component
+@fact(// An aggregate can be annotated with a custom factory.
+    (Locator!() loc) {
+        auto paper = new HardenedPaper(Paper.Quality.high, loc.locate!Color);
+        paper.color = loc.locate!Color;
+        
+        return paper; 
+})
+
+@component
+@qualifier!Paper() // It's possible to name an aggregate by some Type FQN's.
+class HardenedPaper : Paper {
     
-    singleton.componentScan!(D, O); // We can pass a list of classes that are annotated with @component
-    singleton.componentScan!(aermicioi.aedi.test.example); // Or we just can pass, a module that contains @component annotated classes.
-    	
-    singleton.instantiate();
-    
-auto o = singleton.locate!O;
+    this(Quality q, Color c) {
+        super(q, c);
+    }
 }
 
-unittest {
-    ObjectStorage!() parameters = new ObjectStorage!();
+@component
+@contained("prototype") // If di container consists of more than one container, use contained to denote which sub-container should manage/contian component.
+class Page {
+    private {
+        Paper paper_;
+        string text_;
+        Color textColor_;
+        Color foreground_;
+    }
     
-    parameters.register(new D(10));
-    parameters.register(new D(10), "custom identity");
-    parameters.register(cast(int) 10);	// The container will store this int by its type, hence the id will be just "int"
-    parameters.register(cast(int) 10, "custom int");
-    parameters.register(delegate () {
-        import std.stdio;
-        writeln("hello world");
-    });
-    
-    parameters.locate!D; // Returns first object
-    parameters.locate!D("custom identity"); // Returns second object
-    parameters.locate!int; // Returns the first int.
-    parameters.locate!(void delegate () @safe); // When, locating a function, specify it's inferred atrributes as well. Failing to do so will generate an exception.
+    public {
+        
+        @setter(lref!Size) // Set the field to a component identified by Size's FQN (fully qualified name).
+        Size size;
+        
+        @setter("page.paper".lref) // Set the field to a component identified by a custom name.
+        Page paper(Paper paper) @safe nothrow pure {
+        	this.paper_ = paper;
+        
+        	return this;
+        }
+        
+        @autowired // Wire the field by type's FQN
+        Color textColor;
+        
+        @autowired // Wire the field by arguments FQN's. Multiple arguments can be automatically wired.
+        Page foreground(Color foreground) @safe nothrow pure {
+        	this.foreground_ = foreground;
+        
+        	return this;
+        }
+        
+        @autowired
+        Page text(string text) @safe nothrow pure {
+        	this.text_ = text;
+        
+        	return this;
+        }
+        
+        Color foreground() @safe nothrow pure {
+        	return this.foreground_;
+        }
+        
+        Paper paper() @safe nothrow pure {
+        	return this.paper_;
+        }
+        
+        string text() @safe nothrow pure {
+        	return this.text_;
+        }
+    }
 }
 
-unittest {
-    PrototypeContainer prototype = new PrototypeContainer;
-    SingletonContainer singleton = new SingletonContainer;
-    ObjectStorage!() parameters = new ObjectStorage!();
-    AggregateLocator!() locator = new AggregateLocatorImpl!();
+@component
+class Cover {
+    private {
+        Paper material_;
+        string title_;
+    }
     
-    locator.set("prototype", prototype);
-    locator.set("singleton", singleton);
-    locator.set("parameters", parameters);
+    public {
+        
+        @setter(lref!Paper)
+        Cover material(Paper material) @safe nothrow pure {
+        	this.material_ = material;
+        
+        	return this;
+        }
+        
+        @setter("book.title".lref)
+        Cover title(string title) @safe nothrow pure {
+        	this.title_ = title;
+        
+        	return this;
+        }
+        
+        Paper material() @safe nothrow pure {
+        	return this.material_;
+        }
+        
+        string title() @safe nothrow pure {
+        	return this.title_;
+        }
+    }
+}
 
-    locator.registerInto!O
-    	.set!"setDependency"(
-    		lref!D
-    	);
-    	
-    locator.registerInto!D("prototype")
-    	.construct(10);
-    	
-    locator.register("Some string", "id");
-    locator.register(cast(int) 10, "an int by id");
-    	
-    prototype.instantiate;
-    singleton.instantiate;
+@component
+@callback((Locator!() loc, Book book) { // Use it, when object is required to be configured in way that is not possible to do by means of library annotations.
+    Page[] pages;
+    foreach (i; 0 .. 99) {
+        import std.conv;
+        
+        pages ~= loc.locate!Page;
+        pages[$ - 1].text("Some text on page " ~ i.to!string);
+    }
     
-    assert(locator.locate!D != locator.locate!D);
-    assert(locator.locate!O == locator.locate!O);
-    assert(locator.locate!string("id") == "Some string");
-    assert(locator.locate!int("an int by id") == 10);
+    book.pages(pages);
+})
+class Book {
+    private {
+        Cover cover_;
+        Page[] pages_;
+    }
+    
+    public {
+        
+        @autowired
+        Book cover(Cover cover) @safe nothrow pure {
+        	this.cover_ = cover;
+        
+        	return this;
+        }
+        
+        Cover cover() @safe nothrow pure {
+        	return this.cover_;
+        }
+        
+        Book pages(Page[] pages) @safe nothrow pure {
+        	this.pages_ = pages;
+        
+        	return this;
+        }
+        
+        Page[] pages() @safe nothrow pure {
+        	return this.pages_;
+        }
+    }
+}
+
+@component
+class Bookshelf {
+    
+    public {
+        
+        Book getABook() {
+            return new Book;
+        }
+    }
+}
+
+/**
+Example using object storage to store different data, with reference behavior or value behavior.
+**/
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
+    
+    storage.register(Color(255, 255, 255), "color.white"); //Save a struct in storage of values, identified by color.white.
+    storage.register("Aedi tutorial.", "book.title"); //Same as with Color struct.
+    storage.register("A value saved by it's type FQN"); //Save a value in storage, identified by it's type FQN.
+    
+    assert(storage.locate!Color("color.white") == Color(255, 255, 255));
+    assert(storage.locate!string("book.title") == "Aedi tutorial.");
+    assert(storage.locate!string == "A value saved by it's type FQN");
+}
+
+/**
+A small example on how is possible to use aedi. 
+**/
+unittest {
+    SingletonContainer container = new SingletonContainer; // Container that will hold our objects.
+    
+    container.register!Bookshelf; // Register Bookshelf as a component in container.
+    
+    container.register!Color // Register Color struct as a component in container.
+        .set!"r"(cast(ubyte) 200)
+        .set!"g"(cast(ubyte) 201)	// Set field g to ubyte 201.
+        .set!"b"(cast(ubyte) 202);
+    container.link(name!Color, "color.white");
+        
+    container.register!Size // Register Size struct as a component in container.
+        .set!"width"(295)
+        .set!"height"(210); // Set field height to ubyte 210.
+        
+    container.register!Paper("page.paper") // Register paper by page.paper identity.
+        .construct( // instantiate Paper using it's constructor.
+            Paper.Quality.high,
+            "color.white".lref
+        );
+        
+    container.register!Page() // store component in Prototype container
+        .autowire!"size"
+        .set!"paper"("page.paper".lref) // set paper to an object located in container.
+        .autowire!"textColor"
+        .autowire!"foreground";
+        
+    container.instantiate(); // prepare container for serving objects.
+    
+    assert(container.locate!Bookshelf !is null); // Check if instantiated
+    assert(container.locate!Color == Color(200, 201, 202)); // Checking if Color was properly set.
+    assert(container.locate!Size == Size(295, 210));
+    assert(container.locate!Paper("page.paper").quality == Paper.Quality.high); // Checking if quality of page.paper is same as for Paper.Quality in container 
+    assert(container.locate!Page.size == container.locate!Size); // Check if page's size was set correctly.
+}
+
+/**
+Full version of example.
+
+Contains:
+    $(UL
+        $(LI Composite container)
+        $(LI Code api - register family of functions)
+        $(LI construct - construct using constructor)
+        $(LI set - set field/method)
+        $(LI autowire - autowire constructor/field/method)
+        $(LI fact - construct using a delegate/function)
+        $(LI callback - manipulate object using a delegate/function)
+        $(LI factoryMethod - construct using another object)
+    )
+**/
+unittest {
+    ApplicationContainer container = new ApplicationContainer; // A composite container that consists of Singleton, Prototype, containers and a value storage. 
+    
+    container.register(Color(255, 255, 255), "color.white"); //Save a struct in storage of values, identified by color.white.
+    container.register("Aedi tutorial.", "book.title"); //Same as with Color struct.
+    container.registerInto("A value saved by it's type FQN"); //Save a value in storage, identified by it's type FQN.
+    container.registerInto(Paper.Quality.medium);
+    
+    container.registerInto!Bookshelf; // Register Bookshelf as a component in container.
+    
+    container.registerInto!Color // Register Color struct as a component in container.
+        .set!"r"(cast(ubyte) 200)
+        .set!"g"(cast(ubyte) 201)	// Set field g to ubyte 201.
+        .set!"b"(cast(ubyte) 202);
+        
+    container.registerInto!Size // Register Size struct as a component in container.
+        .set!"width"(295)
+        .set!"height"(210); // Set field g to ubyte 210.
+        
+    container.register!Paper("page.paper")
+        .construct( // instantiate Paper using it's constructor.
+            lref!(Paper.Quality), // lref is used to indicate that argument, is located in container. Check if it is of right type will be done at runtime.
+            "color.white".lref
+        );
+        
+    container.register!(Paper, HardenedPaper) // Register HardenedPaper in container with identity of Paper's FQN.
+        .fact( // use the delegate to construct HardenedPaper. Useful to use when some special instantiation logic is required. 
+            delegate(Locator!() loc) {
+                return new HardenedPaper(Paper.Quality.high, loc.locate!Color);
+            }
+        );
+        
+    container.registerInto!Cover
+        .autowire!"material" // autowire material. Searches a value for material field in container by it's type FQN.
+        .set!"title"("Random title");
+    
+    container.registerInto!Page("prototype") // store component in Prototype container
+        .autowire!"size"
+        .set!"paper"("page.paper".lref) // set paper to an object located in container.
+        .autowire!"textColor"
+        .autowire!"foreground"
+        .autowire!"text";
+        
+    container.registerInto!Book
+        .factoryMethod!(Bookshelf, "getABook")(lref!Bookshelf) // Use Bookshelf's method getABook to create the Book.
+        .callback(
+            (Locator!() loc, Book book) { // Use it, when object is required to be configured in way that is not possible to do by means of library annotations.
+                Page[] pages;
+                foreach (i; 0 .. 99) {
+                    import std.conv;
+                    
+                    pages ~= loc.locate!Page;
+                    pages[$ - 1].text("Some text on page " ~ i.to!string);
+                }
+                
+                book.pages(pages);
+            }
+        );
+
+    container.instantiate(); // prepare container to serve objects in it (instantiates them, and performs other things).
+    
+    assert(container.locate!Bookshelf !is null); // Check if instantiated
+    assert(container.locate!Color == Color(200, 201, 202)); // Checking if Color was properly set.
+    assert(container.locate!Size == Size(295, 210));
+    assert(container.locate!Paper("page.paper").quality == container.locate!(Paper.Quality)); // Checking if quality of page.paper is same as for Paper.Quality in container 
+    assert(container.locate!Cover.material is container.locate!Paper); // Checking if cover material is from a hardened paper.
+}
+
+/**
+Example on annotation based api.
+
+Contains:
+    $(UL
+        $(LI Scan of one component (struct/object).)
+        $(LI Scan of one component and registration by one of it's interface.)
+        $(LI Scan of multiple components in one sweep)
+    )
+**/
+unittest {
+    ApplicationContainer container = new ApplicationContainer;
+    
+    container.register(Color(255, 255, 255), "color.white"); //Save a struct in storage of values, identified by color.white.
+    container.register("Aedi tutorial.", "book.title"); //Same as with Color struct.
+    container.registerInto("A value saved by it's type FQN"); //Save a value in storage, identified by it's type FQN.
+    container.registerInto(Paper.Quality.medium);
+    container.register("Book title", "book.title");
+    
+    container.componentScan!Color; // scan struct component and save it in container.
+    container.componentScan!Size;
+    container.componentScan!Paper; // scan object component and save it in container. Use parameters container to fetch it's dependencies
+    container.componentScan!(Paper, HardenedPaper); // scan object and save it by Paper's type FQN. Use parameters container to fetch it's dependencies
+    container.componentScan!(Page, Cover, Book, Bookshelf); // scan several aggregates and save them in container. An object prefixed with one of it's interfaces will be registered by it in container.
+
+    container.instantiate;
+    
+    assert(container.locate!Bookshelf !is null); // Check if instantiated
+    assert(container.locate!Color == Color(200, 200, 200)); // Checking if Color was properly set.
+    assert(container.locate!Size == Size(295, 210));
+    assert(container.locate!Paper("page.paper").quality == container.locate!(Paper.Quality)); // Checking if quality of page.paper is same as for Paper.Quality in container 
+    assert(container.locate!Cover.material is container.locate!Paper); // Checking if cover material is from a hardened paper.
+}
+
+/**
+Example on how to register entire module.
+**/
+unittest {
+    ApplicationContainer container = new ApplicationContainer;
+    
+    container.register(Color(255, 255, 255), "color.white"); //Save a struct in storage of values, identified by color.white.
+    container.register("Aedi tutorial.", "book.title"); //Same as with Color struct.
+    container.registerInto("A value saved by it's type FQN"); //Save a value in storage, identified by it's type FQN.
+    container.registerInto(Paper.Quality.medium);
+    container.register("Book title", "book.title");
+    
+    container.componentScan!(aermicioi.aedi.test.example); // Scan entire module for components.
+
+    container.instantiate;
+    
+    assert(container.locate!Bookshelf !is null); // Check if instantiated
+    assert(container.locate!Color == Color(200, 200, 200)); // Checking if Color was properly set.
+    assert(container.locate!Size == Size(295, 210));
+    assert(container.locate!Paper("page.paper").quality == container.locate!(Paper.Quality)); // Checking if quality of page.paper is same as for Paper.Quality in container 
+    assert(container.locate!Cover.material is container.locate!Paper); // Checking if cover material is from a hardened paper.
 }
 

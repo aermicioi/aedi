@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.test.fixture_second;
 
 import aermicioi.aedi.configurer.annotation;
+import aermicioi.aedi.storage.locator;
 
 interface Identifiable(T) {
     public @property {
@@ -207,7 +208,7 @@ class Person : Identifiable!ulong {
         	return this.id_;
         }
         
-        @setter(10)
+        @setter(cast(ubyte) 10)
         Person age(ubyte age) {
         	this.age_ = age;
         
@@ -247,7 +248,7 @@ class Person : Identifiable!ulong {
 class Job : Identifiable!ulong {
     private {
         string name_;
-        ulong payment_;
+        Currency payment_;
         ulong id_;
     }
     
@@ -256,7 +257,7 @@ class Job : Identifiable!ulong {
             
         }
         
-        this(string name, ulong payment) {
+        this(string name, Currency payment) {
             this.name = name;
             this.payment = payment;
         }
@@ -295,16 +296,169 @@ class Job : Identifiable!ulong {
         	return this.name_;
         }
         
-        @setter(2000UL)
-        Job payment(ulong payment) {
+        @setter(Currency(2000UL))
+        Job payment(Currency payment) {
         	this.payment_ = payment;
         
         	return this;
         }
         
-        ulong payment() {
+        Currency payment() {
         	return this.payment_;
         }
         
+    }
+}
+
+@component
+@fact(function (Locator!() loc, Job job) {
+    return new FixtureFactory(job);
+}, new Job("Tested name", Currency(2000)))
+@callback(function (Locator!() loc, FixtureFactory fact, Employee e) {
+    fact.employee = e;
+}, new Employee("Ahmad Akbenov", 20))
+class FixtureFactory {
+    private {
+        static Company company_;
+        Job job_;
+    }
+    
+    public {
+        static this() {
+            company = new Company(20);
+        }
+        
+        @fact(function (Locator!() loc, Job job) {
+            return new FixtureFactory(job);
+        }, new Job("Tested name", Currency(2000)))
+        this(Job job) {
+            this.job = job;
+            person = new Person("Ali Armen", 30);
+        }
+        
+        @autowired
+        Employee employee;
+        
+        @setter(lref!Person)
+        Person person;
+        
+        @autowired
+        static void company(Company company) @safe nothrow {
+        	company_ = company;
+        }
+        
+        static Company company() @safe nothrow {
+        	return company_;
+        }
+        
+        FixtureFactory job(Job job) @safe nothrow pure {
+        	this.job_ = job;
+        
+        	return this;
+        }
+        
+        Job job() @safe nothrow pure {
+        	return this.job_;
+        }
+    }
+}
+
+@component
+//Delegates that have no context, cannot exist, so do not attempt to use @fact with a delegate.
+//@fact(delegate (Locator!() loc) {
+//    return StructFixtureFactory(new Job("Tested name", Currency(2000)));
+//})
+@fact(function (Locator!() loc) {
+    return StructFixtureFactory(new Job("Tested name", Currency(2000)));
+})
+@callback(function (Locator!() loc, ref StructFixtureFactory fact, Currency c) {
+    fact.currency = c;
+}, Currency(200))
+struct StructFixtureFactory {
+    private {
+        static Company company_;
+        Job job_;
+        Currency currency_;
+    }
+    
+    public {
+        static this() {
+            company = new Company(20);
+        }
+//        Delegates that have context of a class, cannot exist, so do not attempt to use @fact with a delegate.       
+//        @fact(delegate (Locator!() loc) {
+//            return StructFixtureFactory(new Job("Tested name", Currency(2000)));
+//        })
+        @fact(function (Locator!() loc) {
+            return StructFixtureFactory(new Job("Tested name", Currency(2000)));
+        })
+        this(Job job) {
+            this.job = job;
+            person = new Person("Ali Armen", 30);
+        }
+        
+        @autowired
+        Employee employee;
+        
+        @setter(lref!Person)
+        Person person;
+        
+        @setter(lref!Company)
+        static void company(Company company) @safe nothrow {
+        	company_ = company;
+        }
+        
+        static Company company() @safe nothrow {
+        	return company_;
+        }
+        
+        ref StructFixtureFactory job(Job job) @safe nothrow pure {
+        	this.job_ = job;
+        
+        	return this;
+        }
+        
+        Job job() @safe nothrow pure {
+        	return this.job_;
+        }
+        
+        static Currency basicPayment(ptrdiff_t amount) {
+            return Currency(amount);
+        }
+        
+        ref StructFixtureFactory currency(Currency currency) @safe nothrow pure {
+        	this.currency_ = currency;
+        
+        	return this;
+        }
+        
+        Currency currency() @safe nothrow pure {
+        	return this.currency_;
+        }
+    }
+}
+
+@component
+struct Currency {
+    private {
+        ptrdiff_t amount_;
+    }
+    
+    public {
+        this(ptrdiff_t amount) {
+            this.amount = amount;
+        }
+        
+        @property {
+            ref Currency amount(ptrdiff_t amount) @safe nothrow pure {
+            	this.amount_ = amount;
+            
+            	return this;
+            }
+            
+            ptrdiff_t amount() @safe nothrow pure {
+            	return this.amount_;
+            }
+        }
     }
 }

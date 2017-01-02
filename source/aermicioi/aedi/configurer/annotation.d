@@ -36,9 +36,11 @@ public import aermicioi.aedi.factory.factory : lref;
 import aermicioi.aedi.configurer.configurer;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.storage.wrapper;
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.genericfactory;
+import aermicioi.aedi.factory.proxy_factory;
 import aermicioi.aedi.exception;
 import aermicioi.util.traits;
 
@@ -49,58 +51,103 @@ import std.conv : to;
 import std.algorithm;
 
 /**
-Annotation used to denote an instantiatable object that should be stored into an container.
-
-A simple alias to original struct to conform to functional style below (Since type inferring is not required no need to define a function for it).
+Annotation used to denote an aggregate that should be stored into an container.
 **/
-alias component = Component;
-
-/**
-Annotation used to mark constructor or method for auto wiring.
-
-A simple alias to original struct to conform to functional style below (Since type inferring is not required no need to define a function for it).
-Marking a method/constructor with autowired annotation will make container to call it with arguments fetched from
-locator by types of them.
-
-Note: even if a method/constructor from an overloaded set is marked with autowired annotation, the first method from overload set
-will be used. Due to that autowired annotation is recommended to use on methods/constrcutors that are not overloaded.
-
-**/
-alias autowired = Autowired;
-
-/**
-Annotation used to denote an instantiatable object that should be stored into an container.
-**/
-struct Component {
-    GenericFactory!T factory(T)(Locator!() locator) {
+struct ComponentAnnotation {
+    
+    /**
+    Constructs a factory for aggregate of type T
+    
+    Params:
+    	T = the aggregate type
+    	locator = locator used to extract needed dependencies for T
+    	
+    Returns:
+    	GenericFactory!T for objects
+    	GenericFactory!(Wrapper!T) for structs
+    **/
+    GenericFactory!T factory(T)(Locator!() locator)
+        if (
+            is(T == class)
+        ) {
         return new GenericFactoryImpl!(T)(locator);
+    }
+        
+    /**
+    ditto
+    **/
+    GenericFactory!(Wrapper!T) factory(T)(Locator!() locator)
+        if (
+            is(T == struct)
+        ) {
+        return new GenericFactoryImpl!(Wrapper!T)(locator);
     }
 }
 
 /**
-Annotation used to mark a constructor to be used for instantiating of it (constructor injection).
+ditto
+**/
+alias component = ComponentAnnotation;
+
+/**
+Annotation used to mark a constructor to be used for aggregate instantiation.
 
 Params:
     Args = tuple of argument types for arguments to be passed into a constructor.
 **/
-struct Constructor(Args...) {
+struct ConstructorAnnotation(Args...) {
     Tuple!Args args;
     
+    /**
+    Constructor accepting a list of arguments, that will be passed to constructor.
+    
+    Params:
+    	args = arguments passed to aggregate's constructor
+    **/
     this(Args args) {
         this.args = args;
     }
     
-    InstanceFactory!T factoryContainer(T, string property)(Locator!() locator) {
+    /**
+    Constructs a constructor based factory for aggregate of type T
+    
+    Params:
+    	T = the aggregate type
+    	locator = locator used to extract needed dependencies for T
+    	
+    Returns:
+    	InstanceFactory!T for objects
+    	InstanceFactory!(Wrapper!T) for structs
+    **/
+    InstanceFactory!T factoryContainer(T, string property)(Locator!() locator)
+        if (is(T == class)) {
         auto constructor = new ConstructorBasedFactory!(T, Args)(args.expand);
         constructor.locator = locator;
         
         return constructor;
+    }
+    
+    /**
+    ditto
+    **/
+    InstanceFactory!(Wrapper!T) factoryContainer(T, string property)(Locator!() locator) 
+        if (is(T == struct)) {
+        auto constructor = new ConstructorBasedFactory!(T, Wrapper!T, Args)(args.expand);
+        constructor.locator = locator;
         
+        return constructor;
     }
 }
 
 /**
-Annotation used to mark a method to be called to configure instantiated object by container (setter injection).
+ditto
+**/
+auto constructor(Args...)(Args args) {
+    return ConstructorAnnotation!Args(args);
+}
+
+/**
+Annotation used to mark a member to be called or set (in case of fields), with args passed to setter.
 
 Note: if an overloaded method is annotated with Setter, the method from overload set that matches argument list in Setter annotation 
 will be called.
@@ -108,19 +155,283 @@ will be called.
 Params:
     Args = the argument types of arguments passed to method
 **/
-struct Setter(Args...) {
+struct SetterAnnotation(Args...) {
     Tuple!Args args;
     
+    /**
+    Constructor accepting a list of arguments, that will be passed to method, or set to a field.
+    
+    Params:
+    	args = arguments passed to aggregate's constructor
+    **/
     this(Args args) {
         this.args = args;
     }
     
-    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator) {
+    /**
+    Constructs a configurer that will call or set a member for aggregate of type T.
+    
+    Constructs a configurer that will call or set a member for aggregate of type T.
+    In case when member is a method, it will be called with passed arguments.
+    If method is an overload set, the method that matches argument list will be called.
+    In case when member is a field, it will be set to first argument from Args list.
+    
+    Params:
+    	T = the aggregate type
+    	method = the member which setter will call or set.
+    	locator = locator used to extract needed dependencies for T
+    	
+    Returns:
+    	PropertyConfigurer!T for objects
+    	PropertyConfigurer!(Wrapper!T) for structs
+    **/
+    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator)
+        if (
+            is(T == class) &&
+            !isField!(T, method)
+        ) {
+        mixin assertObjectMethodCompatible!(T, method, Args);
+        
         auto method = new MethodConfigurer!(T, method, Args)(args.expand);
         method.locator = locator;
         
         return method;
     }
+        
+    /**
+    ditto
+    **/
+    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator)
+        if (
+            is(T == class) &&
+            isField!(T, method) &&
+            (Args.length == 1)
+        ) {
+        mixin assertFieldCompatible!(T, method, Args);
+        
+        auto method = new FieldConfigurer!(T, method, Args[0])(args[0]);
+        method.locator = locator;
+        
+        return method;
+    }
+    
+    /**
+    ditto
+    **/
+    PropertyConfigurer!(Wrapper!T) factoryConfigurer(T, string method)(Locator!() locator)
+        if (
+            is(T == struct) &&
+            !isField!(T, method)
+        ) {
+        mixin assertObjectMethodCompatible!(T, method, Args);
+        
+        auto method = new MethodConfigurer!(T, method, Wrapper!T, Args)(args.expand);
+        method.locator = locator;
+        
+        return method;
+    }
+        
+    /**
+    ditto
+    **/
+    PropertyConfigurer!(Wrapper!T) factoryConfigurer(T, string method)(Locator!() locator)
+        if (
+            is(T == struct) &&
+            isField!(T, method) &&
+            (Args.length == 1)
+        ) {
+        mixin assertFieldCompatible!(T, method, Args);
+            
+        auto method = new FieldConfigurer!(T, method, Wrapper!T, Args[0])(args[0]);
+        method.locator = locator;
+        
+        return method;
+    }
+}
+
+/**
+ditto
+**/
+auto setter(Args...)(Args args) {
+    return SetterAnnotation!Args(args);
+}
+
+/**
+Annotation that specifies a delegate to be used to instantiate aggregate.
+
+Params:
+	Z = the type of aggregate that will be returned by the delegate
+	Args = type tuple of args that can be passed to delegate.
+**/
+struct CallbackFactoryAnnotation(Z, Dg, Args...)
+    if ((is(Dg == Z delegate (Locator!(), Args)) || is(Dg == Z function (Locator!(), Args)))) {
+    Tuple!Args args;
+    Dg dg;
+    
+    /**
+    Constructor accepting a factory delegate, and it's arguments.
+    
+    Params:
+    	dg = delegate that will factory an aggregate
+    	args = list of arguments passed to delegate.
+    **/
+    this(Dg dg, ref Args args) {
+        this.dg = dg;
+        this.args = tuple(args);
+    }
+    
+    /**
+    Constructs a factory that uses delegate to instantiate an aggregate of type T.
+    
+    Params:
+    	T = the aggregate type
+    	locator = locator used to extract needed dependencies for T, it is also passed to delegate as first argument.
+    	
+    Returns:
+    	InstanceFactory!T for objects
+    	InstanceFactory!(Wrapper!T) for structs
+    **/
+    InstanceFactory!T factoryContainer(T, string p = "")(Locator!() locator)
+        if (is(T == class) && is(Z : T)) {
+        auto callback = new CallbackFactory!(T, Dg, Args)(dg, args.expand);
+        callback.locator = locator;
+        
+        return callback;
+    }
+    
+    /**
+    ditto
+    **/
+    InstanceFactory!(Wrapper!T) factoryContainer(T, string p = "")(Locator!() locator)
+        if (is(T == struct) && is(Z : T)) {
+        auto callback = new CallbackFactory!(
+            Wrapper!T,
+            Wrapper!T function (Locator!() loc, Dg dg, Args args),
+            Dg, 
+            Args)(
+            function Wrapper!T(Locator!() loc, Dg dg, Args args) {
+                return new Wrapper!T(dg(loc, args));
+            },
+            dg, 
+            args.expand
+        );
+        callback.locator = locator;
+        
+        return callback;
+    }
+}
+
+/**
+ditto
+**/
+auto fact(T, Args...)(T delegate(Locator!(), Args) dg, Args args) {
+    return CallbackFactoryAnnotation!(T, T delegate(Locator!(), Args), Args)(dg, args);
+}
+
+/**
+ditto
+**/
+auto fact(T, Args...)(T function(Locator!(), Args) dg, Args args) {
+    return CallbackFactoryAnnotation!(T, T function(Locator!(), Args), Args)(dg, args);
+}
+
+/**
+Annotation that specifies a delegate to be used to configure aggregate somehow.
+
+Params:
+	Z = the type of aggregate that will be returned by the delegate
+	Args = type tuple of args that can be passed to delegate.
+**/
+struct CallbackConfigurerAnnotation(Z, Dg, Args...) 
+    if (
+        is(Dg == void delegate (Locator!(), Z, Args)) || 
+        is(Dg == void function (Locator!(), Z, Args)) ||
+        is(Dg == void delegate (Locator!(), ref Z, Args)) || 
+        is(Dg == void function (Locator!(), ref Z, Args))
+    ){
+    Tuple!Args args;
+    Dg dg;
+    
+    /**
+    Constructor accepting a configurer delegate, and it's arguments.
+    
+    Params:
+    	dg = delegate that will be used to configure an aggregate
+    	args = list of arguments passed to delegate.
+    **/
+    this(Dg dg, ref Args args) {
+        this.dg = dg;
+        this.args = tuple(args);
+    }
+    
+    /**
+    Constructs a configurer that uses delegate to configure an aggregate of type T.
+    
+    Params:
+    	T = the aggregate type
+    	locator = locator that can be used by delegate to extract some custom data.
+    	
+    Returns:
+    	PropertyConfigurer!T for objects
+    	PropertyConfigurer!(Wrapper!T) for structs
+    **/
+    PropertyConfigurer!T factoryConfigurer(T, string p = "")(Locator!() locator)
+        if (is(T == class) && is(T : Z)) {
+        auto callback = new CallbackConfigurer!(T, Dg, Args)(dg, args.expand);
+        callback.locator = locator;
+        
+        return callback;
+    }
+    
+    /**
+    ditto
+    **/ 
+    PropertyConfigurer!(Wrapper!T) factoryConfigurer(T, string p = "")(Locator!() locator)
+        if (is(T == struct) && is(T : Z)) {
+        auto callback = new CallbackConfigurer!(
+            Wrapper!T,
+            void function (Locator!(), Wrapper!T, Dg, Args),
+            Dg,
+            Args
+        )(
+            function void(Locator!() loc, Wrapper!T obj, Dg dg, Args args) {
+                dg(loc, obj.value, args);
+            },
+            dg, 
+            args.expand
+        );
+        callback.locator = locator;
+        
+        return callback;
+    }
+}
+
+/**
+ditto
+**/
+auto callback(T, Args...)(void delegate (Locator!(), ref T, Args) dg, Args args) {
+    return CallbackConfigurerAnnotation!(T, void delegate (Locator!(), ref T, Args), Args)(dg, args);
+}
+
+/**
+ditto
+**/
+auto callback(T, Args...)(void function (Locator!(), ref T, Args) dg, Args args) {
+    return CallbackConfigurerAnnotation!(T, void function (Locator!(), ref T, Args), Args)(dg, args);
+}
+
+/**
+ditto
+**/
+auto callback(T, Args...)(void delegate (Locator!(), T, Args) dg, Args args) {
+    return CallbackConfigurerAnnotation!(T, void delegate (Locator!(), T, Args), Args)(dg, args);
+}
+
+/**
+ditto
+**/
+auto callback(T, Args...)(void function (Locator!(), T, Args) dg, Args args) {
+    return CallbackConfigurerAnnotation!(T, void function (Locator!(), T, Args), Args)(dg, args);
 }
 
 /**
@@ -133,8 +444,13 @@ Note: even if a method/constructor from an overloaded set is marked with autowir
 will be used. Due to that autowired annotation is recommended to use on methods/constrcutors that are not overloaded.
 
 **/
-struct Autowired {
-    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator) {
+struct AutowiredAnnotation {
+    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator)
+        if (
+            is(T == class) &&
+            !isField!(T, method) &&
+            isSomeFunction!(getMember!(T, method))
+        ) {
         
         alias params = Parameters!(__traits(getOverloads, T, method)[0]);
         auto references = tuple(staticMap!(toLref, params));
@@ -144,9 +460,57 @@ struct Autowired {
         
         return method;
     }
-    
-    PropertyConfigurer!T factoryContainer(T)(Locator!() locator) {
         
+    PropertyConfigurer!T factoryConfigurer(T, string property)(Locator!() locator)
+        if (
+            is(T == class) &&
+            isField!(T, property)
+        ) {
+        
+        alias paramType = typeof(getMember!(T, property));
+        
+        auto lref = toLref!paramType;
+        auto method = new FieldConfigurer!(T, property, toLrefType!paramType)(lref);
+        method.locator = locator;
+        
+        return method;
+    }
+        
+    PropertyConfigurer!(Wrapper!T) factoryConfigurer(T, string method)(Locator!() locator)
+        if (
+            is(T == struct) &&
+            !isField!(T, method) &&
+            isSomeFunction!(getMember!(T, method))
+        ) {
+        
+        alias params = Parameters!(__traits(getOverloads, T, method)[0]);
+        auto references = tuple(staticMap!(toLref, params));
+        
+        auto method = new MethodConfigurer!(T, method, Wrapper!T, staticMap!(toLrefType, params))(references.expand);
+        method.locator = locator;
+        
+        return method;
+    }
+        
+    PropertyConfigurer!(Wrapper!T) factoryConfigurer(T, string property)(Locator!() locator)
+        if (
+            is(T == struct) &&
+            isField!(T, property)
+        ) {
+        
+        alias paramType = typeof(getMember!(T, property));
+        
+        auto lref = toLref!paramType;
+        auto method = new FieldConfigurer!(T, property, Wrapper!T, toLrefType!paramType)(lref);
+        method.locator = locator;
+        
+        return method;
+    }
+    
+    InstanceFactory!T factoryContainer(T, string property)(Locator!() locator)
+        if (
+            is(T == class)
+        ) {
         alias params = Parameters!(__traits(getOverloads, T, "__ctor")[0]);
         auto references = tuple(staticMap!(toLref, params));
         
@@ -158,45 +522,15 @@ struct Autowired {
 }
 
 /**
+ditto
+**/
+alias autowired = AutowiredAnnotation;
+
+/**
 An annotation used to provide custom identity for an object in container.
 **/
-struct Qualifier {
+struct QualifierAnnotation {
     string id;
-}
-
-/**
-When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
-**/
-struct Contained {
-    string id;
-}
-
-/**
-Annotation used to mark a constructor to be used for instantiating of it (constructor injection).
-
-This function is a convenince function to automatically infer required types for underlying annotation.
-
-Params:
-    Args = tuple of argument types for arguments to be passed into a constructor.
-    args = tuple of arguments to be passed into a constructor.
-**/
-auto constructor(Args...)(Args args) {
-    return Constructor!Args(args);
-}
-
-/**
-Annotation used to mark a method to be called to configure instantiated object by container (setter injection).
-
-This function is a convenince function to automatically infer required types for underlying annotation.
-Note: if an overloaded method is annotated with Setter, the method from overload set that matches argument list in Setter annotation 
-will be called.
-
-Params:
-    Args = the argument types of arguments passed to method
-    args = the arguments passed to method
-**/
-auto setter(Args...)(Args args) {
-    return Setter!Args(args);
 }
 
 /**
@@ -208,7 +542,7 @@ Params:
     id = identity of object in container
 **/
 auto qualifier(string id) {
-    return Qualifier(id);
+    return QualifierAnnotation(id);
 }
 
 /**
@@ -221,7 +555,14 @@ Params:
 **/
 auto qualifier(I)()
     if (is(I == interface) || is(I == class)) {
-    return Qualifier(name!I);
+    return QualifierAnnotation(name!I);
+}
+
+/**
+When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
+**/
+struct ContainedAnnotation {
+    string id;
 }
 
 /**
@@ -233,7 +574,7 @@ Params:
     id = identity of container where to store the object.
 **/
 auto contained(string id) {
-    return Contained(id);
+    return ContainedAnnotation(id);
 }
 
 /**
@@ -248,8 +589,7 @@ Params:
     locator = the locator used to find object dependencies
     id = identity by which object will be stored in storage
 **/
-auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator, string id)
-    if (is(T == class)) {
+auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator, string id) {
     auto factory = componentScanImpl!T(locator);
     
     alias SubComponents = staticMap!(
@@ -306,13 +646,12 @@ Params:
     T = type of object to be registered
     storage = the storage where to register the object
 **/
-auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator)
-    if (is(T == class)) {
+auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator) {
         
     alias qualifiers = Filter!(isQualifier, allUDAs!T);
 
     static if (qualifiers.length > 0) {
-        return storage.storage.componentScan!T(locator, qualifiers[0].id);
+        return storage.componentScan!T(locator, qualifiers[0].id);
     } else {
         return storage.componentScan!T(locator, name!T);
     }
@@ -321,8 +660,7 @@ auto componentScan(T)(Storage!(Factory, string) storage, Locator!() locator)
 /**
 ditto
 **/
-auto componentScan(T)(ConfigurableContainer storage)
-    if (is(T == class)) {
+auto componentScan(T)(ConfigurableContainer storage) {
     
     return storage.componentScan!T(storage);
 }
@@ -374,8 +712,7 @@ Params:
     T = type of object to be registered
     storage = the storage where to register the object
 **/
-auto componentScan(T, V...)(Storage!(Factory, string) storage, Locator!() locator)
-    if (is(T == class)) {
+auto componentScan(T, V...)(Storage!(Factory, string) storage, Locator!() locator) {
     storage.componentScan!T(locator);
     
     return storage.componentScan!V(locator);
@@ -384,8 +721,7 @@ auto componentScan(T, V...)(Storage!(Factory, string) storage, Locator!() locato
 /**
 ditto
 **/
-auto componentScan(T, V...)(ConfigurableContainer storage)
-    if (is(T == class)) {
+auto componentScan(T, V...)(ConfigurableContainer storage) {
     
     return storage.componentScan!(T, V)(storage);
 }
@@ -512,7 +848,7 @@ Params:
     id = identity by which object will be stored in storage
 **/
 auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator, string id) 
-    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    if (!is(R : Storage!(Factory, string))) {
     
     alias containers = Filter!(
         isContained,
@@ -542,7 +878,7 @@ auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator, stri
 ditto
 **/
 auto componentScan(T, R : Locator!())(R locator, string id)
-    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    if (!is(R : Storage!(Factory, string))) {
     return locator.componentScan!T(locator, id);
 }
 
@@ -550,7 +886,7 @@ auto componentScan(T, R : Locator!())(R locator, string id)
 ditto
 **/
 auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator)
-    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    if (!is(R : Storage!(Factory, string))) {
     
     alias qualifiers = Filter!(
         isQualifier,
@@ -568,7 +904,7 @@ auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator)
 ditto
 **/
 auto componentScan(T, R : Locator!())(R locator)
-    if (is (T == class) && !is(R : Storage!(Factory, string))) {
+    if (!is(R : Storage!(Factory, string))) {
     return locator.componentScan!T(locator);
 }
 
@@ -576,7 +912,7 @@ auto componentScan(T, R : Locator!())(R locator)
 ditto
 **/
 template componentScan(T, V...)
-    if(is (T == class) && (V.length > 0)) {
+    if((V.length > 0)) {
         
     /**
     ditto
@@ -756,10 +1092,30 @@ ditto
 **/
 template canFactoryGenericFactory(T, Z)
     if (isAggregateType!T) {
+
     static if (hasMember!(T, "factory")) {
         alias factory = getMember!(T, "factory");
         
-        enum bool canFactoryGenericFactory = is(ReturnType!(factory!Z) : GenericFactory!Z);
+        alias checker = templateOr!(
+            chain!(
+                partialPrefixed!(
+                    isDerived,
+                    ReturnType!(factory!Z)
+                ),
+                chain!(
+                    GenericFactory,
+                    Wrapper
+                )
+            ),
+            chain!(
+                partialPrefixed!(
+                    isDerived,
+                    ReturnType!(factory!Z)
+                ),
+                GenericFactory
+            )
+        );
+        enum bool canFactoryGenericFactory = checker!Z;
     } else {
         
         enum bool canFactoryGenericFactory = false;
@@ -775,7 +1131,7 @@ for object construction. Any annotation implementing this interface can be used 
 
 Examples:
 --------------------
-    struct Constructor(Args...) {
+    struct SetterAnnotation(Args...) {
         Tuple!Args args;
         
         this(Args args) {
@@ -809,7 +1165,26 @@ template canFactoryInstanceFactory(T, Z, string property = "__ctor") {
     static if (hasMember!(T, "factoryContainer")) {
         alias factory = getMember!(T, "factoryContainer");
         
-        enum bool canFactoryInstanceFactory = is(ReturnType!(factory!(Z, property)) : InstanceFactory!Z);
+        alias checker = templateOr!(
+            chain!(
+                partialPrefixed!(
+                    isDerived,
+                    ReturnType!(factory!(Z, property))
+                ),
+                chain!(
+                    InstanceFactory,
+                    Wrapper
+                )
+            ),
+            chain!(
+                partialPrefixed!(
+                    isDerived,
+                    ReturnType!(factory!(Z, property))
+                ),
+                InstanceFactory
+            )
+        );
+        enum bool canFactoryInstanceFactory = checker!Z;
     } else {
         
         enum bool canFactoryInstanceFactory = false;
@@ -847,29 +1222,48 @@ Params:
 Returns:
     true in case of structure implementing static interface, false otherwise.
 **/
-template canFactoryPropertyConfigurer(alias T, Z, string property) {
+template canFactoryPropertyConfigurer(alias T, Z, string property = "") {
     alias canFactoryPropertyConfigurer = canFactoryPropertyConfigurer!(typeof(T), Z, property);
 }
 
 /**
 ditto
 **/
-template canFactoryPropertyConfigurer(T, Z, string property) {
+template canFactoryPropertyConfigurer(T, Z, string property = "") {
     static if (hasMember!(T, "factoryConfigurer")) {
         alias factory = getMember!(T, "factoryConfigurer");
-        
-        enum bool canFactoryPropertyConfigurer = is(ReturnType!(factory!(Z, property)) : PropertyConfigurer!Z);
+
+        alias checker = templateOr!(
+            chain!(
+                partialPrefixed!(
+                    isDerived,
+                    ReturnType!(factory!(Z, property))
+                ),
+                chain!(
+                    PropertyConfigurer,
+                    Wrapper
+                )
+            ),
+            chain!(
+                partialPrefixed!(
+                    isDerived,
+                    ReturnType!(factory!(Z, property))
+                ),
+                PropertyConfigurer
+            )
+        );
+        enum bool canFactoryPropertyConfigurer = checker!Z;
     } else {
         
         enum bool canFactoryPropertyConfigurer = false;
     }
 }
 
-private auto componentScanImpl(T)(Locator!() locator)
-    if (is (T == class)) {
+public auto componentScanImpl(T)(Locator!() locator) {
     debug {
         pragma(msg, "Scanning ", fullyQualifiedName!T);
     }
+    
     alias Components = Filter!(
         partialSuffixed!(
             canFactoryGenericFactory,
@@ -879,13 +1273,13 @@ private auto componentScanImpl(T)(Locator!() locator)
     );
     
     static if (Components.length > 0) {
-        GenericFactory!T factory = toValue!(Components[0]).factory!T(locator);
+        auto factory = toValue!(Components[0]).factory!T(locator);
         
         debug {
             pragma(msg, "Found component");
         }
         
-        alias headUdas = Filter!(
+        alias constructorUdas = Filter!(
             partialSuffixed!(
                 canFactoryInstanceFactory,
                 T
@@ -893,15 +1287,30 @@ private auto componentScanImpl(T)(Locator!() locator)
             allUDAs!T
         );
         
+        alias configurerUdas = Filter!(
+            partialSuffixed!(
+                canFactoryPropertyConfigurer,
+                T
+            ),
+            allUDAs!T
+        );
         
-        static if (headUdas.length > 0) {
+        foreach (configurer; configurerUdas) {
             debug {
-                pragma(msg, "Found container right on ", fullyQualifiedName!T);
+                pragma(msg, "Found configurer ", name!configurer, " on ", name!T, " declaration");
             }
             
-            factory.setConstructorFactory(headUdas[0].factoryContainer!(T, name!T)(locator));
+            factory.addPropertyFactory(toValue!(configurer).factoryConfigurer!(T, "")(locator));
+        }
+        
+        static if (constructorUdas.length > 0) {
+            debug {
+                pragma(msg, "Found constructor right on ", name!T);
+            }
+            
+            factory.setConstructorFactory(toValue!(constructorUdas[0]).factoryContainer!(T, name!T)(locator));
         } else {
-            alias containers = Filter!(
+            alias instantiatorHolders = Filter!(
                 templateAnd!(
                     partialSuffixed!(
                         partialPrefixed!(
@@ -910,6 +1319,7 @@ private auto componentScanImpl(T)(Locator!() locator)
                         ),
                         "public"
                     ),
+                    eq!"__ctor",
                     chain!(
                         isSomeFunction,
                         partialPrefixed!(
@@ -921,31 +1331,28 @@ private auto componentScanImpl(T)(Locator!() locator)
                 __traits(allMembers, T)
             );
             
-            static if (containers.length > 0) {
-                foreach (container; containers) {
-                    foreach (overload; __traits(getOverloads, T, container)) {
-                        alias udas = Filter!(
-                            partialSuffixed!(
-                                canFactoryInstanceFactory,
-                                T
-                            ),
-                            allUDAs!overload
-                        );
-                        
-                        
-                        static if (udas.length > 0) {
-                            debug {
-                                pragma(msg, "Found custom constructor for component on ", container, " with arguments ", Parameters!overload);
-                            }
-                            
-                            factory.setConstructorFactory(udas[0].factoryContainer!(T, container)(locator));
+            foreach (instantiatorHolder; instantiatorHolders) {
+                foreach (overload; __traits(getOverloads, T, instantiatorHolder)) {
+                    alias udas = Filter!(
+                        partialSuffixed!(
+                            canFactoryInstanceFactory,
+                            T
+                        ),
+                        allUDAs!overload
+                    );
+                    
+                    static if (udas.length > 0) {
+                        debug {
+                            pragma(msg, "Found custom constructor for ", name!T, " on ", instantiatorHolder, " with arguments ", Parameters!overload);
                         }
+                        
+                        factory.setConstructorFactory(toValue!(udas[0]).factoryContainer!(T, instantiatorHolder)(locator));
                     }
                 }
             }
         }
         
-        alias methods = Filter!(
+        alias configurerHolders = Filter!(
             templateAnd!(
                 partialSuffixed!(
                     partialPrefixed!(
@@ -954,38 +1361,53 @@ private auto componentScanImpl(T)(Locator!() locator)
                     ),
                     "public"
                 ),
-                chain!(
-                    isSomeFunction,
-                    partialPrefixed!(
-                        getMember,
-                        T
-                    )
-                )
+                templateNot!(eq!"__ctor")
             ),
             __traits(allMembers, T)
         );
         
-        foreach (method; methods) {
-            foreach (overload; MemberFunctionsTuple!(T, method)) {
+        foreach (member; configurerHolders) {
+            
+            static if (isSomeFunction!(getMember!(T, member))) {
+                foreach (overload; __traits(getOverloads, T, member)) {
+                    alias udas = Filter!(
+                        partialSuffixed!(
+                            canFactoryPropertyConfigurer,
+                            T,
+                            member
+                        ),
+                        allUDAs!overload
+                    );
+    
+                    foreach (uda; udas) {
+                        debug {
+                            pragma(msg, "Found configurer ", name!uda, " for ", name!T, "'s method ", member);
+                        }
+                        
+                        factory.addPropertyFactory(toValue!(udas[0]).factoryConfigurer!(T, member)(locator));
+                    }
+                }
+            } else static if (isField!(T, member)) {
+                
                 alias udas = Filter!(
                     partialSuffixed!(
                         canFactoryPropertyConfigurer,
                         T,
-                        method
+                        member
                     ),
-                    allUDAs!overload
+                    allUDAs!(getMember!(T, member))
                 );
-
-                static if (udas.length > 0) {
+                
+                foreach (uda; udas) {
                     debug {
-                        pragma(msg, "Found configurer for ", method);
+                        pragma(msg, "Found configurer ", name!uda, " for ", name!T, "'s field ", member);
                     }
                     
-                    factory.addPropertyFactory(toValue!(udas[0]).factoryConfigurer!(T, method)(locator));
+                    factory.addPropertyFactory(toValue!(uda).factoryConfigurer!(T, member)(locator));
                 }
             }
         }
-        
+
         return factory;
     } else {
         debug {
@@ -1001,7 +1423,7 @@ private template isQualifier(alias T) {
 }
 
 private template isQualifier(T) {
-    enum bool isQualifier = is(T == Qualifier);
+    enum bool isQualifier = is(T == QualifierAnnotation);
 }
 
 private template isContained(alias T) {
@@ -1009,7 +1431,7 @@ private template isContained(alias T) {
 }
 
 private template isContained(T) {
-    enum bool isContained = is(T == Contained);
+    enum bool isContained = is(T == ContainedAnnotation);
 }
 
 private template isValue(T) {
@@ -1074,6 +1496,14 @@ private template isClass(T) {
     enum bool isClass = is(T == class);
 }
 
+private template isStruct(alias T) {
+    enum bool isStruct = is(typeof(T) == struct);
+}
+
+private template isStruct(T) {
+    enum bool isStruct = is(T == struct);
+}
+
 private template getPublicAggregateMembers(alias Symbol) {
     alias getPublicAggregateMembers = Filter!(
         templateAnd!(
@@ -1119,7 +1549,10 @@ private template getPossibleComponents(alias Symbol) {
                     )
                 ),
                 chain!(
-                    isClass,
+                    templateOr!(
+                        isClass,
+                        isStruct
+                    ),
                     partialPrefixed!(
                         getMember,
                         Symbol

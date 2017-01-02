@@ -34,6 +34,7 @@ import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception;
+import aermicioi.aedi.container.factory;
 
 /**
  Prototype container.
@@ -54,7 +55,7 @@ class PrototypeContainer : ConfigurableContainer {
         }
         
         PrototypeContainer set(string key, Factory object) {
-            this.factories.set(key, object);
+            this.factories.set(key, new ExceptionChainingFactory(new InProcessFactoryDecorator(object), key));
             
             return this;
         }
@@ -68,18 +69,7 @@ class PrototypeContainer : ConfigurableContainer {
         Object get(string key) {
             if (this.factories.has(key)) {
                 
-                try {
-                 
-                    return this.factories.get(key).factory();
-                } catch (InProgressException e) {
-                    
-                    throw new CircularReferenceException("Circular dependence detected, please check your configuration")
-                        .add(key);
-                } catch (CircularReferenceException e) {
-                    
-                    e.add(key);
-                    throw e;
-                }
+                return this.factories.get(key).factory();
             }
             
             throw new NotFoundException("Object by id " ~ key ~ " not found");
@@ -110,60 +100,4 @@ class PrototypeContainer : ConfigurableContainer {
             return this.factories.resolve(key);
         }
     }
-}
-
-private {
-    class Foo {
-        
-        public {
-            
-            int i, b;
-            string d;
-            
-            this() {
-                
-            }
-            
-            this(int i) {
-                this();
-                
-                this.i = i;
-            }
-            
-            void set(int b) {
-                this.b = b;
-            }
-            
-            void setD(string d) {
-                this.d = d;
-            }
-        }
-    }
-    
-    class Moo {
-        
-        public {
-            Foo d;
-            
-            int i, b;
-            string z;
-            
-            void setFoo(Foo foo) {
-                this.d = foo;
-            }
-            
-            void set(int i, int b) {
-                this.i = i;
-                this.b = b;
-            }
-            
-            void setString(string z) {
-                this.z = z;
-            }
-        }
-    }
-}
-
-unittest {
-    
 }

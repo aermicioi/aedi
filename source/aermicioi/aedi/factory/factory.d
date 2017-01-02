@@ -32,6 +32,7 @@ Authors:
 module aermicioi.aedi.factory.factory;
 
 import aermicioi.aedi.storage.locator_aware;
+import aermicioi.aedi.storage.locator;
 
 /**
 Interface for objects that create objects.
@@ -70,16 +71,6 @@ interface Factory : LocatorAware!() {
     			TypeInfo object of created object.
     		**/
     		TypeInfo type();
-		    
-		    /**
-		    Checks if the factory is currently building an object.
-		    
-		    This method is used by DI containers, in order to check circular reference errors. Ex of usage is when
-		    a factory in building process can require additional dependencies from a DI container, which in turn can reference
-		    to the instance which the factory is currently building. Since it's a circular reference, it is practically impossible
-		    to solve it, so the DI will throw an circular error exception.
-		    **/
-			bool inProcess();
 		}
 	}
 }
@@ -118,7 +109,15 @@ class LocatorReference {
 }
 
 import std.traits : fullyQualifiedName;
-alias name = fullyQualifiedName;
+//alias name = fullyQualifiedName;
+template name(alias T)
+    if (is(typeof(T))) {
+    alias name = fullyQualifiedName!(typeof(T));
+}
+
+template name(T) {
+    alias name = fullyQualifiedName!T;
+}
 
 /**
 A convenience function that wraps creation of reference to object.
@@ -151,4 +150,12 @@ template toLref(Type) {
 
 template toLrefType(Type) {
     alias toLrefType = LocatorReference;
+}
+
+@trusted auto tryLocateByReference(T, Z = T)(Locator!(Object, string) locator, auto ref Z entity) {
+    static if (is(Z : LocatorReference)) {
+        return locator.locate!T(entity.id); 
+    } else {
+        return entity;
+    }
 }

@@ -52,7 +52,7 @@ unittest {
     ObjectStorage!() parameters = new ObjectStorage!();
     parameters.set(name!string, new Wrapper!string("scrapper"));
     parameters.set(name!ubyte, new Wrapper!ubyte(20));
-    parameters.set(name!Job, new Job("scrapper", 20000));
+    parameters.set(name!Job, new Job("scrapper", Currency(20000)));
     parameters.link(name!Job, "job");
     parameters.link(name!string, "name");
     parameters.link(name!ubyte, "age");
@@ -80,8 +80,13 @@ unittest {
     assert(employee.job is null);
     
     employeeFactory.fact((Locator!() loc, string name, ubyte age) {
-        return new Employee(name, age, new Job("scrapped", 0));
+        return new Employee(name, age, new Job("scrapped", Currency(0)));
     }, "test", cast(ubyte) 13);
+    employeeFactory.callback((Locator!() loc, Employee e, Company comp) {
+        e.company = comp;
+    },
+    new Company(30));
+    
     employee = employeeFactory.factory();
 
     assert(employee !is null);
@@ -90,13 +95,110 @@ unittest {
     assert(employee.job != parameters.get("job"));
     assert(employee.job.name == "scrapped");
     assert(employee.job.payment == 0);
+    assert(employee.company.id == 30);
+}
+
+unittest {
+    ObjectStorage!() parameters = new ObjectStorage!();
+    parameters.set(name!string, new Wrapper!string("scrapper"));
+    parameters.set(name!ubyte, new Wrapper!ubyte(20));
+    parameters.set(name!Job, new Job("scrapper", Currency(20000)));
+    parameters.set("factory", new FixtureFactory(new Job("salaryman", Currency(2000))));
+    parameters.set("structFactory", new Wrapper!StructFixtureFactory(StructFixtureFactory(new Job("salaryman", Currency(2000)))));
+    parameters.link(name!Job, "job");
+    parameters.link(name!string, "name");
+    parameters.link(name!ubyte, "age");
+    
+    {
+        GenericFactory!(Wrapper!Currency) currencyFactory = new GenericFactoryImpl!(Wrapper!Currency)(parameters);
+        
+        auto currency = currencyFactory.factory;
+        assert(currency == Currency());
+        currencyFactory.construct(10);
+        assert(currencyFactory.factory == Currency(10));
+        currencyFactory.set!"amount"(20);
+        assert(currencyFactory.factory == Currency(20));
+        currencyFactory.set!"amount_"(30);
+        assert(currencyFactory.factory == Currency(30));
+    }
+    
+    {
+        auto companyFactory = new GenericFactoryImpl!(Company)(parameters);
+        companyFactory.factoryMethod!(FixtureFactory, "company");
+        assert(companyFactory.factory !is null);
+        assert(companyFactory.factory.id == 20);
+        
+        auto jobFactory = new GenericFactoryImpl!(Job)(parameters);
+        jobFactory.factoryMethod!(FixtureFactory, "job")(new FixtureFactory(new Job("billionaire", Currency(2 ^^ 32))));
+        assert(jobFactory.factory !is null);
+        assert(jobFactory.factory.name == "billionaire");
+        assert(jobFactory.factory.payment == Currency(2 ^^ 32));
+        
+        jobFactory = new GenericFactoryImpl!(Job)(parameters);
+        jobFactory.factoryMethod!(FixtureFactory, "job")("factory".lref);
+        assert(jobFactory.factory !is null);
+        assert(jobFactory.factory.name == "salaryman");
+        assert(jobFactory.factory.payment == Currency(2000));
+    }
+    
+    {
+        auto companyFactory = new GenericFactoryImpl!(Company)(parameters);
+        companyFactory.factoryMethod!(StructFixtureFactory, "company");
+        assert(companyFactory.factory !is null);
+        assert(companyFactory.factory.id == 20);
+        
+        auto jobFactory = new GenericFactoryImpl!(Job)(parameters);
+        jobFactory.factoryMethod!(StructFixtureFactory, "job")(StructFixtureFactory(new Job("billionaire", Currency(2 ^^ 32))));
+        assert(jobFactory.factory !is null);
+        assert(jobFactory.factory.name == "billionaire");
+        assert(jobFactory.factory.payment == Currency(2 ^^ 32));
+        
+        jobFactory = new GenericFactoryImpl!(Job)(parameters);
+        jobFactory.factoryMethod!(StructFixtureFactory, "job")("structFactory".lref);
+        jobFactory.set!"averagePayment"(Currency(150));
+        assert(jobFactory.factory !is null);
+        assert(jobFactory.factory.name == "salaryman");
+        assert(jobFactory.factory.payment == Currency(2000));
+        assert(jobFactory.factory.averagePayment == Currency(150));
+    }
+    
+    {
+        auto currencyFactory = new GenericFactoryImpl!(Wrapper!(Currency))(parameters);
+        currencyFactory.factoryMethod!(StructFixtureFactory, "currency")(StructFixtureFactory(new Job()));
+        assert(currencyFactory.factory !is null);
+        assert(currencyFactory.factory.amount == 0);
+        
+        currencyFactory.factoryMethod!(StructFixtureFactory, "basicPayment")(cast(ptrdiff_t) 20);
+        assert(currencyFactory.factory !is null);
+        assert(currencyFactory.factory.amount == 20);
+    }
+    
+    {
+        auto currencyFactory = new GenericFactoryImpl!(Wrapper!(Currency))(parameters);
+        currencyFactory.fact(
+            delegate Currency(Locator!() loc) {
+                return Currency(20);
+            }
+        );
+        assert(currencyFactory.factory !is null);
+        assert(currencyFactory.factory.amount == 20);
+        
+        currencyFactory.callback(
+            delegate (Locator!() loc, ref Currency c, int amount) {
+                c.amount = amount;
+            },
+            39
+        );
+        
+        assert(currencyFactory.factory.amount == 39);
+    }
 }
 
 unittest {
     ObjectStorage!() parameters = new ObjectStorage!();
     parameters.set("name", new Wrapper!string("scrapper"));
     parameters.set("age", new Wrapper!ubyte(20));
-    parameters.set(name!Job, new Job("scrapper", 20000));
+    parameters.set(name!Job, new Job("scrapper", Currency(20000)));
     parameters.link(name!Job, "job");
     GenericFactory!Employee employeeFactory = new GenericFactoryImpl!Employee(parameters);
     
@@ -117,7 +219,7 @@ unittest {
     ObjectStorage!() parameters = new ObjectStorage!();
     parameters.set(name!string, new Wrapper!string("scrapper"));
     parameters.set(name!ubyte, new Wrapper!ubyte(20));
-    parameters.set(name!Job, new Job("scrapper", 20000));
+    parameters.set(name!Job, new Job("scrapper", Currency(20000)));
     parameters.link(name!Job, "job");
     GenericFactory!Employee employeeFactory = new GenericFactoryImpl!Employee(parameters);
     

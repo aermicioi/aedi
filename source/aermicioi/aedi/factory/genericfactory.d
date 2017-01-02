@@ -34,8 +34,8 @@ public import aermicioi.aedi.factory.factory;
 
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.locator_aware;
-import aermicioi.aedi.exception.invalid_cast_exception;
-import aermicioi.aedi.exception.in_progress_exception;
+import aermicioi.aedi.exception;
+import aermicioi.aedi.storage.wrapper;
 import aermicioi.util.traits;
 
 import std.typecons;
@@ -86,7 +86,7 @@ Provides an interface for factories that construct objects by using building blo
 InstanceFactory objects.
 
 Note:
-	The GenericFactory can optionally provide with a (service) locator when it is required by a smaller building blocks like 
+	The GenericFactory can optionally provide with a locator when it is required by a smaller building blocks like 
 	InstanceFactory implementation.
 **/
 interface GenericFactory(T : Object) : Factory {
@@ -98,9 +98,6 @@ interface GenericFactory(T : Object) : Factory {
         
         Creates a new object using an InstanceFactory implementation, and afterwards configures it with help of
         PropertyConfigurer implementations.
-        
-        Throws:
-        	InProgressException when the factory is in progress.
         **/
         T factory();
         
@@ -143,9 +140,9 @@ interface GenericFactory(T : Object) : Factory {
 A concrete implementation of GenericFactory interface.
 
 Note:
-	This implementation is a (service) locator aware.
+	This implementation is a locator aware.
 **/
-class GenericFactoryImpl(T : Object) : GenericFactory!T {
+class GenericFactoryImpl(T : Object) : GenericFactory!T, LocatorAware!() {
     
     private {
         Locator!() locator_;
@@ -153,7 +150,6 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
         InstanceFactory!T factory_;
         
         PropertyConfigurer!T[] configurers;
-        bool inProcess_;
     }
     
     public {
@@ -166,12 +162,6 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
         ditto
         **/
         T factory() {
-            if (this.inProcess) {
-                throw new InProgressException("Object is already instantiating, type: " ~ name!T);
-            }
-            
-            this.inProcess_ = true;
-            
             T instance;
             
             if (this.factory_ !is null) {
@@ -191,14 +181,13 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
                     instance = new T();
                 } else {
                     
-                    throw new Exception("Failed to construct object due to no constructor");
+                    throw new AediException("Failed to construct object due to no constructor");
                 }
             }
             foreach (key, configurer; this.configurers) {
                 configurer.configure(instance);
             }
             
-            this.inProcess_ = false;
             return instance;
         }
         
@@ -227,7 +216,7 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
     		**/
     		TypeInfo type() {
     		    return typeid(T);
-    		}            
+    		}
         }
             
         GenericFactory!T addPropertyFactory(PropertyConfigurer!T configurer) {
@@ -236,173 +225,490 @@ class GenericFactoryImpl(T : Object) : GenericFactory!T {
             
             return this;
         }
-        
-		@property bool inProcess() {
-		    return this.inProcess_;
-		}
     }
 }
 
 /**
-Implements a setter injection logic for a type T object and for property function method of T object.
+Abstract class used by InstanceFactory and PropertyConfigurer implementations.
+
+Abstract class used by InstanceFactory and PropertyConfigurer implementations to hold arguments, as well as locator for underlying construction of configuration.
+
+Params:
+    Args = a type tuple of args that ParameterHolder can hold.
 **/
-class MethodConfigurer(T, string property, Args...) : PropertyConfigurer!T, LocatorAware!()
-	if (
-	    isObjectMethodCompatible!(T, property, Args)
-    ) {
+abstract class ParameterHolder(Args...) : LocatorAware!() {
     
-    private {
+    protected {
+        Tuple!Args args_;
         Locator!() locator_;
-        Tuple!Args values;
     }
     
     public {
         
+        static if (Args.length > 0) {
+            ParameterHolder args(ref Args args) @safe nothrow pure {
+            	this.args_ = tuple(args);
+            
+            	return this;
+            }
+        }
+        
+        Tuple!Args args() @safe nothrow pure {
+        	return this.args_;
+        } 
+    
+        @property {
+            /**
+    		Sets the locator that will be used by configurer to fetch object referenced in argument list.
+    		
+    		Params:
+    			locator = the (service) locator that will be used to fetch required objects.
+    		
+    		Returns:
+    			The ParameterHolder instance.
+    		**/
+            ParameterHolder!Args locator(Locator!() locator)  {
+            	this.locator_ = locator;
+            
+            	return this;
+            }
+            
+            Locator!() locator() @safe nothrow pure {
+            	return this.locator_;
+            }
+        }
+    }
+}
+
+/**
+Encapsulates a call to aggregate's method, with a set of arguments.
+
+Encapsulates a call to aggregate's method, with a set of arguments.
+The algorithm that calls aggregate's method, will automatically replace
+references from args list with data extracted from container, casted to 
+type that is extracted from method's signature.
+
+Params:
+    T = the aggregate type
+    property = method that will be called
+    Args = type tuple of args that method can be called with.
+**/
+class MethodConfigurer(T, string property, Args...) : ParameterHolder!Args, PropertyConfigurer!T
+	if (
+	    isMethodCompatible!(T, property, Args)
+    ) {
+    
+    public {
+        
         this(ref Args args) {
-            values = args;
+            this.args(args);
         }
         
         /**
-        ditto
+        See PropertyConfigurer interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            of aggregate's method
         **/
         void configure(ref T obj) {
             
-            alias ArgTuple = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), MemberFunctionsTuple!(T, property))[0]);
-            Tuple!ArgTuple args;
+            alias ArgTuple = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(T, property))[0]);
+            Tuple!ArgTuple parameters;
             
-            foreach (index, ref storage; args) {
-                static if (is(typeof(values[index]) : LocatorReference)) {
-                    auto st = locator_.locate!(typeof(storage))(values[index].id);
-                    
-                    if (st is null) {
-                        throw new InvalidCastException(
-                            "Could not cast object fetched from locator to required class/interface: " ~ 
-                            values[index].id.to!string ~ " to " ~ typeid(storage).toString 
-                        );
-                    }
-                    
-                    storage = st;
-                } else {
-                    
-                    storage = values[index];
-                }
+            foreach (index, ref parameter; parameters) {
+                
+                parameter = locator.tryLocateByReference!(typeof(parameter))(args[index]);
             }
-            __traits(getMember, obj, property)(args.expand);
+            __traits(getMember, obj, property)(parameters.expand);
+        }
+    }
+}
+    
+/**
+ditto
+**/
+class MethodConfigurer(Z, string property, T : Wrapper!Z, Args...) : ParameterHolder!Args, PropertyConfigurer!T
+	if (
+	    isMethodCompatible!(Z, property, Args)
+    ) {
+    
+    public {
+        
+        this(ref Args args) {
+            this.args(args);
         }
         
-		/**
-		Sets the locator that will be used by configurer to fetch object referenced in argument list.
-		
-		Params:
-			locator = the (service) locator that will be used to fetch required objects.
-		
-		Returns:
-			The MethodConfigurer!(T, property, Args) instance.
-		**/
-        @property MethodConfigurer!(T, property, Args) locator(Locator!() locator) {
-            this.locator_ = locator;
+        /**
+        See PropertyConfigurer interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            of aggregate's method
+        **/
+        void configure(ref T obj) {
             
-            return this;
+            alias ArgTuple = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(Z, property))[0]);
+            Tuple!ArgTuple parameters;
+            
+            foreach (index, ref parameter; parameters) {
+                
+                parameter = locator.tryLocateByReference!(typeof(parameter))(args[index]);
+            }
+            
+            __traits(getMember, obj.value(), property)(parameters.expand);
+        }
+    }
+}
+    
+/**
+Encapsulates logic that sets aggregates field to a certain value.
+
+Encapsulates logic that sets aggregates field to a certain value.
+If argument that is contained by configurer is a reference, it will be automatically
+replaced with value extracted from locator, and set to aggregate's field.
+**/
+class FieldConfigurer(T, string property, Arg) : ParameterHolder!Arg, PropertyConfigurer!T
+	if (
+	    isFieldCompatible!(T, property, Arg)
+    ) {
+    
+    public {
+        
+        this(ref Arg arg) {
+            this.args(arg);
+        }
+        
+        /**
+        See PropertyConfigurer interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            of aggregate's field
+        **/
+        void configure(ref T obj) {
+            
+            __traits(getMember, obj, property) = this.locator.tryLocateByReference!(typeof(__traits(getMember, obj, property)))(this.args[0]);
+        }
+    }
+}
+    
+/**
+ditto
+**/
+class FieldConfigurer(T, string property, Z : Wrapper!T, Arg) : ParameterHolder!Arg, PropertyConfigurer!Z
+	if (
+	    isFieldCompatible!(T, property, Arg)
+    ) {
+    
+    public {
+        
+        this(ref Arg arg) {
+            this.args(arg);
+        }
+        
+        /**
+        See PropertyConfigurer interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            of aggregate's field
+        **/
+        void configure(ref Z obj) {
+            
+            __traits(getMember, obj.value(), property) = this.locator.tryLocateByReference!(typeof(__traits(getMember, obj, property)))(this.args[0]);
         }
     }
 }
 
 /**
-An implementation of InstanceFactory that uses T's constructor to construct a new object of type T.
+Encapsulates construction of aggregate using a constructor, with args.
+
+Encapsulates construction of aggregate using a constructor, with args.
+Arguments from argument list that are references, are automatically 
+replaced with data extracted from locator.
+
+Params:
+    T = aggregate type
+    Args = type tuple of args that are passed to T's constructor
 **/
-class ConstructorBasedFactory(T, Args...) : InstanceFactory!T, LocatorAware!()
+class ConstructorBasedFactory(T, Args...) : ParameterHolder!Args, InstanceFactory!T
 	if (
+	    is(T == class) && 
 	    isObjectConstructorCompatible!(T, Args)
 	) {
-    
-    private {
-        
-        Locator!() locator_;
-        Tuple!Args values;
-    }
     
     public {
         
         this(ref Args args) {
-            this.values = tuple(args);
+            this.args(args);
         }
         
         /**
-        ditto
+        See InstanceFactory interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            of aggregate's constructor
         **/
         T factory() {
             
             alias ConstructorArgs = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor"))[0]);
             
-            Tuple!ConstructorArgs args;
+            Tuple!ConstructorArgs parameters;
             
-            foreach (index, ref value; values) {
-                
-                static if (is(typeof(values[index]) : LocatorReference)) {
-                    auto storage = locator_.locate!(typeof(args[index]))(values[index].id);
-                    
-                    if (storage is null) {
-                        throw new InvalidCastException(
-                            "Could not cast object fetched from locator to required class/interface: " ~ 
-                            values[index].id.to!string ~ " to " ~ typeid(args[index]).toString 
-                        );
-                    }
-                    
-                    args[index] = storage;
-                } else {
-                    
-                    args[index] = values[index];
-                }
+            foreach (index, ref parameter; parameters) {
+                parameter = this.locator.tryLocateByReference!(typeof(parameter))(this.args[index]);
             }
             
-            return new T(args.expand);
+            return new T(parameters.expand);
+        }
+    }
+}
+	
+/**
+ditto
+**/
+class ConstructorBasedFactory(Z, T : Wrapper!Z, Args...) : ParameterHolder!Args, InstanceFactory!T
+	if (
+	    is(Z == struct) && 
+	    isObjectConstructorCompatible!(Z, Args)
+	) {
+    
+    public {
+        
+        this(ref Args args) {
+            this.args(args);
         }
         
         /**
-		Sets the locator that will be used by constructor to fetch object referenced in argument list.
-		
-		Params:
-			locator = the (service) locator that will be used to fetch required objects.
-		
-		Returns:
-			The MethodConfigurer!(T, property, Args) instance.
-		**/
-        @property ConstructorBasedFactory!(T, Args) locator(Locator!() locator) {
-            this.locator_ = locator;
+        See InstanceFactory interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            of aggregate's constructor
+        **/
+        T factory() {
             
-            return this;
+            alias ConstructorArgs = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, Z, "__ctor"))[0]);
+            
+            Tuple!ConstructorArgs parameters;
+            
+            foreach (index, ref parameter; parameters) {
+                parameter = this.locator.tryLocateByReference!(typeof(parameter))(this.args[index]);
+            }
+            
+            return new T(Z(parameters.expand));
         }
     }
 }
 
 /**
-A callback based factory of objects.
+Encapsulates construction of aggregate using factory method.
 
-It accepts an delegate that is responsible to construct the object, and return it to the GenericFactory for further manipulation.
-A list of optional arguments are also possible to pass for delegate.
+Encapsulates construction of aggregate using factory method.
+Arguments that are references, will be replaced with data extracted
+from locator, and passed to factory's method.
+In case when method is not static member, the algorithm will use 
+an instantiaton of factory passed to it, or extracted from locator
+if a reference is passed.
+
+Params:
+    T = factory that is used to instantiate aggregate using it's method
+    method = the name of method used to instantiate aggregate
+    W = the factory T, or a LocatorReference to the factory.
+    Args = type tuple of arguments passed to factory.
 **/
-class CallbackFactory(T, Args...) : InstanceFactory!T {
-    
+class FactoryMethodBasedFactory(T, string method, W, Args...) : ParameterHolder!Args, InstanceFactory!(ReturnType!(getCompatibleOverload!(T, method, Args)))
+    if (
+        (is(W : LocatorReference) || is(W : T)) &&
+        isMethodCompatible!(T, method, Args) &&
+        isAggregateType!(ReturnType!(getCompatibleOverload!(T, method, Args)))
+    ) {
+        
+    static if (!__traits(isStaticFunction, getCompatibleOverload!(T, method, Args))) {
+        
+        private {
+            W fact;
+        }
+        
+        public {
+            this(ref W fact, ref Args args) {
+                this.args(args);
+                this.fact = fact;
+            }
+        }
+    } else {
+        
+        this(ref Args args) {
+            this.args(args);
+        }
+    }
+        
     private {
-        T delegate (Locator!(), Args) dg;
-        Tuple!Args args;
-        Locator!() locator_;
+        
+        alias Z = ReturnType!(getCompatibleOverload!(T, method, Args));
     }
     
     public {
-        this(T delegate (Locator!(), Args) dg, ref Args args) {
-            this.dg = dg;
-            this.args = tuple(args);
+        /**
+        See InstanceFactory interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            factory's method, or when factory is referenced, and the object referenced in locator is not
+            of factory's type T.
+        **/
+        Z factory() {
+            
+            alias FactoryMethodParameters = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, method))[0]);
+            
+            Tuple!FactoryMethodParameters parameters;
+            
+            foreach (index, ref parameter; parameters) {
+                parameter = this.locator.tryLocateByReference!(typeof(parameter))(this.args[index]);
+            }
+            
+            static if (!__traits(isStaticFunction, getCompatibleOverload!(T, method, Args))) {
+
+                return __traits(getMember, locator.tryLocateByReference!(T)(fact), method)(parameters.expand);
+            } else {
+
+                return __traits(getMember, T, method)(parameters.expand);
+            }
+        }
+    }
+}
+    
+/**
+dito
+**/
+class FactoryMethodBasedFactory(T, string method, W, Z, Args...) : ParameterHolder!Args, InstanceFactory!Z
+    if (
+        (is(W : LocatorReference) || is(W : T)) &&
+        isMethodCompatible!(T, method, Args) &&
+        isAggregateType!(ReturnType!(getCompatibleOverload!(T, method, Args))) &&
+        is(Z : Wrapper!(ReturnType!(getCompatibleOverload!(T, method, Args))))
+    ) {
+        
+    static if (!__traits(isStaticFunction, getCompatibleOverload!(T, method, Args))) {
+        
+        private {
+            W fact;
         }
         
+        public {
+            this(ref W fact, ref Args args) {
+                this.args(args);
+                this.fact = fact;
+            }
+        }
+    } else {
+        
+        this(ref Args args) {
+            this.args(args);
+        }
+    }
+        
+    private {
+        
+        alias X = ReturnType!(getCompatibleOverload!(T, method, Args));
+    }
+    
+    public {
+        /**
+        See InstanceFactory interface
+        
+        Throws:
+            InvalidCastException when extracted data by reference, is not of type expected by argument
+            factory's method, or when factory is referenced, and the object referenced in locator is not
+            of factory's type T.
+        **/
+        Z factory() {
+            
+            alias FactoryMethodParameters = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, method))[0]);
+            
+            Tuple!FactoryMethodParameters parameters;
+            
+            foreach (index, ref parameter; parameters) {
+                parameter = this.locator.tryLocateByReference!(typeof(parameter))(this.args[index]);
+            }
+            
+            static if (!__traits(isStaticFunction, getCompatibleOverload!(T, method, Args))) {
+
+                return new Wrapper!X(__traits(getMember, locator.tryLocateByReference!(T)(fact), method)(parameters.expand));
+            } else {
+
+                return new Wrapper!X(__traits(getMember, T, method)(parameters.expand));
+            }
+        }
+    }
+}
+    
+/**
+Encapsulates aggregate construction logic using a delegate.
+
+Encapsulates aggregate construction logic using a delegate.
+The algorithm uses a delegate to create required aggregate, 
+with a set of Args that are passed to delegate, and a locator
+to customize construction logic. 
+
+Params:
+    T = the constructed aggregate
+    Args = type tuple of arguments passed to delegate for aggregate's construction. 
+**/
+class CallbackFactory(T, Dg, Args...) : ParameterHolder!Args, InstanceFactory!T
+    if (is(T == class) && (is(Dg == T delegate (Locator!(), Args)) || is(Dg == T function (Locator!(), Args)))) {
+    
+    private {
+        Dg dg;
+    }
+    
+    public {
+        this(Dg dg, ref Args args) {
+            this.dg = dg;
+            this.args(args);
+        }
+        
+        /**
+        See InstanceFactory interface
+        **/
         T factory() {
             return this.dg(this.locator_, args.expand);
         }
+    }
+}
+
+/**
+Encapsulates aggregate configuration logic using a delegate.
+
+Encapsulates aggregate configuration logic using a delegate.
+The algorithm calls delegate, with a locator a set of Args,
+and configured aggregate, in order to modify the aggregate
+somehow.
+
+Params:
+    T = the aggregate
+    Args = type tuple of arguments used by delegate for customization.
+**/
+class CallbackConfigurer(T, Dg, Args...) : ParameterHolder!Args, PropertyConfigurer!T 
+    if (is(T == class) && (is(Dg == void delegate (Locator!(), T, Args)) || is(Dg == void function (Locator!(), T, Args)))) {
+    
+    private {
+        Dg dg;
+    }
+    
+    /**
+    See InstanceFactory interface
+    **/
+    public {
+        this(Dg dg, ref Args args) {
+            this.dg = dg;
+            this.args(args);
+        }
         
-        @property CallbackFactory!(T, Args) locator(Locator!() locator) {
-            this.locator_ = locator;
-            
-            return this;
+        void configure(ref T object) {
+            return this.dg(this.locator_, object, args.expand);
         }
     }
 }
@@ -412,44 +718,168 @@ GenericFactory!T genericFactory(T)(Locator!() locator) {
 }
 
 /**
-A convenient function that sets to generic factory, a ConstructorBasedFactory as object constructor for type T object.
+Construct aggregate using args.
 
-A convenient function that sets to generic factory, a ConstructorBasedFactory as object constructor for type T object.
-Also it takes the locator provided by GenericFactory implementation and passes it to ConstructorBasedFactory for location
-of referenced objects.
+Constructs aggregate using args, that are passed to function.
+The function will attempt to find at least one construct that 
+can accept passed argument list. If it fails, compiler will
+produce error, with respective problems.
+The argument list can contain beside simple values, references
+to other data in locator. Arguments that are references to other data
+won't be type checked.
 
 Params:
-	factory = the factory in which to set the new ConstructorBasedFactory object.
-	args = the arguments that will be used to construct the new object.
+	factory = the factory which will call constructor with passed arguments.
+	args = a list of arguments that will be passed to constructor.
 	
 Returns:
-	GenericFactory!T for which was set the ConstructorBasedFactory.
+	GenericFactory!T.
 **/
-auto construct(T, Args...)(GenericFactory!T factory, Args args) {
-    auto constr = new ConstructorBasedFactory!(T, Args)(args);
-    constr.locator = factory.locator;
-    factory.setConstructorFactory = constr;
+
+auto construct(T, Args...)(GenericFactory!T factory, auto ref Args args) 
+    if (is(T == class) && !is(T == Wrapper!Z, Z)) {
+    mixin assertObjectConstructorCompatible!(T, Args);
+    auto constructor = new ConstructorBasedFactory!(T, Args)(args);
+    
+    constructor.locator = factory.locator;
+    factory.setConstructorFactory(constructor);
     
     return factory;
 }
 
 /**
-A convenient function that appends to generic factory, a MethodConfigurer for type T object.
+ditto
+**/
+auto construct(Z, Args...)(GenericFactory!(Wrapper!Z) factory, auto ref Args args)
+    if (is(Z == struct)) {
+    mixin assertObjectConstructorCompatible!(Z, Args);
+    auto constructor = new ConstructorBasedFactory!(Z, Wrapper!Z, Args)(args);
+      
+    constructor.locator = factory.locator;
+    factory.setConstructorFactory(constructor);
+    
+    return factory;
+}
+   
+/**
+Invoke T's method to create aggregate of type X.
 
-A convenient function that appends to generic factory, a MethodConfigurer as object for type T object.
-Also it takes the locator provided by GenericFactory implementation and passes it to MethodConfigurer for location
-of referenced objects.
+Configures aggregate's factory to call method of factoryMethod with args,
+in order to create aggregate of type X.
+In case when method is not a static member, the function requires to
+pass a instance of factoryMethod or a reference to it.
+The algorithm will check for args compatiblity with parameters of 
+factory method. No type check is done for arguments that are references
+at compile time.
 
 Params:
-	factory = the factory in which to set the new ConstructorBasedFactory object.
-	args = the arguments that will be used to configure the new object.
+    factory = aggregate's factory that is configured to call factoryMethod methods to spawn aggregate
+    factoryMethod = instance of factory method that will be used to instantiate aggregate
+    args = a list of arguments passed to factory method
+    T = type of factoryMethod
+    method = the method that is called from T to instantiate aggregate
+    W = either LocatorReference or T
+    X = the return type of T.method member
+**/
+GenericFactory!(X) factoryMethod(T, string method, W, X, Args...)(GenericFactory!(X) factory, auto ref W factoryMethod, auto ref Args args)
+    if (
+        isNonStaticMethodCompatible!(T, method, Args) &&
+        !is(X : Wrapper!Z, Z) &&
+        (is(W : T) || is(W : LocatorReference))
+    ) {
+        
+    auto constructor = new FactoryMethodBasedFactory!(T, method, W, Args)(factoryMethod, args);
+    
+    constructor.locator = factory.locator;
+    factory.setConstructorFactory(constructor);
+    
+    return factory;
+}
+
+/**
+ditto
+**/
+GenericFactory!(X) factoryMethod(T, string method, X, Args...)(GenericFactory!(X) factory, auto ref Args args)
+    if (
+        isStaticMethodCompatible!(T, method, Args) &&
+        !is(X : Wrapper!Z, Z)
+    ) {
+    auto constructor = new FactoryMethodBasedFactory!(T, method, T, Args)(args);
+    
+    constructor.locator = factory.locator;
+    factory.setConstructorFactory(constructor);
+    
+    return factory;
+}
+
+/**
+ditto
+**/
+GenericFactory!(X) factoryMethod(T, string method, W, X, Args...)(GenericFactory!(X) factory, W factoryMethod, auto ref Args args)
+    if (
+        isNonStaticMethodCompatible!(T, method, Args) &&
+        is(X : Wrapper!Z, Z) &&
+        (is(W : T) || is(W : LocatorReference))
+    ) {
+    auto constructor = new FactoryMethodBasedFactory!(T, method, W, Wrapper!(ReturnType!(getCompatibleOverload!(T, method, Args))), Args)(factoryMethod, args);
+    
+    constructor.locator = factory.locator;
+    factory.setConstructorFactory(constructor);
+    
+    return factory;
+}
+
+/**
+ditto
+**/
+GenericFactory!(X) factoryMethod(T, string method, X, Args...)(GenericFactory!(X) factory, auto ref Args args)
+    if (
+        isStaticMethodCompatible!(T, method, Args) &&
+        is(X : Wrapper!Z, Z)
+    ) {
+    auto constructor = new FactoryMethodBasedFactory!(T, method, T, Wrapper!(ReturnType!(getCompatibleOverload!(T, method, Args))), Args)(args);
+    
+    constructor.locator = factory.locator;
+    factory.setConstructorFactory(constructor);
+    
+    return factory;
+}
+    
+/**
+Invoke aggregate's method with supplied args.
+
+Configures aggregate's factory to call specified method with passed args.
+The function will check if the arguments passed to it are compatible with at 
+least one method from possible overload set.
+The args list can contain references to other objects in locator as well, though
+no type compatibility checks will be performed at compile time.
+
+Params:
+	factory = the factory which will be configured to invoke method.
+	args = the arguments that will be used to invoke method on the new object.
 	
 Returns:
-	GenericFactory!T for which was set the MethodConfigurer.
+	GenericFactory!T.
 **/
-auto set(string property, T, Args...)(GenericFactory!T factory, Args args) 
-    if (isObjectMethodCompatible!(T, property, Args)) {
+auto set(string property, T, Args...)(GenericFactory!T factory, auto ref Args args) 
+    if (!isField!(T, property)) {
+    mixin assertObjectMethodCompatible!(T, property, Args);
+    
     auto propertySetter = new MethodConfigurer!(T, property, Args)(args);
+    propertySetter.locator = factory.locator;
+    factory.addPropertyFactory(propertySetter);
+    
+    return factory;
+}
+    
+/**
+ditto
+**/
+auto set(string property, T : Wrapper!Z, Z, Args...)(GenericFactory!T factory, auto ref Args args) 
+    if (!isField!(Z, property)) {
+    mixin assertObjectMethodCompatible!(Z, property, Args);
+    
+    auto propertySetter = new MethodConfigurer!(Z, property, T, Args)(args);
     propertySetter.locator = factory.locator;
     factory.addPropertyFactory(propertySetter);
     
@@ -457,39 +887,280 @@ auto set(string property, T, Args...)(GenericFactory!T factory, Args args)
 }
 
 /**
-A convenient function that sets to generic factory, a CallbackFactory as object constructor for type T object.
+Set aggregate's public field to passed arg.
 
-It accepts an delegate that is responsible to construct the object, and return it to the GenericFactory for further manipulation.
-A list of optional arguments are also possible to pass to delegate.
+Configures aggregate's factory to set specified field to passed arg.
+The function will check if passed argument is type compatible with specified field.
+The argument can be a reference as well. In case of argument being reference to another data
+in container, no type compatiblity checking will be done.
+
+Params
+    factory = the factory which will be configured to set property.
+	arg = the value of property to be set, or reference to data in container.
+
+Returns:
+	GenericFactory!T.
+**/
+auto set(string property, T, Arg)(GenericFactory!T factory, auto ref Arg arg)
+    if (isField!(T, property)) {
+    mixin assertFieldCompatible!(T, property, Arg);
+    
+    auto propertySetter = new FieldConfigurer!(T, property, Arg)(arg);
+    propertySetter.locator = factory.locator;
+    factory.addPropertyFactory(propertySetter);
+    
+    return factory;
+}
+    
+/**
+ditto
+**/
+auto set(string property, T : Wrapper!Z, Z, Arg)(GenericFactory!T factory, auto ref Arg arg)
+    if (isField!(Z, property)) {
+    mixin assertFieldCompatible!(Z, property, Arg);
+    
+    auto propertySetter = new FieldConfigurer!(Z, property, T, Arg)(arg);
+    propertySetter.locator = factory.locator;
+    factory.addPropertyFactory(propertySetter);
+    
+    return factory;
+}
+    
+/**
+Construct aggregate using a delegate.
+
+Constructs aggregate using a delegate, and a list of arguments passed to delegate.
 
 Params:
-	factory = the factory in which to set the new ConstructorBasedFactory object.
-	dg = the delegate that is responsible for creating the object by factory.
-	args = the arguments that will be used to construct the new object.
+	factory = the factory which will use delegate to construct aggregate.
+	dg = the delegate that is responsible for creating aggregate, given a list of arguments.
+	args = the arguments that will be used by delegate to construct aggregate.
 	
 Returns:
-	GenericFactory!T for which was set the ConstructorBasedFactory.
+	GenericFactory!T.
 **/
-auto fact(T, Args...)(GenericFactory!T factory, T delegate(Locator!(), Args) dg, Args args) {
-    auto constr = new CallbackFactory!(T, Args)(dg, args);
+auto fact(T, Args...)(GenericFactory!T factory, T delegate(Locator!(), Args) dg, auto ref Args args)
+    if (is(T == class)) {
+    auto constr = new CallbackFactory!(T, T delegate(Locator!(), Args), Args)(dg, args);
+    constr.locator = factory.locator;
+    factory.setConstructorFactory(constr);
+    return factory;
+}
+    
+/**
+ditto
+**/
+auto fact(T, Args...)(GenericFactory!T factory, T function(Locator!(), Args) dg, auto ref Args args)
+    if (is(T == class)) {
+    auto constr = new CallbackFactory!(T, T function(Locator!(), Args), Args)(dg, args);
     constr.locator = factory.locator;
     factory.setConstructorFactory(constr);
     return factory;
 }
 
 /**
-A convenient function that automatically configures an object.
+ditto
+**/
+auto fact(T, Args...)(GenericFactory!(Wrapper!T) factory, T delegate(Locator!(), Args) dg, auto ref Args args)
+    if (is(T == struct)) {
+    auto constr = new CallbackFactory!(
+        Wrapper!T,
+        Wrapper!T function (
+            Locator!() loc, 
+            T delegate(
+                Locator!(), 
+                Args
+            ) dg, 
+            Args args
+        ),
+        T delegate(
+            Locator!(), 
+            Args
+        ), 
+        Args
+    ) (
+        function Wrapper!T(
+            Locator!() loc, 
+            T delegate(
+                Locator!(), 
+                Args
+            ) dg, 
+            Args args
+        ) {
+            return new Wrapper!T(dg(loc, args));
+        },
+        dg,
+        args
+    );
+    constr.locator = factory.locator;
+    factory.setConstructorFactory(constr);
+    return factory;
+}
+    
+/**
+ditto
+**/
+auto fact(T, Args...)(GenericFactory!(Wrapper!T) factory, T function(Locator!(), Args) dg, auto ref Args args)
+    if (is(T == struct)) {
+    auto constr = new CallbackFactory!(
+        Wrapper!T,
+        Wrapper!T function (
+            Locator!() loc, 
+            T function(
+                Locator!(), 
+                Args
+            ) dg, 
+            Args args
+        ),
+        T function(
+            Locator!(), 
+            Args
+        ), 
+        Args
+    ) (
+        function Wrapper!T(
+            Locator!() loc, 
+            T function(
+                Locator!(), 
+                Args
+            ) dg, 
+            Args args
+        ) {
+            return new Wrapper!T(dg(loc, args));
+        },
+        dg,
+        args
+    );
+    constr.locator = factory.locator;
+    factory.setConstructorFactory(constr);
+    return factory;
+}
 
-This function if applied to T type, will alias itself to ConstructorBasedFactory with argument list from
-first method in overload set of __ctors.
-If applied to a method of T type, will alias itself to a MethodBasedFactory with argument list from first method in
-overload set of method function
+/**
+Call dg on an aggregate that is in configuration phase.
+
+Call dg on aggregate to perform some modifications, using args as input.
 
 Params:
+    factory = factory which will call dg with args.
+    dg = delegate that will perform some modifications on aggregate using passed args.
+    args = a list of arguments passed to dg.
+    
+Returns:
+    GenericFactory!T
+**/
+auto callback(T, Args...)(GenericFactory!T factory, void delegate(Locator!(), T, Args) dg, auto ref Args args)
+    if (is(T == class) && !is(T : Wrapper!Z, Z)) {
+    auto constr = new CallbackConfigurer!(T, void delegate(Locator!(), T, Args), Args)(dg, args);
+    constr.locator = factory.locator;
+    factory.addPropertyFactory(constr);
+    return factory;
+}
+    
+/**
+ditto
+**/
+auto callback(T, Args...)(GenericFactory!T factory, void function(Locator!(), T, Args) dg, auto ref Args args)
+    if (is(T == class) && !is(T : Wrapper!Z, Z)) {
+    auto constr = new CallbackConfigurer!(T, void function(Locator!(), T, Args), Args)(dg, args);
+    constr.locator = factory.locator;
+    factory.addPropertyFactory(constr);
+    return factory;
+}
+
+/**
+ditto
+**/
+auto callback(T, Args...)(GenericFactory!(Wrapper!T) factory, void delegate(Locator!(), ref T, Args) dg, auto ref Args args) 
+    if (is(T == struct)) {
+        
+    auto constr = new CallbackConfigurer!(
+        Wrapper!T,
+        void function(
+            Locator!() loc,
+            Wrapper!T obj, 
+            void delegate(Locator!(), ref T, Args) dg, 
+            Args args
+        ),
+        void delegate(
+            Locator!(), 
+            ref T,
+            Args
+        ), 
+        Args
+    )(
+        function void(
+            Locator!() loc,
+            Wrapper!T obj, 
+            void delegate(Locator!(), ref T, Args) dg, 
+            Args args
+        ) {
+            dg(loc, obj.value, args);
+        },
+        dg,
+        args
+    );
+    constr.locator = factory.locator;
+    factory.addPropertyFactory(constr);
+    return factory;
+}
+    
+/**
+ditto
+**/
+auto callback(T, Args...)(GenericFactory!(Wrapper!T) factory, void function(Locator!(), ref T, Args) dg, auto ref Args args) 
+    if (is(T == struct)) {
+        
+    auto constr = new CallbackConfigurer!(
+        Wrapper!T,
+        void function(
+            Locator!() loc,
+            Wrapper!T obj, 
+            void delegate(Locator!(), ref T, Args) dg, 
+            Args args
+        ),
+        void function(
+            Locator!(), 
+            ref T,
+            Args
+        ), 
+        Args
+    )(
+        function void(
+            Locator!() loc,
+            Wrapper!T obj, 
+            void function(Locator!(), ref T, Args) dg, 
+            Args args
+        ) {
+            dg(loc, obj.value, args);
+        },
+        dg,
+        args
+    );
+    constr.locator = factory.locator;
+    factory.addPropertyFactory(constr);
+    return factory;
+}
+
+/**
+Autowire a constructor, field or a method.
+
+Autowire a constructor, field or a method.
+A constructor is autowired only when no member is passed as argument.
+When a member is passed as argument, it will be called with
+a list of references (where args are identified by their type FQN) in
+case when member is a function, or it will set the member to the 
+value that is located in container by it's type FQN.
+Note: In case of constructors as well as methods that are overloaded,
+the first constructor or method from overload set is selected to be autowired.
+
+Params:
+    T = the aggregate type
+    member = field or method of aggregate T
     factory = GenericFactory where to inject the constructor or method configurer
     
-Return 
-    factory for further configuration
+Returns:
+    GenericFactory!T
 **/
 auto autowire(T)(GenericFactory!T factory) 
     if (getMembersWithProtection!(T, "__ctor", "public").length > 0) {
@@ -502,6 +1173,14 @@ ditto
 auto autowire(string member, T)(GenericFactory!T factory) 
     if (getMembersWithProtection!(T, member, "public").length > 0) {
     return factory.set!(member)(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, member, "public")[0])));
+}
+    
+/**
+ditto
+**/
+auto autowire(string member, T)(GenericFactory!T factory) 
+    if (isField!(T, member)) {
+    return factory.set!(member)(lref!(typeof(getMember!(T, member))));
 }
 
 /**
@@ -521,52 +1200,81 @@ template isArgumentListCompatible(alias func, ArgTuple...)
           
             return false;
         } else {
-          
+            
+            bool result = true;
             foreach (index, Argument; ArgTuple) {
           
                 static if (!is(Argument : LocatorReference) && !isImplicitlyConvertible!(Argument, FuncParams[index])) {
           
-                    return false;
+                    result = false;
+                    break;
                 } 
             }
             
+            return result;
+        }
+    }
+}
+	
+template isField(T, string field) {
+    
+    auto isField() {
+        
+        static if (Filter!(eq!field, FieldNameTuple!T).length > 0) {
             return true;
+        } else {
+            return false;
         }
     }
 }
 
-template isObjectConstructorCompatible(T, Args...) {
-    static assert(hasMember!(T, "__ctor"), identifier!T ~ " doesn't have any constructor to call.");
-    static assert(isProtection!(T, "__ctor", "public"), identifier!T ~ "'s constructor is not public.");
-    static assert(isSomeFunction!(__traits(getMember, T, "__ctor")), identifier!T ~ "'s constructor is not a function, probably a template.");
-    static assert(variadicFunctionStyle!(__traits(getMember, T, "__ctor")) == Variadic.no, identifier!T ~ "'s constructor is a variadic function. Only non-variadic constructors are supported.");
-    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor")).length == 1, "None, or multiple overloads found for " ~ identifier!T ~ "'s constructor with passed arguments.");
-    
-    auto isObjectConstructorCompatible() { 
-        return 
-            hasMember!(T, "__ctor") &&
-    	    isProtection!(T, "__ctor", "public") &&
-    	    isSomeFunction!(__traits(getMember, T, "__ctor")) &&
-    	    (variadicFunctionStyle!(__traits(getMember, T, "__ctor")) == Variadic.no) &&
-    	    (Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor")).length == 1);
-    }
+mixin template assertFieldCompatible(T, string field, Arg) {
+    static assert(isField!(T, field), name!T ~ "'s " ~ field ~ " member is not a field");
+    static assert(isProtection!(T, field, "public"), name!T ~ "'s " ~ field ~ " is not public and therefore cannot be accessed.");
+    static assert(is(Arg : LocatorReference) ? true : isImplicitlyConvertible!(Arg, typeof(getMember!(T, field))), name!T ~"'s " ~ field ~ " type " ~ name!(typeof(getMember!(T, field))) ~ " doesn't match with passed arguments type " ~ name!Arg);
 }
 
-template isObjectMethodCompatible(T, string method, Args...) {
-    static assert(hasMember!(T, method), identifier!T ~ "'s method" ~ method ~ " not found.");
-    static assert(isProtection!(T, method, "public"), identifier!T ~ "'s method " ~ method ~ " is not public");
-    static assert(isSomeFunction!(__traits(getMember, T, method)), identifier!T ~ "'s member " ~ method ~ " is not a function, probably a field, or a function.");
-    static assert(variadicFunctionStyle!(__traits(getMember, T, method)) == Variadic.no, identifier!T ~ "'s method " ~ method ~ "is variadic function. Only non-variadic methods are supported.");
-    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), MemberFunctionsTuple!(T, method)).length == 1, identifier!T ~ "'s " ~ method ~ " doesn't have overload matching passed arguments, or has several overloads that match.");
-    
-    auto isObjectMethodCompatible() {
-        return 
+enum bool isFieldCompatible(T, string field, Arg) = 
+    isField!(T, field) &&
+    isProtection!(T, field, "public") &&
+    is(Arg : LocatorReference) ? true : isImplicitlyConvertible!(Arg, typeof(getMember!(T, field)));
+
+mixin template assertObjectConstructorCompatible(T, Args...) {
+    static assert(hasMember!(T, "__ctor"), name!T ~ " doesn't have any constructor to call.");
+    static assert(isProtection!(T, "__ctor", "public"), name!T ~ "'s constructor is not public.");
+    static assert(isSomeFunction!(__traits(getMember, T, "__ctor")), name!T ~ "'s constructor is not a function, probably a template.");
+    static assert(variadicFunctionStyle!(__traits(getMember, T, "__ctor")) == Variadic.no, name!T ~ "'s constructor is a variadic function. Only non-variadic constructors are supported.");
+    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor")).length == 1, "None, or multiple overloads found for " ~ name!T ~ "'s constructor with passed arguments.");
+}
+
+enum bool isObjectConstructorCompatible(T, Args...) = isMethodCompatible!(T, "__ctor", Args);
+
+mixin template assertObjectMethodCompatible(T, string method, Args...) {
+    import std.range : only;
+    import std.array : array;
+    static assert(hasMember!(T, method), name!T ~ "'s method " ~ method ~ " not found.");
+    static assert(isProtection!(T, method, "public"), name!T ~ "'s method " ~ method ~ " is not public");
+    static assert(isSomeFunction!(__traits(getMember, T, method)), name!T ~ "'s member " ~ method ~ " is not a function, probably a field, or a template.");
+    static assert(variadicFunctionStyle!(__traits(getMember, T, method)) == Variadic.no, name!T ~ "'s method " ~ method ~ "is variadic function. Only non-variadic methods are supported.");
+    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(T, method)).length == 1, name!T ~ "'s " ~ method ~ " doesn't have overload matching passed arguments (" ~ only(staticMap!(name, Args)).joiner(", ").array ~ "), or has several overloads that match.");
+}
+
+enum bool isObjectMethodCompatible(T, string method, Args...) = isMethodCompatible!(T, method, Args);
+
+
+template isMethodCompatible(T, string method, Args...) {
+    enum bool isMethodCompatible = 
             hasMember!(T, method) &&
             isProtection!(T, method, "public") &&
             isSomeFunction!(__traits(getMember, T, method)) &&
             (variadicFunctionStyle!(__traits(getMember, T, method)) == Variadic.no) &&
-            (Filter!(partialSuffixed!(isArgumentListCompatible, Args), MemberFunctionsTuple!(T, method)).length == 1);
-    }
+            (Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(T, method)).length == 1);
+}
+
+template getCompatibleOverload(T, string method, Args...)
+    if (isObjectMethodCompatible!(T, method, Args)) {
+    
+    alias getCompatibleOverload = Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(T, method))[0];
 }
 
 	
@@ -577,3 +1285,37 @@ private template isValueOfType(alias value, Type) {
 private template isValueOfType(Value, Type) {
     enum bool isValueOfType = is(Value == Type);
 }
+
+private alias isStaticMethodCompatible = templateAnd!(
+    isMethodCompatible, 
+    chain!(
+        isStaticFunction, 
+        getCompatibleOverload
+    )
+);
+
+private alias isNonStaticMethodCompatible = templateAnd!(
+    isMethodCompatible, 
+    chain!(
+        templateNot!isStaticFunction, 
+        getCompatibleOverload
+    )
+);
+
+private alias isNonStaticMethodCompatibleAndReturnTypeOf(X) = templateAnd!(
+    isMethodCompatible, 
+    chain!(
+        templateNot!isStaticFunction, 
+        getCompatibleOverload
+    ),
+    partialSuffixed!(
+        chain!(
+            partialPrefixed!(
+                get,
+                0
+            ),
+            getCompatibleOverload
+        ),
+        X
+    )
+);

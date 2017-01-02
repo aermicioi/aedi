@@ -34,11 +34,13 @@ module aermicioi.aedi.configurer.configurer;
 public import aermicioi.aedi.factory.factory : lref;
 
 import aermicioi.aedi.configurer.configurer;
-import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory;
 import aermicioi.aedi.factory.genericfactory;
+import aermicioi.aedi.factory.proxy_factory;
+import aermicioi.aedi.container.proxy_container;
+import aermicioi.aedi.container.container;
 import aermicioi.util.traits : isReferenceType;
 import aermicioi.aedi.exception;
 
@@ -54,9 +56,29 @@ Params:
 Returns:
 	GenericFactory implementation for further configuration.
 **/
-auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator, string id) {
+auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator, string id)
+    if (is(Type == class)) {
     auto fact = new GenericFactoryImpl!Type(locator);
     storage.set(id, fact);
+    
+//    Storage!(ProxyFactory, string) proxyStorage = cast(Storage!(ProxyFactory, string)) storage;
+//    if (proxyStorage !is null) {
+//        
+//        auto proxyFact = new ProxyFactoryImpl!Type;
+//        proxyFact.identity = id;
+//        proxyStorage.set(id, proxyFact);
+//    }
+    
+    return fact;
+}
+
+auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator, string id)
+    if (is(Type == struct)) {
+    import aermicioi.aedi.storage.wrapper;
+        
+    auto fact = new GenericFactoryImpl!(Wrapper!Type)(locator);
+    storage.set(id, fact);
+    
     return fact;
 }
 
@@ -79,9 +101,7 @@ Returns:
 	GenericFactory implementation for further configuration.
 **/
 auto register(Type)(Storage!(Factory, string) storage, Locator!(Object, string) locator) {
-    auto fact = new GenericFactoryImpl!Type(locator);
-    storage.set(name!Type, fact);
-    return fact;
+    return storage.register!(Type)(locator, name!Type);
 }
 
 /**
@@ -117,6 +137,44 @@ auto register(Interface, Type)(ConfigurableContainer storage) {
     return register!(Interface, Type)(storage, storage);
 }
 
+////================================Proxy aware set of register functions=====================================
+//auto register(Type)(ProxyContainer storage, Locator!(Object, string) locator, string id) {
+//    auto fact = new ProxyFactoryImpl!(Type, GenericFactoryImpl!Type)(
+//        id,
+//        storage,
+//        new GenericFactoryImpl!Type(locator)
+//    );
+//    storage.set(id, fact);
+//    return fact;
+//}
+//
+//auto register(Type)(ProxyContainer storage, string id) {
+//    return register!Type(storage, storage, id);
+//}
+//
+//auto register(Type)(ProxyContainer storage, Locator!(Object, string) locator) {
+//    return register!Type(storage, locator, fullyQualifiedName!Type);
+//}
+//
+//auto register(Type)(ProxyContainer storage) {
+//    return register!Type(storage, storage);
+//}
+//
+//auto register(Interface, Type)(ProxyContainer storage, Locator!(Object, string) locator)
+//	if (is(Type : Interface) && isReferenceType!Type) {
+//    auto fact = new ProxyFactoryImpl!Interface(
+//        fullyQualifiedName!Interface,
+//        storage,
+//        new GenericFactoryImpl!Type(locator)
+//    );
+//    storage.set(fullyQualifiedName!Interface, fact);
+//    return fact;
+//}
+//
+//auto register(Interface, Type)(ProxyContainer storage) {
+//    return register!(Interface, Type)(storage, storage);
+//}
+//==========================================================================================================
 /**
 Register an object into a storage by storageId located in storageLocator.
 
@@ -145,6 +203,7 @@ auto register(Type, R : Locator!())(R storageLocator, Locator!() locator, string
         }
         
         auto storage = cast(Storage!(Factory, string)) storageObj;
+        
         if (storage !is null) {
             
             return storage.register!(Type)(locator, id);

@@ -28,7 +28,7 @@ License:
 Authors:
 	Alexandru Ermicioi
 **/
-module aermicioi.util.traits;
+module aermicioi.util.traits.traits;
 import std.traits;
 import std.typetuple;
 import std.algorithm;
@@ -65,6 +65,9 @@ public {
     enum bool isConstructor(string T) = T == "__ctor";
     enum bool isDestructor(string T) = T == "__dtor";
     
+    enum bool isTrue(bool state) = state == true;
+    alias isFalse = templateNot!isTrue;
+    
     template getProperty(alias T, string member) {
         static if (isProperty!(T, member)) {
             alias getProperty = member;
@@ -79,18 +82,6 @@ public {
     
     template isEmpty(T...) {
         enum bool isEmpty = T.length == 0;
-    }
-    
-    template templateTry(alias pred) {
-        template templateTry(alias symbol) {
-            static if (__traits(compiles, pred!symbol)) {
-             
-                alias templateTry = pred!symbol;
-            } else {
-              
-                alias templateTry = symbol;
-            }
-        }
     }
     
     template templateTryGetOverloads(alias symbol) {
@@ -136,7 +127,7 @@ public {
 
     template getOverloads(alias T, string member) {
         
-        alias getOverloads = TypeTuple!(__traits(getOverloads, T, member));
+        alias getOverloads = AliasSeq!(__traits(getOverloads, T, member));
     }
     
     template getOverloadsOrMember(alias T, string member) {
@@ -205,76 +196,12 @@ public {
         }
     }
     
-    template eq(alias first) {
-        enum bool eq(alias second) = (first == second);
-    }
-    
     template templateStringof(alias T) {
         enum string templateStringof = T.stringof;
     }
     
-    template partialPrefixed(alias pred, Args...) {
-        template partialPrefixed(Sargs...) {
-            alias partialPrefixed = pred!(Args, Sargs);
-        }
-    }
-    
-    template partialSuffixed(alias pred, Args...) {
-        template partialSuffixed(Sargs...) {
-            alias partialSuffixed = pred!(Sargs, Args);
-        }
-    }
-    
-    template partial(alias pred) {
-        template partial(Args...) {
-            alias partial = pred!Args;
-        }
-    }
-    
-    template valueSuffixed(alias pred, Args...) {
-        template valueSuffixed(T...) {
-            auto valueSuffixed(T args) {
-                return pred(args, Args);
-            }
-        }
-    }
-    
-    template valuePrefixed(alias pred, Args...) {
-        template valuePrefixed(T...) {
-            auto valuePrefixed(T args) {
-                return pred(args, Args);
-            }
-        }
-    }
-    
-    template chain(alias firstPred, alias secondPred, Args...)
-        if (isTemplate!secondPred) {
-        template chain(Sargs...) {
-            alias chain = firstPred!(secondPred!(Args, Sargs));
-        }
-    }
-    
-    template chain(alias firstPred, string secondPred, Args) {
-        template chain(Sargs...) {
-            mixin (secondPred);
-            pragma(msg, secondPred);
-            
-            alias chain = firstPred!(mixed!(Args, Sargs));
-        }
-    }
-    
     template isTemplate(alias T) {
         enum bool isTemplate = __traits(isTemplate, T);
-    }
-    
-    template if_(alias pred, alias trueBranch, alias falseBranch, Args...) {
-        template if_ (Sargs...) {
-            static if (pred!(Args, Sargs)) {
-                alias if_ = trueBranch!(Args, Sargs);
-            } else {
-                alias if_ = falseBranch!(Args, Sargs);
-            }
-        }
     }
     
     template execute(alias pred, Args...) {
@@ -285,36 +212,12 @@ public {
         }
     }
     
-    template failable(alias pred, alias failResponse, Args...) {
-        template failable(Sargs...) {
-            static if (__traits(compiles, pred!(Args, Sargs))) {
-                alias failable = pred!(Args, Sargs);
-            } else {
-                alias failable = failResponse;
-            }
-        }
-    }
+    template compiles(alias pred, args...) {
+    enum bool compiles = __traits(compiles, pred!args);
+}
     
-    template failed(alias pred, Args...) {
-    	enum bool failed = __traits(compiles, pred!Args);
-    }
-    
-    template tee(alias pred, alias debug_ = container!()) {
-        template tee(Args...) {
-            
-            alias tee = pred!Args;
-            alias debug__ = debug_!tee;
-        }
-    }
-    
-    template container(Args...) {
-        template container(Sargs...) {
-            alias container = Args;
-        }
-    }
-    
-    template pragmaMsg(alias element) {
-        pragma(msg, element);
+    template pragmaMsg(args...) {
+        pragma(msg, args);
     }
     
     template getAttributes(alias symbol) {
@@ -367,6 +270,8 @@ public {
     }
     
     template getMembersWithProtection(T, string member, string protection = "public") {
+        import aermicioi.util.traits.partial : chain, eq;
+        
         alias getMembersWithProtection = Filter!(
             chain!(
                 eq!"public",
@@ -387,4 +292,24 @@ public {
     template hasMembers(Symbol) {
         enum bool hasMembers = __traits(compiles, __traits(allMembers, Symbol));
     }
+    
+    template templateSpecs(alias T : Base!Args, alias Base, Args...) {
+        alias Template = Base;
+        alias Args = Args;
+    }
+    
+    template templateSpecs(T : Base!Args, alias Base, Args...) {
+        alias Template = Base;
+        alias Args = Args;
+    }
+    
+    enum bool isDerived(alias T, alias Z) = is(T : Z);
+    enum bool isEq(alias T, alias Z) = is(T == Z);
+    
+    enum bool isStaticFunction(alias method) = Identity!(__traits(isStaticFunction, method));
 }
+
+private {
+    alias Identity(alias A) = A;
+}
+

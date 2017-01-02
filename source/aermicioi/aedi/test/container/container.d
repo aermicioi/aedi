@@ -38,15 +38,12 @@ import aermicioi.aedi.factory;
 class MockFactory(T) : Factory {
     
     protected {
-        bool inProcess_;
         Locator!() locator_;
     }
     
     public {
         Object factory() {
-            this.inProcess_ = true;
             auto t = new T;
-            this.inProcess_ = false;
             
             return t;
         }
@@ -61,10 +58,6 @@ class MockFactory(T) : Factory {
                 
                 return this;
             }
-            
-            bool inProcess() {
-                return inProcess_;
-            }
         }
     }
 }
@@ -73,14 +66,8 @@ class CircularFactoryMock(T) : MockFactory!T {
     
     public {
         override Object factory() {
-            if (this.inProcess_) {
-                throw new InProgressException("");
-            }
-            
-            this.inProcess_ = true;
             auto t = new T;
             this.locator_.get("mock");
-            this.inProcess_ = false;
             
             return t;
         }
@@ -176,5 +163,109 @@ unittest {
         assert(container.get(name!Nameable) !is null);
     } catch (NotFoundException e) {
         
+    }
+}
+
+unittest {
+    import std.range;
+    import std.conv;
+    import std.traits;
+    
+    {
+        SingletonContainer singleton = new SingletonContainer;
+        
+        singleton.set("mockObject", new MockFactory!Person());
+        singleton.set("mockObject1", new MockFactory!Company());
+        singleton.set("mockObject2", new MockFactory!Job());
+        singleton.set("mock", new CircularFactoryMock!Job().locator(singleton));
+        
+        {
+            SwitchableContainer!(Locator!()) switchable = new SwitchableContainer!(Locator!());
+            switchable.container = singleton;
+
+            switchable.enabled = false;
+            try {
+                switchable.get("mockObject2");
+                assert(false);
+            } catch (NotFoundException e) {
+                
+            }
+            
+            switchable.enabled = true;
+            try {
+                switchable.get("mockObject2");
+
+            } catch (NotFoundException e) {
+                assert(false);
+            }
+        }
+        
+        {
+            SwitchableContainer!(ConfigurableContainer) switchable = new SwitchableContainer!(ConfigurableContainer);
+            switchable.container = singleton;
+
+            switchable.enabled = false;
+            switchable.set("mockObject3", new MockFactory!Person);
+            try {
+                switchable.get("mockObject3");
+                assert(false);
+            } catch (NotFoundException e) {
+                
+            }
+            
+            switchable.enabled = true;
+            try {
+                switchable.get("mockObject3");
+
+            } catch (NotFoundException e) {
+                assert(false);
+            }
+            
+            switchable.remove("mockObject3");
+            try {
+                assert(!switchable.has("mockObject3"));
+                switchable.get("mockObject3");
+                assert(false);
+            } catch (NotFoundException e) {
+                
+            }
+        }
+        
+        {
+            SwitchableContainer!(Container) switchable = new SwitchableContainer!(Container);
+            switchable.container = singleton;
+
+            switchable.enabled = false;
+            try {
+                
+                switchable.instantiate();
+            } catch (CircularReferenceException e) {
+                
+                assert(false);
+            }
+            
+            switchable.enabled = true;
+            try {
+                
+                switchable.instantiate();
+                assert(false);
+            } catch (CircularReferenceException e) {
+                
+            }
+        }
+        
+        {
+            SwitchableContainer!(ConfigurableContainer) switchable = new SwitchableContainer!(ConfigurableContainer);
+            switchable.container = singleton;
+            
+            switchable.enabled = false;
+            switchable.link("mockObject2", "mockObject3");
+            assert(switchable.resolve("mockObject3") == "mockObject3");
+
+            switchable.enabled = true;
+            assert(switchable.resolve("mockObject3") == "mockObject2");
+            switchable.unlink("mockObject3");
+            assert(switchable.resolve("mockObject3") == "mockObject3");
+        }
     }
 }

@@ -29,6 +29,8 @@ Authors:
 **/
 module aermicioi.aedi.storage.wrapper;
 
+import std.traits;
+
 /**
 Wrapper over some data of type T.
 
@@ -45,6 +47,10 @@ class Wrapper(T) {
     
     public {
         
+        this() {
+            
+        }
+        
         this(ref T value) {
             this.value_ = value;
         }
@@ -57,6 +63,16 @@ class Wrapper(T) {
         
         T opCast(T)() {
             return value;
+        }
+        
+        auto opCall(Args...)(Args args)
+            if (isCallable!T) {
+            
+            static if (is(ReturnType!T == void)) {
+                value()(args);
+            } else {
+                return value()(args);
+            }
         }
         
         alias opEquals = Object.opEquals;
