@@ -613,7 +613,7 @@ The GenericFactory(T) interface, splits the process of object construction in tw
     )
 Instances of GenericFactory are used by register methods, as well as by annotation configuration.
 
-Note: T argument used as template argument for GenericFactory or further, is the type of object instantiated
+Note - T argument used as template argument for GenericFactory or further, is the type of object instantiated
 by the factory.
 
 The logic of first step itself is encapsulated in an implementation InstanceFactory(T) object.

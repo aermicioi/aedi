@@ -137,7 +137,7 @@ auto register(Interface, Type)(ConfigurableContainer storage) {
     return register!(Interface, Type)(storage, storage);
 }
 
-////================================Proxy aware set of register functions=====================================
+//================================Proxy aware set of register functions=====================================
 //auto register(Type)(ProxyContainer storage, Locator!(Object, string) locator, string id) {
 //    auto fact = new ProxyFactoryImpl!(Type, GenericFactoryImpl!Type)(
 //        id,
