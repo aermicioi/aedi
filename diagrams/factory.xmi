@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?><XMI xmlns:UML="href://org.omg/UML/1.3" xmi.version="1.1">
+<XMI.header>
+<XMI.metamodel xmi.name="UML" xmi.version="1.3"/>
+</XMI.header>
+<XMI.content>
+<UML:Model name="PlantUML" xmi.id="model1">
+<UML:Namespace.ownedElement>
+<UML:Class name="ObjectStorage" namespace="model1" xmi.id="cl0002">
+<UML:Classifier.feature>
+<UML:Operation name="Object[char[]] function () contents;" xmi.id="att109"/>
+<UML:Operation name="int function (int delegate (Object)) opApply;" xmi.id="att110"/>
+<UML:Operation name="int function (int delegate (char[],Object)) opApply;" xmi.id="att111"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="Locator" namespace="model1" xmi.id="cl0003">
+<UML:Classifier.feature>
+<UML:Operation name="Object function (char[]) get;" xmi.id="att112"/>
+<UML:Operation name="bool function (char[]) has;" xmi.id="att113"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="FactoryMethodBasedFactory" namespace="model1" xmi.id="cl0004">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="AediException" namespace="model1" xmi.id="cl0005">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="InProgressException" namespace="model1" xmi.id="cl0006">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="Taggable" namespace="model1" xmi.id="cl0007">
+<UML:Classifier.feature>
+<UML:Operation name="Taggable function (char[]) tag;" xmi.id="att114"/>
+<UML:Operation name="Taggable function (char[]) untag;" xmi.id="att115"/>
+<UML:Operation name="char[][] function () tags;" xmi.id="att116"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="Container" namespace="model1" xmi.id="cl0008">
+<UML:Classifier.feature>
+<UML:Operation name="Container function () instantiate;" xmi.id="att117"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="FieldConfigurer" namespace="model1" xmi.id="cl0009">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="AliasAware" namespace="model1" xmi.id="cl0010">
+<UML:Classifier.feature>
+<UML:Operation name="AliasAware function (char[],char[]) link;" xmi.id="att118"/>
+<UML:Operation name="AliasAware function (char[]) unlink;" xmi.id="att119"/>
+<UML:Operation name="char[] function (char[]) resolve;" xmi.id="att120"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="InvalidCastException" namespace="model1" xmi.id="cl0011">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="ParameterHolder" namespace="model1" xmi.id="cl0012">
+<UML:Classifier.feature>
+<UML:Operation name="Tuple function () args;" xmi.id="att121"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="LocatorReference" namespace="model1" xmi.id="cl0013">
+<UML:Classifier.feature>
+<UML:Operation name="char[] function () id;" xmi.id="att122"/>
+<UML:Operation name="LocatorReference function (char[]) id;" xmi.id="att123"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="AggregateLocator" namespace="model1" xmi.id="cl0014">
+<UML:Classifier.feature>
+<UML:Operation name="Locator function (char[]) getLocator;" xmi.id="att124"/>
+<UML:Operation name="bool function (char[]) hasLocator;" xmi.id="att125"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="SwitchableContainer" namespace="model1" xmi.id="cl0015">
+<UML:Classifier.feature>
+<UML:Operation name="SwitchableContainer function (SingletonContainer) container;" xmi.id="att126"/>
+<UML:Operation name="SingletonContainer function () container;" xmi.id="att127"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="SingletonContainer" namespace="model1" xmi.id="cl0016">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="ParentAware" namespace="model1" xmi.id="cl0017">
+<UML:Classifier.feature>
+<UML:Operation name="ParentAware function (Object) parent;" xmi.id="att128"/>
+<UML:Operation name="Object function () parent;" xmi.id="att129"/>
+<UML:Operation name="ParentAware function () ancestor;" xmi.id="att130"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="Factory" namespace="model1" xmi.id="cl0018">
+<UML:Classifier.feature>
+<UML:Operation name="Object function () factory;" xmi.id="att131"/>
+<UML:Operation name="TypeInfo function () type;" xmi.id="att132"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="ConfigurableContainer" namespace="model1" xmi.id="cl0019">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="MethodConfigurer" namespace="model1" xmi.id="cl0020">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CallbackFactory" namespace="model1" xmi.id="cl0021">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="ExceptionChainingFactory" namespace="model1" xmi.id="cl0022">
+<UML:Classifier.feature>
+<UML:Operation name="ExceptionChainingFactory function (char[]) id;" xmi.id="att133"/>
+<UML:Operation name="char[] function () id;" xmi.id="att134"/>
+<UML:Operation name="ExceptionChainingFactory function (Factory) decorated;" xmi.id="att135"/>
+<UML:Operation name="Factory function () decorated;" xmi.id="att136"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="Exception" namespace="model1" xmi.id="cl0023">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="TaggableFactoryDecorator" namespace="model1" xmi.id="cl0024">
+<UML:Classifier.feature>
+<UML:Operation name="TaggableFactoryDecorator function (Factory) decorated;" xmi.id="att137"/>
+<UML:Operation name="Factory function () decorated;" xmi.id="att138"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="ApplicationContainer" namespace="model1" xmi.id="cl0025">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="Object" namespace="model1" xmi.id="cl0026">
+<UML:Classifier.feature>
+<UML:Operation name="char[] function () toString;" xmi.id="att139"/>
+<UML:Operation name="ulong function () toHash;" xmi.id="att140"/>
+<UML:Operation name="int function (Object) opCmp;" xmi.id="att141"/>
+<UML:Operation name="bool function (Object) opEquals;" xmi.id="att142"/>
+<UML:Operation name="Object function (char[]) factory;" xmi.id="att143"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="CircularReferenceException" namespace="model1" xmi.id="cl0027">
+<UML:Classifier.feature>
+<UML:Operation name="CircularReferenceException function (char[]) add;" xmi.id="att144"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="Throwable" namespace="model1" xmi.id="cl0028">
+<UML:Classifier.feature>
+<UML:Attribute name="char[] msg;" xmi.id="att145"/>
+<UML:Attribute name="char[] file;" xmi.id="att146"/>
+<UML:Attribute name="ulong line;" xmi.id="att147"/>
+<UML:Attribute name="TraceInfo info;" xmi.id="att148"/>
+<UML:Attribute name="Throwable next;" xmi.id="att149"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="GenericFactoryImpl" namespace="model1" xmi.id="cl0029">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="Switchable" namespace="model1" xmi.id="cl0030">
+<UML:Classifier.feature>
+<UML:Operation name="bool function () enabled;" xmi.id="att150"/>
+<UML:Operation name="Switchable function (bool) enabled;" xmi.id="att151"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="DelegatingLocatorImpl" namespace="model1" xmi.id="cl0031">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="NotFoundException" namespace="model1" xmi.id="cl0032">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="GenericFactory" namespace="model1" xmi.id="cl0033">
+<UML:Classifier.feature>
+<UML:Operation name="GenericFactory function (InstanceFactory) setInstanceFactory;" xmi.id="att152"/>
+<UML:Operation name="GenericFactory function (PropertyConfigurer) addPropertyConfigurer;" xmi.id="att153"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="Storage" namespace="model1" xmi.id="cl0034">
+<UML:Classifier.feature>
+<UML:Operation name="Storage function (char[],Object) set;" xmi.id="att154"/>
+<UML:Operation name="Storage function (char[]) remove;" xmi.id="att155"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="LocatorAware" namespace="model1" xmi.id="cl0035">
+<UML:Classifier.feature>
+<UML:Operation name="LocatorAware function (Locator) locator;" xmi.id="att156"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="InProcessFactoryDecorator" namespace="model1" xmi.id="cl0036">
+<UML:Classifier.feature>
+<UML:Operation name="InProcessFactoryDecorator function (Factory) decorated;" xmi.id="att157"/>
+<UML:Operation name="Factory function () decorated;" xmi.id="att158"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="PrototypeContainer" namespace="model1" xmi.id="cl0037">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CallbackConfigurer" namespace="model1" xmi.id="cl0038">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="InstanceFactory" namespace="model1" xmi.id="cl0039">
+<UML:Classifier.feature>
+<UML:Operation name="Object function () factory;" xmi.id="att159"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="PropertyConfigurer" namespace="model1" xmi.id="cl0040">
+<UML:Classifier.feature>
+<UML:Operation name="void function (Object) configure;" xmi.id="att160"/>
+</UML:Classifier.feature>
+</UML:Class>
+<UML:Class name="ConstructorBasedFactory" namespace="model1" xmi.id="cl0041">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="InheritanceContainer" namespace="model1" xmi.id="cl0042">
+<UML:Classifier.feature>
+<UML:Operation name="InheritanceContainer function (ConfigurableContainer) container;" xmi.id="att161"/>
+<UML:Operation name="ConfigurableContainer function () container;" xmi.id="att162"/>
+</UML:Classifier.feature>
+</UML:Class>
+</UML:Namespace.ownedElement>
+</UML:Model>
+</XMI.content>
+</XMI>

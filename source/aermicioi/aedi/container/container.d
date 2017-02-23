@@ -54,6 +54,42 @@ interface Container : Locator!(Object, string) {
 /**
  Buildable/configurable instantiatiator with factories, and aliasing. 
 **/
-interface ConfigurableContainer : Container, Storage!(Factory, string), AliasAware!(string) {
+interface ConfigurableContainer : Container, Storage!(ObjectFactory, string), AliasAware!(string), FactoryLocator!ObjectFactory {
 	
+}
+
+/**
+Provide an interface for accessing factories used by containers to instantiate data.
+**/
+interface FactoryLocator(T : Factory!Z, Z) {
+    import std.range.interfaces;
+    import std.typecons;
+    
+    public {
+        
+        /**
+        Get factory for constructed data identified by identity.
+        
+        Get factory for constructed data identified by identity.
+        Params:
+        	identity = the identity of data that factory constructs.
+        
+        Throws:
+        	NotFoundException when factory for it is not found.
+        
+        Returns:
+        	T the factory for constructed data.
+        **/
+        T getFactory(string identity);
+        
+        /**
+        Get all factories available in container.
+        
+        Get all factories available in container.
+        
+        Returns:
+        	InputRange!(Tuple!(T, string)) a tuple of factory => identity.
+        **/
+        InputRange!(Tuple!(T, string)) getFactories();
+    }
 }

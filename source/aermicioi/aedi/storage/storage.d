@@ -49,7 +49,7 @@ interface Storage(Type, KeyType) {
 		Return:
 			Storage 
 		**/
-        Storage set(KeyType identity, Type element);
+        Storage set(Type element, KeyType identity);
         
         /**
         Remove an element from Storage with identity.

@@ -71,6 +71,6 @@ interface AliasAware(Type) {
         	Type the last identity in alias chain.
         
         **/
-        const(Type) resolve(Type alias_) const;
+        const(Type) resolve(in Type alias_) const;
     }
 }

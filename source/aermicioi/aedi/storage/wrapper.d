@@ -47,9 +47,7 @@ class Wrapper(T) {
     
     public {
         
-        this() {
-            
-        }
+        this() @disable;
         
         this(ref T value) {
             this.value_ = value;
@@ -79,6 +77,10 @@ class Wrapper(T) {
         
         bool opEquals(ref T value) {
             return this.value == value;
+        }
+        
+        bool opEquals(Wrapper!T wrapper) {
+            return this.value == wrapper.value;
         }
         
         bool opEquals(T value) {

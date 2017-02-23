@@ -36,6 +36,7 @@ import aermicioi.aedi.factory.factory;
 import std.algorithm;
 import std.array;
 import std.range;
+import std.typecons;
 
 /**
 A container that can serve objects based on interfaces that they request.
@@ -57,18 +58,18 @@ class InheritanceContainer : ConfigurableContainer {
             this.container = container;
         }
         
-        InheritanceContainer container(ConfigurableContainer container) @safe nothrow pure {
+        InheritanceContainer container(ConfigurableContainer container) @safe nothrow {
         	this.container_ = container;
         
         	return this;
         }
         
-        inout(ConfigurableContainer) container() @safe nothrow pure inout {
+        inout(ConfigurableContainer) container() @safe nothrow inout {
         	return this.container_;
         }
         
-        InheritanceContainer set(string key, Factory object) {
-            this.container.set(key, object);
+        InheritanceContainer set(ObjectFactory object, string key) {
+            this.container.set(object, key);
             
             ClassInfo info = cast(ClassInfo) object.type;
             
@@ -109,7 +110,7 @@ class InheritanceContainer : ConfigurableContainer {
             throw new NotFoundException("Object with id " ~ key ~ " not found.");
         }
         
-        bool has(string key) inout {
+        bool has(in string key) inout {
             return this.container.has(key) || (key in this.candidates);
         }
         
@@ -131,8 +132,18 @@ class InheritanceContainer : ConfigurableContainer {
             return this;
         }
         
-        const(string) resolve(string key) const {
+        const(string) resolve(in string key) const {
             return this.container.resolve(key);
+        }
+        
+        ObjectFactory getFactory(string identity) {
+            return this.container.getFactory(identity);
+        }
+        
+        InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+            import std.algorithm;
+            
+            return this.container.getFactories();
         }
     }
     

@@ -77,23 +77,23 @@ class Paper {
             this.color(c);
         }
         
-        Paper quality(Quality quality) @safe nothrow pure {
+        Paper quality(Quality quality) @safe nothrow {
         	this.quality_ = quality;
         
         	return this;
         }
         
-        Quality quality() @safe nothrow pure {
+        Quality quality() @safe nothrow {
         	return this.quality_;
         }
         
-        Paper color(Color color) @safe nothrow pure {
+        Paper color(Color color) @safe nothrow {
         	this.color_ = color;
         
         	return this;
         }
         
-        Color color() @safe nothrow pure {
+        Color color() @safe nothrow {
         	return this.color_;
         }
     }
@@ -133,7 +133,7 @@ class Page {
         Size size;
         
         @setter("page.paper".lref) // Set the field to a component identified by a custom name.
-        Page paper(Paper paper) @safe nothrow pure {
+        Page paper(Paper paper) @safe nothrow {
         	this.paper_ = paper;
         
         	return this;
@@ -143,28 +143,28 @@ class Page {
         Color textColor;
         
         @autowired // Wire the field by arguments FQN's. Multiple arguments can be automatically wired.
-        Page foreground(Color foreground) @safe nothrow pure {
+        Page foreground(Color foreground) @safe nothrow {
         	this.foreground_ = foreground;
         
         	return this;
         }
         
         @autowired
-        Page text(string text) @safe nothrow pure {
+        Page text(string text) @safe nothrow {
         	this.text_ = text;
         
         	return this;
         }
         
-        Color foreground() @safe nothrow pure {
+        Color foreground() @safe nothrow {
         	return this.foreground_;
         }
         
-        Paper paper() @safe nothrow pure {
+        Paper paper() @safe nothrow {
         	return this.paper_;
         }
         
-        string text() @safe nothrow pure {
+        string text() @safe nothrow {
         	return this.text_;
         }
     }
@@ -180,24 +180,24 @@ class Cover {
     public {
         
         @setter(lref!Paper)
-        Cover material(Paper material) @safe nothrow pure {
+        Cover material(Paper material) @safe nothrow {
         	this.material_ = material;
         
         	return this;
         }
         
         @setter("book.title".lref)
-        Cover title(string title) @safe nothrow pure {
+        Cover title(string title) @safe nothrow {
         	this.title_ = title;
         
         	return this;
         }
         
-        Paper material() @safe nothrow pure {
+        Paper material() @safe nothrow {
         	return this.material_;
         }
         
-        string title() @safe nothrow pure {
+        string title() @safe nothrow {
         	return this.title_;
         }
     }
@@ -224,23 +224,23 @@ class Book {
     public {
         
         @autowired
-        Book cover(Cover cover) @safe nothrow pure {
+        Book cover(Cover cover) @safe nothrow {
         	this.cover_ = cover;
         
         	return this;
         }
         
-        Cover cover() @safe nothrow pure {
+        Cover cover() @safe nothrow {
         	return this.cover_;
         }
         
-        Book pages(Page[] pages) @safe nothrow pure {
+        Book pages(Page[] pages) @safe nothrow {
         	this.pages_ = pages;
         
         	return this;
         }
         
-        Page[] pages() @safe nothrow pure {
+        Page[] pages() @safe nothrow {
         	return this.pages_;
         }
     }
@@ -352,7 +352,7 @@ unittest {
         );
         
     container.register!(Paper, HardenedPaper) // Register HardenedPaper in container with identity of Paper's FQN.
-        .fact( // use the delegate to construct HardenedPaper. Useful to use when some special instantiation logic is required. 
+        .callback( // use the delegate to construct HardenedPaper. Useful to use when some special instantiation logic is required. 
             delegate(Locator!() loc) {
                 return new HardenedPaper(Paper.Quality.high, loc.locate!Color);
             }

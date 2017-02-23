@@ -351,13 +351,13 @@ class FixtureFactory {
         	return company_;
         }
         
-        FixtureFactory job(Job job) @safe nothrow pure {
+        FixtureFactory job(Job job) @safe nothrow {
         	this.job_ = job;
         
         	return this;
         }
         
-        Job job() @safe nothrow pure {
+        Job job() @safe nothrow {
         	return this.job_;
         }
     }
@@ -412,13 +412,13 @@ struct StructFixtureFactory {
         	return company_;
         }
         
-        ref StructFixtureFactory job(Job job) @safe nothrow pure {
+        ref StructFixtureFactory job(Job job) @safe nothrow {
         	this.job_ = job;
         
         	return this;
         }
         
-        Job job() @safe nothrow pure {
+        Job job() @safe nothrow {
         	return this.job_;
         }
         
@@ -426,13 +426,13 @@ struct StructFixtureFactory {
             return Currency(amount);
         }
         
-        ref StructFixtureFactory currency(Currency currency) @safe nothrow pure {
+        ref StructFixtureFactory currency(Currency currency) @safe nothrow {
         	this.currency_ = currency;
         
         	return this;
         }
         
-        Currency currency() @safe nothrow pure {
+        Currency currency() @safe nothrow {
         	return this.currency_;
         }
     }
@@ -450,13 +450,13 @@ struct Currency {
         }
         
         @property {
-            ref Currency amount(ptrdiff_t amount) @safe nothrow pure {
+            ref Currency amount(ptrdiff_t amount) @safe nothrow {
             	this.amount_ = amount;
             
             	return this;
             }
             
-            ptrdiff_t amount() @safe nothrow pure {
+            ptrdiff_t amount() @safe nothrow {
             	return this.amount_;
             }
         }

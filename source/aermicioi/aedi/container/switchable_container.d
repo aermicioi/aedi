@@ -32,9 +32,13 @@ module aermicioi.aedi.container.switchable_container;
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.storage.alias_aware;
+
+import std.range.interfaces;
+import std.typecons;
 
 /**
 Interface that allows object to be switchable in off and on state.
@@ -51,7 +55,7 @@ interface Switchable {
     	Returns:
         	bool true if enabled or false if not.
     	**/
-    	inout(bool) enabled() @safe nothrow pure inout;
+    	inout(bool) enabled() @safe nothrow inout;
     	
     	/**
     	Set the state of object.
@@ -61,28 +65,28 @@ interface Switchable {
     	Params:
         	enable = true to enable, false to disable.
     	**/
-    	Switchable enabled(bool enable) @safe nothrow pure;
+    	Switchable enabled(bool enable) @safe nothrow;
     }
 }
 
 /**
-Templated switchable container.
+Templated switchable decorated.
 
-Templated switchable container. This container will
-decorate another container, and add switching logic 
+Templated switchable decorated. This decorated will
+decorate another decorated, and add switching logic 
 to it. Depending in which state (on/off) the switching 
-container is. It will instantiate if the container is on, 
-and not if container is in off mode. This container will
+decorated is. It will instantiate if the decorated is on, 
+and not if decorated is in off mode. This decorated will
 inherit following interfaces only and only if the 
 T also implements them:
     $(OL
-        $(LI Storage!(Factory, string))
+        $(LI Storage!(ObjectFactory, string))
         $(LI Container)
         $(LI AliasAware!string)
     )
 
 Params:
-    T = The container that switchable container will decorate.
+    T = The decorated that switchable decorated will decorate.
    
 **/
 template SwitchableContainer(T) {
@@ -91,35 +95,40 @@ template SwitchableContainer(T) {
     import aermicioi.util.traits;
     
     /**
-    Set which the switchable container will decorate for T. By default
+    Set which the switchable decorated will decorate for T. By default
     Locator!() and Switchable is included.
     **/
     alias InheritanceSet = AliasSeq!(Filter!(
         templateOr!(
             partialSuffixed!(
                 isDerived,
-                Storage!(Factory, string)
-            ),
-            partialSuffixed!(
-                isDerived,
-                Container
+                Storage!(ObjectFactory, string)
             ),
             partialSuffixed!(
                 isDerived,
                 AliasAware!string
+            ),
+            partialSuffixed!(
+                isDerived,
+                FactoryLocator!ObjectFactory
+            ),
+            partialSuffixed!(
+                isDerived,
+                Container
             )
         ),
         InterfacesTuple!T),
         Locator!(),
-        Switchable
+        MutableDecorator!T,
+        Switchable,
     );
-    
+
     /**
-    Templated switchable container.
+    Templated switchable decorated.
     **/
     class SwitchableContainer : InheritanceSet {
         private {
-            T container_;
+            T decorated_;
             
             bool enabled_;
         }
@@ -127,108 +136,108 @@ template SwitchableContainer(T) {
         public {
             
             /**
-        	Set the state of container.
+        	Set the state of decorated.
         	
-        	Set the state of container. Whether is enabled or disabled.
+        	Set the state of decorated. Whether is enabled or disabled.
         	
         	Params:
             	enable = true to enable, false to disable.
         	**/
-            SwitchableContainer!T enabled(bool enabled) @safe nothrow pure {
+            SwitchableContainer!T enabled(bool enabled) @safe nothrow {
             	this.enabled_ = enabled;
             	
             	return this;
             }
             
             /**
-        	Get the state of container (enabled/disabled).
+        	Get the state of decorated (enabled/disabled).
         	
-        	Get the state of container (enabled/disabled).
+        	Get the state of decorated (enabled/disabled).
         	
         	Returns:
             	bool true if enabled or false if not.
         	**/
-            inout(bool) enabled() @safe nothrow pure inout {
+            inout(bool) enabled() @safe nothrow inout {
             	return this.enabled_;
             }
             
             /**
-            Set the decorated container
+            Set the decorated decorated
             
             Params:
-                container = container to be decorated
+                decorated = decorated to be decorated
                 
             Returns:
-                SwitchableContainer!T decorating container.
+                SwitchableContainer!T decorating decorated.
             **/
-            SwitchableContainer!T container(T container) @safe nothrow pure {
-            	this.container_ = container;
+            SwitchableContainer!T decorated(T decorated) @safe nothrow {
+            	this.decorated_ = decorated;
             
             	return this;
             }
             
             
             /**
-            Get the decorated container.
+            Get the decorated decorated.
             
-            Get the decorated container.
+            Get the decorated decorated.
             
             Returns:
-            	inout(T) decorated container
+            	inout(T) decorated decorated
             **/
-            inout(T) container() @safe nothrow pure inout {
-            	return this.container_;
+            T decorated() @safe nothrow {
+            	return this.decorated_;
             }
             
             static if (is(T : Container)) {
                 
                 /**
-                Prepare container to be used.
+                Prepare decorated to be used.
                 
-                Prepare container to be used.
+                Prepare decorated to be used.
 
                 Returns:
-                	SwitchableContainer!T decorating container
+                	SwitchableContainer!T decorating decorated
                 **/
-                SwitchableContainer!T instantiate() {
+                SwitchableContainer instantiate() {
                     if (enabled) {
-                        container.instantiate();
+                        decorated.instantiate();
                     }
                     
                     return this;
                 }
             }
             
-            static if (is(T : Storage!(Factory, string))) {
+            static if (is(T : Storage!(ObjectFactory, string))) {
                 /**
-        		Set factory in container by identity.
+        		Set factory in decorated by identity.
         		
         		Params:
         			identity = identity of factory.
-        			element = factory that is to be saved in container.
+        			element = factory that is to be saved in decorated.
         			
         		Return:
-        			SwitchableContainer!T decorating container.
+        			SwitchableContainer!T decorating decorated.
         		**/
-                SwitchableContainer!T set(string identity, Factory element) {
-                    container.set(identity, element);
+                SwitchableContainer!T set(ObjectFactory element, string identity) {
+                    decorated.set(element, identity);
                     
                     return this;
                 }
                 
                 /**
-                Remove factory from container with identity.
+                Remove factory from decorated with identity.
                 
-                Remove factory from container with identity. 
+                Remove factory from decorated with identity. 
                 
                 Params:
                 	identity = the identity of factory to be removed.
                 	
             	Return:
-            		SwitchableContainer!T decorating container
+            		SwitchableContainer!T decorating decorated
                 **/
                 SwitchableContainer!T remove(string identity) {
-                    container.remove(identity);
+                    decorated.remove(identity);
                     
                     return this;
                 }
@@ -243,10 +252,10 @@ template SwitchableContainer(T) {
                 	alias_ = alias of identity.
                 	
         		Returns:
-        			SwitchableContainer!T decorating container
+        			SwitchableContainer!T decorating decorated
                 **/
                 SwitchableContainer!T link(string identity, string alias_) {
-                    container.link(identity, alias_);
+                    decorated.link(identity, alias_);
                     
                     return this;
                 }
@@ -258,10 +267,10 @@ template SwitchableContainer(T) {
                 	alias_ = alias to remove.
         
                 Returns:
-                    SwitchableContainer!T decorating container
+                    SwitchableContainer!T decorating decorated
                 **/
                 SwitchableContainer!T unlink(string alias_) {
-                    container.unlink(alias_);
+                    decorated.unlink(alias_);
                     
                     return this;
                 }
@@ -273,15 +282,26 @@ template SwitchableContainer(T) {
                 	alias_ = alias of original identity
                 
                 Returns:
-                	const(string) the last identity in alias chain if container is enabled, or alias_ when not.
+                	const(string) the last identity in alias chain if decorated is enabled, or alias_ when not.
                 
                 **/
-                const(string) resolve(string alias_) const {
+                const(string) resolve(in string alias_) const {
                     if (enabled) {
-                        return container.resolve(alias_);
+                        return decorated_.resolve(alias_);
                     }
                     
                     return alias_;
+                }
+            }
+            
+            static if (is(T : FactoryLocator!ObjectFactory)) {
+                
+                ObjectFactory getFactory(string identity) {
+                    return this.decorated.getFactory(identity);
+                }
+                
+                InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+                    return this.decorated.getFactories();
                 }
             }
             
@@ -292,14 +312,14 @@ template SwitchableContainer(T) {
     			identity = the object identity.
     			
     		Throws:
-    			NotFoundException in case if the object wasn't found or container is not enabled.
+    			NotFoundException in case if the object wasn't found or decorated is not enabled.
     		
     		Returns:
     			Object if it is available.
     		**/
             Object get(string identity) {
                 if (enabled) {
-                    return container.get(identity);
+                    return decorated.get(identity);
                 }
                 
                 throw new NotFoundException("Object with id " ~ identity ~ " not found.");
@@ -315,11 +335,12 @@ template SwitchableContainer(T) {
             	identity = identity of object.
             	
         	Returns:
-        		bool true if container is enabled and has object by identity.
+        		bool true if decorated is enabled and has object by identity.
             **/
-            bool has(string identity) inout {
-                return enabled && container.has(identity);
+            bool has(in string identity) inout {
+                return enabled && decorated_.has(identity);
             }
+            
         }
     }
 }

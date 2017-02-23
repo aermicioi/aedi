@@ -38,12 +38,12 @@ Thrown when something can not find required element/object.
 It is used by DI container to denote that a component that was requested is missing. 
 **/
 class NotFoundException : AediException {
-    pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+    nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         super(msg, file, line, next);
     }
 
-    pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, file, line, next);
     }

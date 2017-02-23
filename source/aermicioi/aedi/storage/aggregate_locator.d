@@ -33,11 +33,13 @@ module aermicioi.aedi.storage.aggregate_locator;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.exception.not_found_exception;
 import std.conv : to;
+import std.range.interfaces;
+import std.typecons;
 
 /**
 An implementation of AggregateLocator.
 **/
-class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = KeyType) : AggregateLocator!(Type, KeyType, LocatorKeyType) {
+class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = KeyType) : MutableAggregateLocator!(Type, KeyType, LocatorKeyType) {
     
     protected {
         
@@ -53,7 +55,7 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
         	key = key by which to identify the locator.
         	locator = the Locator that will be added to AggregateLocator
         **/
-        AggregateLocatorImpl!(Type, KeyType, LocatorKeyType) set(LocatorKeyType key, Locator!(Type, KeyType) locator) {
+        AggregateLocatorImpl!(Type, KeyType, LocatorKeyType) set(Locator!(Type, KeyType) locator, LocatorKeyType key) {
             
             this.locators[key] = locator;
             
@@ -94,8 +96,14 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
                 }
             }
             
+            import std.traits;
+            
             if ((identity in this.locators) !is null) {
-                return cast(Type) this.locators[identity];
+                auto result = cast(Type) this.locators[identity];
+                
+                if (result !is null) {
+                    return result;
+                }
             }
             
             throw new NotFoundException("Could not find an object with " ~ identity.to!string ~ " identity.");
@@ -113,7 +121,7 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
     	Returns:
     		bool true if an element by key is present in Locator.
         **/
-        bool has(KeyType identity) inout {
+        bool has(in KeyType identity) inout {
             
             if ((identity in this.locators) !is null) {
                 return true;
@@ -142,6 +150,20 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
             }
             
             throw new NotFoundException("Could not find any locator with identity of " ~ key);
+        }
+        
+        /**
+        Get all locators in aggregate locator
+        
+        Returns:
+        	InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
+        **/
+        InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) getLocators() {
+            import std.algorithm;
+            
+            return this.locators.byKeyValue.map!(
+                a => tuple(a.value, a.key)
+            ).inputRangeObject;
         }
         
         /**

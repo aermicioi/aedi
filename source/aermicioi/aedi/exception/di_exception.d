@@ -37,7 +37,7 @@ class AediException : Exception {
         super(msg, file, line, next);
     }
 
-    pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, file, line, next);
     }

@@ -31,6 +31,7 @@ module aermicioi.util.traits.partial;
 
 import aermicioi.util.traits.traits;
 import std.meta;
+import std.traits;
 
 /**
 Instantiate a template that will check equality of first with second
@@ -305,4 +306,34 @@ template staticAssert(alias predicate, string error) {
         
         enum bool staticAssert = predicate!args;
     }
+}
+
+auto curry(Dg, Args...)(Dg func, auto ref Args args)
+    if (isSomeFunction!Dg) {
+    import std.typecons;
+    class Curry {
+        private {
+            Tuple!Args args;
+            Dg func;
+        }
+        
+        public {
+            this(ref Args args, Dg func) {
+                this.args = tuple!(args);
+                this.func = func;
+            }
+            
+            ReturnType!Dg opCall(Parameters!Dg[Args.length .. $] args) {
+                static if (is(ReturnType!Dg == void)) {
+                    func(this.args.expand, args);
+                } else {
+                    return func(this.args.expand, args);
+                }
+            }
+        }
+    }
+    
+    Curry curry = new Curry(args, func);
+    
+    return &curry.opCall;
 }

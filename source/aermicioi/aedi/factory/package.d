@@ -11,7 +11,7 @@ $(UL
     library containers (DI containers). Implement a new kind of factory only when
     a totally different instantiation logic is required comparing to default one in 
     this package. )
-    $(LI genericfactory.d -> provides a set of interfaces that allows to split instantiation
+    $(LI generic_factory.d -> provides a set of interfaces that allows to split instantiation
     logic in smaller parts, that are encapsulated in respective objects. It provides
     a default implementation of GenericFactory which is an extension of Factory interface
     that permits to build instantiation logic out of smaller parts. Use/create classes 
@@ -56,4 +56,7 @@ Authors:
 module aermicioi.aedi.factory;
 
 public import aermicioi.aedi.factory.factory;
-public import aermicioi.aedi.factory.genericfactory;
+public import aermicioi.aedi.factory.generic_factory;
+public import aermicioi.aedi.factory.decorating_factory;
+public import aermicioi.aedi.factory.proxy_factory;
+public import aermicioi.aedi.factory.reference;

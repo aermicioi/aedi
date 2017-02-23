@@ -86,6 +86,6 @@ public import aermicioi.aedi.storage.locator_aware;
 public import aermicioi.aedi.storage.object_storage;
 public import aermicioi.aedi.storage.parent_aware;
 public import aermicioi.aedi.storage.storage;
-public import aermicioi.aedi.storage.delegating_locator;
 public import aermicioi.aedi.storage.aggregate_locator;
 public import aermicioi.aedi.storage.wrapper;
+public import aermicioi.aedi.storage.decorator;

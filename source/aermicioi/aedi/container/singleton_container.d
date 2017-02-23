@@ -38,28 +38,31 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.container.factory;
 
+import std.range.interfaces;
+import std.typecons;
+
 /**
  Singleton container.
  
- It creates objects from Factory implementations and sets them as long as it lives in application.
+ It creates objects from ObjectFactory implementations and sets them as long as it lives in application.
 **/
 class SingletonContainer : ConfigurableContainer {
     
     private {
         
         ObjectStorage!() singletons;
-        ObjectStorage!(Factory, string) factories;
+        ObjectStorage!(ObjectFactory, string) factories;
     }
     
     public {
         
         this() {
             this.singletons = new ObjectStorage!();
-            this.factories = new ObjectStorage!(Factory, string);
+            this.factories = new ObjectStorage!(ObjectFactory, string);
         }
         
-        SingletonContainer set(string key, Factory object) {
-            this.factories.set(key, new ExceptionChainingFactory(new InProcessFactoryDecorator(object), key));
+        SingletonContainer set(ObjectFactory object, string key) {
+            this.factories.set(new ExceptionChainingObjectFactory(new InProcessObjectFactoryDecorator(object), key), key);
             
             return this;
         }
@@ -78,16 +81,16 @@ class SingletonContainer : ConfigurableContainer {
                     throw new NotFoundException("Object with id " ~ key ~ " not found.");
                 }
                 
-                this.singletons.set(
-                    this.resolve(key), 
-                    this.factories.get(key).factory()
+                this.singletons.set( 
+                    this.factories.get(key).factory(),
+                    this.resolve(key),
                 );
             }
             
             return this.singletons.get(key);
         }
         
-        bool has(string key) inout {
+        bool has(in string key) inout {
             return this.factories.has(key);
         }
         
@@ -95,8 +98,8 @@ class SingletonContainer : ConfigurableContainer {
             import std.algorithm : filter;
             foreach (pair; this.factories.contents.byKeyValue.filter!((pair) => pair.key !in this.singletons.contents)) {
                 this.singletons.set(
+                    pair.value.factory,
                     pair.key,
-                    pair.value.factory
                 );
             }
             
@@ -117,8 +120,21 @@ class SingletonContainer : ConfigurableContainer {
             return this;
         }
         
-        const(string) resolve(string key) const {
+        const(string) resolve(in string key) const {
             return this.factories.resolve(key);
+        }
+        
+        
+        ObjectFactory getFactory(string identity) {
+            return this.factories.get(identity);
+        }
+        
+        InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+            import std.algorithm;
+            
+            return this.factories.contents.byKeyValue.map!(
+                a => tuple(a.value, a.key)
+            ).inputRangeObject;
         }
     }
 }

@@ -30,8 +30,7 @@ Authors:
 **/
 module aermicioi.aedi.storage.object_storage;
 
-import aermicioi.aedi.storage.storage;
-import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.container;
 import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.exception.not_found_exception;
 
@@ -42,13 +41,13 @@ import std.conv;
  
  Stores Type elements by KeyType identity in.
 **/
-class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), Locator!(Type, KeyType), AliasAware!(KeyType) {
+class ObjectStorage(Type = Object, KeyType = string) : Container!(Type, KeyType), AliasAware!(KeyType) {
     
     private {
         
-        Type[KeyType] values;
+        Type[const(KeyType)] values;
         
-        KeyType[KeyType] aliasings;
+        KeyType[const(KeyType)] aliasings;
     }
     
     public {
@@ -67,13 +66,11 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
         **/
         Type get(KeyType identity) {
             
-            identity = this.resolve(identity);
-            
             if (!this.has(identity)) {
                 throw new NotFoundException("Element " ~ identity.to!string ~ " not found.");
             }
             
-            return this.values[identity];
+            return this.values[this.resolve(identity)];
         }
         
         /**
@@ -85,7 +82,7 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
         Returns:
         	bool if element with identity exists in storage.
         **/
-        bool has(KeyType identity) inout {
+        bool has(in KeyType identity) inout {
             return (this.resolve(identity) in this.values) !is null;
         }
         
@@ -99,7 +96,7 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
 		Returns:
 			ObjectStorage
 		**/
-        ObjectStorage set(KeyType identity, Type element) {
+        ObjectStorage set(Type element, KeyType identity) {
             
             this.values[identity] = element;
             
@@ -128,7 +125,7 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
         Returns:
         	Type[KeyType] the contents of storage.
         **/
-        Type[KeyType] contents() {
+        inout(Type[const(KeyType)]) contents() inout {
             return this.values;
         }
         
@@ -158,7 +155,7 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
         /**
         ditto
         **/
-        int opApply(scope int delegate(KeyType key, Type value) dg) {
+        int opApply(scope int delegate(const KeyType key, Type value) dg) {
         	
         	foreach (key, value; this.contents()) {
         		
@@ -213,13 +210,15 @@ class ObjectStorage(Type = Object, KeyType = string) : Storage!(Type, KeyType), 
         Returns:
         	KeyType the last found identity in alias chain.
         **/
-        const(KeyType) resolve(KeyType alias_) const {
+        const(KeyType) resolve(in KeyType alias_) const {
+            import std.typecons : Rebindable;
+            Rebindable!(const(KeyType)) aliased = alias_;
             
-            if ((alias_ in this.aliasings) !is null) {
-                return this.resolve(this.aliasings[alias_]);
-            } else {
-                return alias_;
+            while ((aliased in this.aliasings) !is null) {
+                aliased = this.aliasings[aliased];
             }
+            
+            return aliased;
         }
     }
 }

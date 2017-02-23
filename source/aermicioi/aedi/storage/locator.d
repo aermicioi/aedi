@@ -66,15 +66,18 @@ interface Locator(Type = Object, KeyType = string) {
     	Returns:
     		bool true if an element by key is present in Locator.
         **/
-        bool has(KeyType identity) inout;
+        bool has(in KeyType identity) inout;
     }
 }
 
 /**
-Interface for a Locator that can set objects from passed locators in it.
+Exposes the list of locators contained in it.
 **/
 interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : 
-    Locator!(Type, KeyType), Storage!(Locator!(Type, KeyType), LocatorKeyType) {
+    Locator!(Type, KeyType) {
+    
+    import std.range.interfaces;
+    import std.typecons;
     
     public {
         
@@ -87,6 +90,14 @@ interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = Key
         Locator!(Type, KeyType) getLocator(LocatorKeyType key);
         
         /**
+        Get all locators in aggregate locator
+        
+        Returns:
+        	InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
+        **/
+        InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) getLocators();
+        
+        /**
         Check if aggregate locator contains a specific locator.
         
         Params:
@@ -94,6 +105,13 @@ interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = Key
         **/
         bool hasLocator(LocatorKeyType key) inout;
     }
+}
+
+/**
+Exposes, and allows to set a list of containers into it.
+**/
+interface MutableAggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : AggregateLocator!(Type, KeyType, LocatorKeyType), Storage!(Locator!(Type, KeyType), LocatorKeyType) {
+    
 }
 
 /**
@@ -115,53 +133,60 @@ Throws:
 Returns:
 	Object casted to desired type.
 **/
-@trusted auto locate(T)(Locator!(Object, string) locator, string id) 
-	if (is(T == class) || is(T == interface)) 
-out(result) {
+@trusted auto ref locate(T : Object)(Locator!(Object, string) locator, string id) {
     import aermicioi.aedi.exception.invalid_cast_exception;
+    
+    auto result = cast(T) locator.get(id);
     
     if (result is null) {
         throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
     }
-}
-body {
-    return cast(T) locator.get(id);
+    
+    return result;
 }
 
-/**
-ditto
-**/
-@trusted auto locate(T)(Locator!(Object, string) locator)
-	if (is(T == class) || is(T == interface)) {
-    import aermicioi.aedi.factory.factory : name;
-    
-    return locate!T(locator, name!T);
-}
-	
-/**
-ditto
-**/
-@trusted auto locate(T)(Locator!(Object, string) locator, string id)
-    if (!is(T == class) && !is(T == interface))
-out(result) {
+@trusted auto ref locate(T)(Locator!(Object, string) locator, string id) 
+    if (is(T == interface)) {
     import aermicioi.aedi.exception.invalid_cast_exception;
-    
-    if (result is null) {
-        throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
-    }
-}
-body {
     import aermicioi.aedi.storage.wrapper;
     
-    return cast(Wrapper!T) locator.get(id);
+    auto casted = cast(T) locator.get(id);
+    
+    if (casted !is null) {
+        return casted;
+    }
+    
+    auto wrapper = cast(Wrapper!T) locator.get(id);
+    
+    if (wrapper !is null) {
+        return wrapper;
+    }
+    
+    throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
 }
 
 /**
 ditto
 **/
-@trusted auto locate(T)(Locator!(Object, string) locator)
-    if (!is(T == class) && !is(T == interface))  {
-    import aermicioi.aedi.factory.factory : name;
+@trusted auto ref locate(T)(Locator!(Object, string) locator, string id) 
+    if(!is(T == interface)) {
+    import aermicioi.aedi.exception.invalid_cast_exception;
+    import aermicioi.aedi.storage.wrapper;
+    
+    auto wrapper = (cast(Wrapper!T) locator.get(id));
+    
+    if (wrapper is null) {
+        throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
+    }
+    
+    return wrapper;
+}
+
+/**
+ditto
+**/
+@trusted auto ref locate(T)(Locator!(Object, string) locator) {
+    import aermicioi.aedi.factory.reference : name;
     
     return locate!T(locator, name!T);
 }

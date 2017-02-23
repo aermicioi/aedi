@@ -1,17 +1,28 @@
 /**
 Aedi, a dependency injection library.
 
+Aedi is a dependency injection library. It does provide a set of containers that do
+IoC, and an interface to configure application components (structs, objects, etc.) 
+
+$(BIG $(B Aim: ))
+
+The aim of library is to provide a dependency injection solution that is
+feature rich, easy to use, easy to learn, and easy to extend up to your needs.
+
 $(BIG $(B Why should it be used: ))
 $(UL
-    $(LI Eases the development of applications by taking the task of wiring the 
-    interdependent code (objects). )
-    $(LI Helps in decopling of different components of application. )
-    $(LI Eases the management of dependencies between application components. )
+    $(LI Decouples components in your application. )
+    $(LI Decreases hassle with application components setup (wiring and creation) )
+    $(LI Increases code reusability (since no dependencies are created in dependent objects.) )
+    $(LI Allows easier to test code that is dependent on other components )
+    $(LI Eases the implementation single responsibility principle in components )
     )
     
 $(BIG $(B When should it be used: ))
 $(UL
-    $(LI When a project has a high number of interdependent components. )
+    $(LI When an application has to be highly configurable. )
+    $(LI When an application has a high number of interdependent components. )
+    $(LI When doing unit testing of highly dependent components. )
     )
     
 $(BIG $(B How should it be used: ))
@@ -19,11 +30,11 @@ $(BIG $(B How should it be used: ))
 It's simple:
 
 $(OL 
-    $(LI Spawn a container. )
-    $(LI Register an object. )
-    $(LI Configure object. )
+    $(LI Create a container. )
+    $(LI Register an component (object, struct, value, etc.). )
+    $(LI Configure it. )
     $(LI Repeat 2-3, if another object needs to be in container. )
-    $(LI Done )
+    $(LI Boot container. )
     )
 
 Here is an example:
@@ -74,23 +85,23 @@ class Paper {
             this.color(c);
         }
         
-        Paper quality(Quality quality) @safe nothrow pure {
+        Paper quality(Quality quality) @safe nothrow {
         	this.quality_ = quality;
         
         	return this;
         }
         
-        Quality quality() @safe nothrow pure {
+        Quality quality() @safe nothrow {
         	return this.quality_;
         }
         
-        Paper color(Color color) @safe nothrow pure {
+        Paper color(Color color) @safe nothrow {
         	this.color_ = color;
         
         	return this;
         }
         
-        Color color() @safe nothrow pure {
+        Color color() @safe nothrow {
         	return this.color_;
         }
     }
@@ -130,7 +141,7 @@ class Page {
         Size size;
         
         @setter("page.paper".lref) // Set the field to a component identified by a custom name.
-        Page paper(Paper paper) @safe nothrow pure {
+        Page paper(Paper paper) @safe nothrow {
         	this.paper_ = paper;
         
         	return this;
@@ -140,28 +151,28 @@ class Page {
         Color textColor;
         
         @autowired // Wire the field by arguments FQN's. Multiple arguments can be automatically wired.
-        Page foreground(Color foreground) @safe nothrow pure {
+        Page foreground(Color foreground) @safe nothrow {
         	this.foreground_ = foreground;
         
         	return this;
         }
         
         @autowired
-        Page text(string text) @safe nothrow pure {
+        Page text(string text) @safe nothrow {
         	this.text_ = text;
         
         	return this;
         }
         
-        Color foreground() @safe nothrow pure {
+        Color foreground() @safe nothrow {
         	return this.foreground_;
         }
         
-        Paper paper() @safe nothrow pure {
+        Paper paper() @safe nothrow {
         	return this.paper_;
         }
         
-        string text() @safe nothrow pure {
+        string text() @safe nothrow {
         	return this.text_;
         }
     }
@@ -177,24 +188,24 @@ class Cover {
     public {
         
         @setter(lref!Paper)
-        Cover material(Paper material) @safe nothrow pure {
+        Cover material(Paper material) @safe nothrow {
         	this.material_ = material;
         
         	return this;
         }
         
         @setter("book.title".lref)
-        Cover title(string title) @safe nothrow pure {
+        Cover title(string title) @safe nothrow {
         	this.title_ = title;
         
         	return this;
         }
         
-        Paper material() @safe nothrow pure {
+        Paper material() @safe nothrow {
         	return this.material_;
         }
         
-        string title() @safe nothrow pure {
+        string title() @safe nothrow {
         	return this.title_;
         }
     }
@@ -221,23 +232,23 @@ class Book {
     public {
         
         @autowired
-        Book cover(Cover cover) @safe nothrow pure {
+        Book cover(Cover cover) @safe nothrow {
         	this.cover_ = cover;
         
         	return this;
         }
         
-        Cover cover() @safe nothrow pure {
+        Cover cover() @safe nothrow {
         	return this.cover_;
         }
         
-        Book pages(Page[] pages) @safe nothrow pure {
+        Book pages(Page[] pages) @safe nothrow {
         	this.pages_ = pages;
         
         	return this;
         }
         
-        Page[] pages() @safe nothrow pure {
+        Page[] pages() @safe nothrow {
         	return this.pages_;
         }
     }
@@ -514,8 +525,7 @@ Instead of a simple register we see registerInto call. This is due to ambiguity
 risen if we would use only register. Since ApplicationContainer is a composite
 container, we should allow somehow to specify which of three containers would 
 manage added component. To do so, register methods do allow additional argument
-to be passed that is a path to container separated by dots (composite container
-can consist of several levels of hierarchy) just like in example below:
+to be passed that is identity of container that should manage registered component:
 ---------------
 container.registerInto!Page("prototype") // store component in Prototype container
     .autowire!"size"
@@ -529,7 +539,7 @@ When we add a component to composite container without specifying where it shoul
 be, it is implicitly defined that a "singleton" sub-container exists, and there it should
 be stored.
 The ambiguity mentioned before, is due to this additional argument passed to register
-(path to sub-container). Just remember, use register to add a component to container with
+(identity of sub-container). Just remember, use register to add a component to container with
 some custom id, while registerInto with a default one.
 
 So, what about annotation based configuration for composite containers?
@@ -604,7 +614,7 @@ factory provides only two methods, first is factory which will create the object
 which returns typeid of object. Though it does provide minimal interface for creating an
 object it does not provide any means on how to configure a factory. For factories that can
 be configured another interface that extends Factory is available in
-aermicioi.aedi.factory.genericfactory which is GenericFactory(T).
+aermicioi.aedi.factory.generic_factory which is GenericFactory(T).
 
 The GenericFactory(T) interface, splits the process of object construction in two steps:
     $(UL
@@ -722,6 +732,8 @@ $(OL
     $(LI Support for yaml based configuration. )
     $(LI Stable api. )
     $(LI Usage of allocators. )
+    $(LI Anonymous aggregates and simple data. )
+    $(LI Parent aggregates and simple data. )
 )
 
 License:

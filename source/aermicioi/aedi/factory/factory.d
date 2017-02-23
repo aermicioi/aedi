@@ -35,37 +35,27 @@ import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.storage.locator;
 
 /**
-Interface for objects that create objects.
+Interface for objects able to create some instance of type T.
 
-It is used to store different types of object factories in DI containers. 
-Any factory extending this interface will encapsulate logic required to construct an object that will be 
-setd by DI container to client application.
-If there is need to implement custom logic for creation of some kind of objects, a client should encapsulate
-factory logic into a class which inherits Factory interface, afterwards, this factory will be acceptable by all
-DI containers, and DI containers will call this factory when a new object is required.
+Intent of this interface is to provide a single entry for objects, able to 
+instantiate something.
 **/
-interface Factory : LocatorAware!() {
+interface Factory(T) : LocatorAware!() {
 	
 	public {
 		
 		/**
-		Factories an object of a certain type.
-		
-		This method is used to call factory logic of a new Object. Any DI container that is in need of new object
-		will call this method to get it.
-		
-		Throws:
-			InProgressException when some DI container, or something else is trying to factory an object, while the factory is already in building process. It is used to detect circular reference errors.
+		Instantiates something of type T.
 		
 		Returns:
-			Object newly constructed, of some type.
+			T instantiated data of type T.
 		**/
-		Object factory();
+		T factory();
 		
 		@property {
 		    
 		    /**
-    		Get the type info of object that is created.
+    		Get the type info of T that is created.
     		
     		Returns:
     			TypeInfo object of created object.
@@ -75,87 +65,4 @@ interface Factory : LocatorAware!() {
 	}
 }
 
-/**
-Represents a reference to an object in a locator/container.
-
-Any object of this type encountered in factories should be treated as a declaration that required argument for
-object construction/configuration is located into a locator/container, and should be fetched and used instead
-of LocatorReference.
-**/
-class LocatorReference {
-	private {
-		string id_;
-	}
-	
-	public {
-		
-		this(string id) {
-			this.id = id;
-		}
-		
-		@property {
-			
-			string id() {
-				return this.id_;
-			}
-			
-			LocatorReference id(string id) {
-				this.id_ = id;
-				
-				return this;
-			}
-		}
-	}
-}
-
-import std.traits : fullyQualifiedName;
-//alias name = fullyQualifiedName;
-template name(alias T)
-    if (is(typeof(T))) {
-    alias name = fullyQualifiedName!(typeof(T));
-}
-
-template name(T) {
-    alias name = fullyQualifiedName!T;
-}
-
-/**
-A convenience function that wraps creation of reference to object.
-**/
-auto lref(string id) {
-    return new LocatorReference(id);
-}
-
-/**
-ditto
-**/
-auto lref(T)() {
-    import std.traits;
-    
-    return name!T.lref;
-}
-
-/**
-ditto
-**/
-auto lref(string name)() {
-    return name.lref;
-}
-
-template toLref(Type) {
-    auto toLref() {
-        return name!Type.lref;
-    }
-}
-
-template toLrefType(Type) {
-    alias toLrefType = LocatorReference;
-}
-
-@trusted auto tryLocateByReference(T, Z = T)(Locator!(Object, string) locator, auto ref Z entity) {
-    static if (is(Z : LocatorReference)) {
-        return locator.locate!T(entity.id); 
-    } else {
-        return entity;
-    }
-}
+alias ObjectFactory = Factory!Object;

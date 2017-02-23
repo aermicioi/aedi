@@ -30,6 +30,183 @@ Authors:
 module aermicioi.aedi.test.fixture;
 
 import aermicioi.aedi.configurer.annotation;
+import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.factory.factory;
+
+interface MockInterface {
+    int imethod(int arg1, int arg2);
+}
+
+interface MockTotallyNotInheritedInterface {
+    int iNot(int iPain);
+}
+
+class MockObject : MockInterface {
+    
+    int property;
+    
+    int imethod(int arg1, int arg2) {
+        property = arg1 - arg2;
+        
+        return property;
+    }
+    
+    int method(int arg1, int arg2) {
+        property = arg1 + arg2;
+        
+        return property;
+    }
+    
+    int nasty() {
+        throw new Exception("Something bad occurred");
+    }
+    
+    this() {
+        
+    }
+    
+    this(int property) {
+        this.property = property;
+    }
+}
+
+extern(C++) {
+    
+    interface MockExternInterface {
+        int imethod(int arg1, int arg2);
+    }
+    
+    class MockExternObject : MockExternInterface {
+        int property;
+        
+        int imethod(int arg1, int arg2) {
+            property = arg1 - arg2;
+            
+            return property;
+        }
+        
+        int method(int arg1, int arg2) {
+            property = arg1 + arg2;
+            
+            return property;
+        }
+        
+        int nasty() {
+            throw new Exception("Something bad occurred");
+        }
+        
+        this() {
+            
+        }
+        
+        this(int property) {
+            this.property = property;
+        }
+    }
+}
+
+struct MockStruct {
+    
+    int property;
+    
+    int method(int arg1, int arg2) {
+        property = arg1 + arg2;
+        
+        return property;
+    }
+    
+    int nasty() {
+        throw new Exception("Something bad occurred");
+    }
+}
+
+class MockObjectFactoryMethod {
+    
+    int property;
+    
+    MockObject factoryObject() {
+        return new MockObject(property);
+    }
+    
+    MockStruct factoryStruct() {
+        return MockStruct(property);
+    }
+    
+    static MockObject staticFactoryObject(int property) {
+        return new MockObject(property);
+    }
+    
+    static MockStruct staticFactoryStruct(int property) {
+        return MockStruct(property);
+    }
+}
+
+class MockFactory(T) : ObjectFactory {
+    
+    public {
+        Locator!() locator_;
+    }
+    
+    public {
+        Object factory() {
+            auto t = new T;
+            
+            return t;
+        }
+        
+        @property {
+            TypeInfo type() @safe nothrow {
+            	return typeid(T);
+            }
+            
+            MockFactory!T locator(Locator!() loc) {
+                this.locator_ = loc;
+                
+                return this;
+            }
+        }
+    }
+}
+
+class MockValueFactory(T) : Factory!T {
+    public {
+        Locator!() locator_;
+    }
+    
+    public {
+        T factory() {
+            auto t = T();
+            
+            return t;
+        }
+        
+        @property {
+            TypeInfo type() @safe nothrow {
+            	return typeid(T);
+            }
+            
+            MockValueFactory!T locator(Locator!() loc) {
+                this.locator_ = loc;
+                
+                return this;
+            }
+        }
+    }
+}
+
+class CircularFactoryMock(T) : MockFactory!T {
+    
+    public {
+        override Object factory() {
+            auto t = new T;
+            this.locator_.get("mock");
+            
+            return t;
+        }
+    }
+}
+
+//==================fixtures with more sane names================
 
 interface Identifiable(T) {
     public @property {
@@ -38,7 +215,7 @@ interface Identifiable(T) {
 }
 
 interface Nameable {
-    string name() @safe nothrow pure;
+    string name() @safe nothrow;
 }
 
 interface Payable {
@@ -334,13 +511,13 @@ struct Currency {
         
         @property {
             @setter(cast(ptrdiff_t) 100)
-            ref Currency amount(ptrdiff_t amount) @safe nothrow pure {
+            ref Currency amount(ptrdiff_t amount) @safe nothrow {
             	this.amount_ = amount;
             
             	return this;
             }
             
-            ptrdiff_t amount() @safe nothrow pure {
+            ptrdiff_t amount() @safe nothrow {
             	return this.amount_;
             }
         }
@@ -371,14 +548,13 @@ class FixtureFactory {
         @autowired
         this(Job job) {
             this.job = job;
-            person = new Person("Ali Armen", 30);
         }
         
         @autowired
-        Employee employee;
+        Employee employee = new Employee("Andy Dandy", 99);
         
         @setter(lref!Person)
-        Person person;
+        Person person = new Person("Ali Armen", 30);
         
         @autowired
         static void company(Company company) @safe nothrow {
@@ -389,13 +565,13 @@ class FixtureFactory {
         	return company_;
         }
         
-        FixtureFactory job(Job job) @safe nothrow pure {
+        FixtureFactory job(Job job) @safe nothrow {
         	this.job_ = job;
         
         	return this;
         }
         
-        Job job() @safe nothrow pure {
+        Job job() @safe nothrow {
         	return this.job_;
         }
     }
@@ -435,13 +611,13 @@ struct StructFixtureFactory {
         	return company_;
         }
         
-        ref StructFixtureFactory job(Job job) @safe nothrow pure {
+        ref StructFixtureFactory job(Job job) @safe nothrow {
         	this.job_ = job;
         
         	return this;
         }
         
-        Job job() @safe nothrow pure {
+        Job job() @safe nothrow {
         	return this.job_;
         }
         
@@ -449,14 +625,105 @@ struct StructFixtureFactory {
             return Currency(amount);
         }
         
-        ref StructFixtureFactory currency(Currency currency) @safe nothrow pure {
+        ref StructFixtureFactory currency(Currency currency) @safe nothrow {
         	this.currency_ = currency;
         
         	return this;
         }
         
-        Currency currency() @safe nothrow pure {
+        Currency currency() @safe nothrow {
         	return this.currency_;
         }
     }
+}
+
+/**
+A simple model that is to be proxied.
+Note: Currently autoimplement fails, on objects that are implementing interfaces.
+**/
+class ProxyablePerson {
+    private {
+        ubyte age_;
+        string name_;
+        string surname_;
+        ulong id_;
+    }
+    
+    public {
+        this() {
+            
+        }
+        
+        this(string name, ubyte age) {
+            this.name = name;
+            this.age = age;
+        }
+        
+        override bool opEquals(Object obj) {
+            return super.opEquals(obj);
+        }
+        
+        bool opEquals(Person person) {
+            return
+                (person.name == this.name) &&
+                (person.age == this.age) &&
+                (person.id == this.id) &&
+                (person.surname == this.surname);
+        }
+    }
+    
+    public @property {
+        ProxyablePerson id(ulong id) {
+        	this.id_ = id;
+        
+        	return this;
+        }
+        
+        ulong id() {
+        	return this.id_;
+        }
+        
+        @setter(cast(ubyte) 10)
+        ProxyablePerson age(ubyte age) {
+        	this.age_ = age;
+        
+        	return this;
+        }
+        
+        ubyte age() {
+        	return this.age_;
+        }
+        
+        @setter("A simple name")
+        ProxyablePerson name(string name) {
+        	this.name_ = name;
+        
+        	return this;
+        }
+        
+        string name() {
+        	return this.name_;
+        }
+        
+        @setter("surname.parameter")
+        ProxyablePerson surname(string surname) {
+        	this.surname_ = surname;
+        
+        	return this;
+        }
+        
+        string surname() {
+        	return this.surname_;
+        }
+        
+    }
+}
+
+union Union {
+    ubyte a;
+    uint b;
+    ulong c;
+    float d;
+    double e;
+    StructFixtureFactory f;
 }

@@ -34,6 +34,9 @@ import aermicioi.aedi.container;
 import aermicioi.aedi.storage;
 import aermicioi.aedi.exception;
 
+import std.range.interfaces;
+import std.typecons;
+
 /**
 Application container
 
@@ -42,29 +45,20 @@ already instantiated data. It should be sufficient for usages, when no specific 
 is required.
 
 **/
-class ApplicationContainer : Container {
+class ApplicationContainer : Container, Storage!(Container, string), AggregateLocator!() {
     
     private {
-        SingletonContainer singleton;
-        PrototypeContainer prototype;
+        ObjectStorage!(Container, string) containers;
         ObjectStorage!() parameters;
     }
     
     public {
         
-        this(void delegate (Locator!()) dg) {
-            this();
-            dg(this);
-        }
-        
-        this(void function (Locator!()) fn) {
-            this();
-            fn(this);
-        }
-        
         this() {
-            this.singleton = new SingletonContainer;
-            this.prototype = new PrototypeContainer;
+            this.containers = new ObjectStorage!(Container, string);
+            this.containers.set(new SingletonContainer, "singleton");
+            this.containers.set(new PrototypeContainer, "prototype");
+
             this.parameters = new ObjectStorage!();
         }
         
@@ -75,8 +69,9 @@ class ApplicationContainer : Container {
         **/
         ApplicationContainer instantiate() {
             
-            singleton.instantiate();
-            prototype.instantiate();
+            foreach (container; this.containers) {
+                container.instantiate();
+            }
             
             return this;
         }
@@ -94,32 +89,22 @@ class ApplicationContainer : Container {
 			Type element if it is available.
 		**/
         Object get(string identity) {
-            switch (identity) {
-                case "singleton": {
-                    return this.singleton;
+            if (this.containers.has(identity)) {
+                return cast(Object) this.containers.get(identity);
+            }
+            
+            foreach (container; this.containers) {
+                if (container.has(identity)) {
+                    return container.get(identity);
                 }
-                
-                case "prototype": {
-                    return this.prototype;
-                }
-                
-                case "parameters": {
-                    return this.parameters;
-                }
-                
-                default: {
-                    if (singleton.has(identity)) {
-                        return singleton.get(identity);
-                    }
-                    
-                    if (prototype.has(identity)) {
-                        return prototype.get(identity);
-                    }
-                    
-                    if (parameters.has(identity)) {
-                        return parameters.get(identity);
-                    }
-                }
+            }
+            
+            if (identity == "parameters") {
+                return this.parameters;
+            }
+            
+            if (this.parameters.has(identity)) {
+                return this.parameters.get(identity);
             }
             
             throw new NotFoundException("Object by id " ~ identity ~ " not found");
@@ -137,15 +122,71 @@ class ApplicationContainer : Container {
     	Returns:
     		bool true if an element by key is present in Locator.
         **/
-        bool has(string identity) inout {
+        bool has(in string identity) inout {
             
-            return 
-                singleton.has(identity) || 
-                prototype.has(identity) || 
-                parameters.has(identity) ||
-                (identity == "singleton") ||
-                (identity == "prototype") ||
-                (identity == "parameters");
+            if (this.containers.has(identity)) {
+                return true;
+            }
+            
+            if (identity == "parameters") {
+                return true;
+            }
+            
+            foreach (container; this.containers.contents) {
+                if (container.has(identity)) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        ApplicationContainer set(Container container, string identity) {
+            this.containers.set(container, identity);
+            
+            return this;
+        }
+        
+        ApplicationContainer remove(string identity) {
+            this.containers.remove(identity);
+            
+            return this;
+        }
+        
+        /**
+        Get a specific locator.
+        
+        Params:
+            key = the locator identity.
+        **/
+        Locator!(Object, string) getLocator(string key) {
+            
+            return this.containers.get(key);
+        }
+        
+        /**
+        Get all locators in aggregate locator
+        
+        Returns:
+        	InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
+        **/
+        InputRange!(Tuple!(Locator!(Object, string), string)) getLocators() {
+            import std.algorithm;
+            
+            return this.containers.contents.byKeyValue.map!(
+                a => tuple(cast(Locator!()) a.value, a.key)
+            ).inputRangeObject;
+        }
+        
+        /**
+        Check if aggregate locator contains a specific locator.
+        
+        Params:
+        	key = the identity of locator in aggregate locator
+        **/
+        bool hasLocator(string key) inout {
+            
+            return this.containers.has(key);
         }
     }
 }

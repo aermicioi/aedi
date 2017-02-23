@@ -303,6 +303,26 @@ public {
         alias Args = Args;
     }
     
+    template concat(args...) {
+        static if (args.length > 1) {
+            enum auto concat = args[0] ~ concat!(args[1 .. $]); 
+        } else {
+            enum auto concat = args[0];
+        }
+    }
+    
+    template isField(T, string field) {
+        
+        auto isField() {
+            import aermicioi.util.traits.partial : eq;
+            static if (Filter!(eq!field, FieldNameTuple!T).length > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    
     enum bool isDerived(alias T, alias Z) = is(T : Z);
     enum bool isEq(alias T, alias Z) = is(T == Z);
     

@@ -34,10 +34,10 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.storage.locator;
 
-package class InProcessFactoryDecorator : Factory {
+public class InProcessObjectFactoryDecorator : ObjectFactory {
     
     private {
-        Factory decorated_;
+        ObjectFactory decorated_;
         bool inProcess;
     }
     
@@ -46,18 +46,18 @@ package class InProcessFactoryDecorator : Factory {
             
         }
         
-        this(Factory decorated) {
+        this(ObjectFactory decorated) {
             this.decorated = decorated;
         }
         
         @property {
-            InProcessFactoryDecorator decorated(Factory decorated) @safe nothrow pure {
+            InProcessObjectFactoryDecorator decorated(ObjectFactory decorated) @safe nothrow {
             	this.decorated_ = decorated;
             
             	return this;
             }
             
-            Factory decorated() @safe nothrow pure {
+            ObjectFactory decorated() @safe nothrow {
             	return this.decorated_;
             }
             
@@ -65,7 +65,7 @@ package class InProcessFactoryDecorator : Factory {
             	return this.decorated.type();
             }
             
-            InProcessFactoryDecorator locator(Locator!() locator) {
+            InProcessObjectFactoryDecorator locator(Locator!() locator) {
             	this.decorated.locator = locator;
             
             	return this;
@@ -74,7 +74,7 @@ package class InProcessFactoryDecorator : Factory {
         
         Object factory() {
             if (inProcess) {
-                throw new InProgressException("Factory is already instantiating, type: " ~ this.decorated.type.toString());
+                throw new InProgressException("ObjectFactory is already instantiating, type: " ~ this.decorated.type.toString());
             }
             
             inProcess = true;
@@ -86,10 +86,10 @@ package class InProcessFactoryDecorator : Factory {
     }
 }
 
-package class ExceptionChainingFactory : Factory {
+package class ExceptionChainingObjectFactory : ObjectFactory {
     
     private {
-        Factory decorated_;
+        ObjectFactory decorated_;
         string id_;
     }
     
@@ -98,29 +98,29 @@ package class ExceptionChainingFactory : Factory {
             
         }
         
-        this(Factory decorated, string id) {
+        this(ObjectFactory decorated, string id) {
             this.decorated = decorated;
             this.id = id;
         }
         
         @property {
-            ExceptionChainingFactory id(string id) @safe nothrow pure {
+            ExceptionChainingObjectFactory id(string id) @safe nothrow {
             	this.id_ = id;
             
             	return this;
             }
             
-            string id() @safe nothrow pure {
+            string id() @safe nothrow {
             	return this.id_;
             }
             
-            ExceptionChainingFactory decorated(Factory decorated) @safe nothrow pure {
+            ExceptionChainingObjectFactory decorated(ObjectFactory decorated) @safe nothrow {
             	this.decorated_ = decorated;
             
             	return this;
             }
             
-            Factory decorated() @safe nothrow pure {
+            ObjectFactory decorated() @safe nothrow {
             	return this.decorated_;
             }
             
@@ -128,7 +128,7 @@ package class ExceptionChainingFactory : Factory {
             	return this.decorated.type();
             }
             
-            ExceptionChainingFactory locator(Locator!() locator) {
+            ExceptionChainingObjectFactory locator(Locator!() locator) {
             	this.decorated.locator = locator;
             
             	return this;

@@ -46,20 +46,14 @@ class CircularReferenceException : AediException {
     
     public {
         
-        pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+        nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
         {
             super(msg, file, line, next);
         }
     
-        pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+        nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
         {
             super(msg, file, line, next);
-        }
-        
-        CircularReferenceException add(string key) {
-            this.msg ~= " -> " ~ key;
-            
-            return this;
         }
     }
 }

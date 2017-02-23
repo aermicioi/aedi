@@ -35,13 +35,246 @@ import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.factory.proxy_factory;
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.storage.alias_aware;
+import aermicioi.aedi.factory.factory;
+import std.range;
+import std.typecons;
+import std.meta;
+import std.traits;
+import aermicioi.util.traits;
 
-interface ProxyContainer : Container, Storage!(ProxyFactory, string) {
+/**
+TODO: Add description of what this is and why it was designed as such.
+**/
+interface ProxyContainer : Container, Storage!(ProxyObjectFactory, string), Decorator!(Locator!()) {
     
-    public {
-        @property {
+}
+
+/**
+Templated switchable container.
+
+Templated switchable container. This container will
+decorate another container, and add switching logic 
+to it. Depending in which state (on/off) the switching 
+container is. It will instantiate if the container is on, 
+and not if container is in off mode. This container will
+inherit following interfaces only and only if the 
+T also implements them:
+    $(OL
+        $(LI Storage!(ObjectFactory, string))
+        $(LI Container)
+        $(LI AliasAware!string)
+    )
+
+Params:
+    T = The container that switchable container will decorate.
+   
+**/
+template ProxyContainerImpl(T) {
+    /**
+    Set which the switchable container will decorate for T. By default
+    Locator!() and Switchable is included.
+    **/
+    alias InheritanceSet = AliasSeq!(Filter!(
+        templateOr!(
+            partialSuffixed!(
+                isDerived,
+                Storage!(ObjectFactory, string)
+            ),
+            partialSuffixed!(
+                isDerived,
+                AliasAware!string
+            ),
+            partialSuffixed!(
+                isDerived,
+                FactoryLocator!ObjectFactory
+            )
+        ),
+        InterfacesTuple!T),
+        ProxyContainer,
+        MutableDecorator!T
+    );
+    
+    /**
+    Templated proxy container.
+    **/
+    class ProxyContainerImpl : InheritanceSet {
+        private {
+            T decorated_;
             
-            Locator!() original() @safe nothrow pure;
+            ObjectStorage!(ProxyObjectFactory, string) proxyFactories;
+        }
+        
+        public {
+            
+            @property {
+            	ProxyContainerImpl decorated(T decorated) @safe nothrow {
+            		this.decorated_ = decorated;
+            	
+            		return this;
+            	}
+            	
+            	T decorated() @safe nothrow {
+            		return this.decorated_;
+            	}
+            }
+            
+            ProxyContainerImpl set(ProxyObjectFactory factory, string identity) {
+                this.proxyFactories.set(factory, identity);
+                
+                return this;
+            }
+            
+            ProxyContainerImpl remove(string identity) {
+                this.proxyFactories.remove(identity);
+                
+                return this;
+            }
+            
+            static if (is(T : Container)) {
+                
+                /**
+                Prepare container to be used.
+                
+                Prepare container to be used.
+
+                Returns:
+                	ProxyContainer decorating container
+                **/
+                ProxyContainerImpl instantiate() {
+                    decorated.instantiate();
+                    
+                    return this;
+                }
+            }
+            
+            static if (is(T : Storage!(ObjectFactory, string))) {
+                /**
+        		Set factory in container by identity.
+        		
+        		Params:
+        			identity = identity of factory.
+        			element = factory that is to be saved in container.
+        			
+        		Return:
+        			ProxyContainer decorating container.
+        		**/
+                ProxyContainerImpl set(ObjectFactory element, string identity) {
+                    decorated.set(element, identity);
+                    
+                    return this;
+                }
+                
+                /**
+                Remove factory from container with identity.
+                
+                Remove factory from container with identity. 
+                
+                Params:
+                	identity = the identity of factory to be removed.
+                	
+            	Return:
+            		ProxyContainer decorating container
+                **/
+                ProxyContainerImpl remove(string identity) {
+                    decorated.remove(identity);
+                    
+                    return this;
+                }
+            }
+            
+            static if (is(T : AliasAware!string)) {
+                /**
+                Alias identity to an alias_.
+                        
+                Params:
+                	identity = originial identity which is to be aliased.
+                	alias_ = alias of identity.
+                	
+        		Returns:
+        			ProxyContainer decorating container
+                **/
+                ProxyContainerImpl link(string identity, string alias_) {
+                    this.decorated.link(identity, alias_);
+                    this.proxyFactories.link(identity, alias_);
+                    
+                    return this;
+                }
+                
+                /**
+                Removes alias.
+                
+                Params:
+                	alias_ = alias to remove.
+        
+                Returns:
+                    ProxyContainer decorating container
+                **/
+                ProxyContainerImpl unlink(string alias_) {
+                    this.decorated.unlink(alias_);
+                    this.proxyFactories.unlink(alias_);
+                    
+                    return this;
+                }
+                
+                /**
+                Resolve an alias to original identity, if possible.
+                
+                Params:
+                	alias_ = alias of original identity
+                
+                Returns:
+                	const(string) the last identity in alias chain if container is enabled, or alias_ when not.
+                
+                **/
+                const(string) resolve(in string alias_) const {
+                    return this.proxyFactories.resolve(alias_);
+                }
+            }
+            
+            static if (is(T : FactoryLocator!ObjectFactory)) {
+                
+                ObjectFactory getFactory(string identity) {
+                    return this.decorated.getFactory(identity);
+                }
+                
+                InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+                    return this.decorated.getFactories();
+                }
+            }
+            
+            /**
+    		Get object that is associated with identity.
+    		
+    		Params:
+    			identity = the object identity.
+    			
+    		Throws:
+    			NotFoundException in case if the object wasn't found or container is not enabled.
+    		
+    		Returns:
+    			Object if it is available.
+    		**/
+            Object get(string identity) {
+                return proxyFactories.get(identity).factory();
+            }
+            
+            /**
+            Check if object is present in ProxyContainer by key identity.
+            
+            Note:
+            	This check should be done for elements that locator actually contains, and
+            	not in chained locator (when locator is also a DelegatingLocator) for example.
+            Params:
+            	identity = identity of object.
+            	
+        	Returns:
+        		bool true if container is enabled and has object by identity.
+            **/
+            bool has(in string identity) inout {
+                return proxyFactories.has(identity);
+            }
         }
     }
 }

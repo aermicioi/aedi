@@ -36,26 +36,29 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.container.factory;
 
+import std.range.interfaces;
+import std.typecons;
+
 /**
  Prototype container.
  
- Instantiates a new object using passed Factory implementation, on each request of it by some part of an application.
+ Instantiates a new object using passed ObjectFactory implementation, on each request of it by some part of an application.
 **/
 class PrototypeContainer : ConfigurableContainer {
     
     private {
         
-        ObjectStorage!(Factory, string) factories;
+        ObjectStorage!(ObjectFactory, string) factories;
     }
     
     public {
         
         this() {
-            this.factories = new ObjectStorage!(Factory, string);
+            this.factories = new ObjectStorage!(ObjectFactory, string);
         }
         
-        PrototypeContainer set(string key, Factory object) {
-            this.factories.set(key, new ExceptionChainingFactory(new InProcessFactoryDecorator(object), key));
+        PrototypeContainer set(ObjectFactory object, string key) {
+            this.factories.set(new ExceptionChainingObjectFactory(new InProcessObjectFactoryDecorator(object), key), key);
             
             return this;
         }
@@ -75,7 +78,7 @@ class PrototypeContainer : ConfigurableContainer {
             throw new NotFoundException("Object by id " ~ key ~ " not found");
         }
         
-        bool has(string key) inout {
+        bool has(in string key) inout {
             return this.factories.has(key);
         }
         
@@ -96,8 +99,20 @@ class PrototypeContainer : ConfigurableContainer {
             return this;
         }
         
-        const(string) resolve(string key) const {
+        const(string) resolve(in string key) const {
             return this.factories.resolve(key);
+        }
+        
+        ObjectFactory getFactory(string identity) {
+            return this.factories.get(identity);
+        }
+        
+        InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+            import std.algorithm;
+            
+            return this.factories.contents.byKeyValue.map!(
+                a => tuple(a.value, a.key)
+            ).inputRangeObject;
         }
     }
 }

@@ -1,4 +1,6 @@
 /**
+Contains factories and primitives used for building proxy objects.
+
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -30,79 +32,122 @@ Authors:
 module aermicioi.aedi.factory.proxy_factory;
 
 import aermicioi.aedi.factory.factory;
-import aermicioi.aedi.factory.genericfactory;
+import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.decorator;
 import std.traits;
+import std.typecons;
+import std.range;
+import std.algorithm;
+import std.meta;
 
 import aermicioi.util.traits;
 
-interface ProxyFactory {
-    
-    public {
-        
-        Object factory();
-    }
-}
-
-class ProxyFactoryImpl(Z) : ProxyFactory
-    if (!isFinalClass!Z) {
+/**
+Creates a proxy to an object or interface of type T,
+that is located in source locator by some identity.
+**/
+class ProxyFactory(T) : Factory!T
+    if (
+        (
+            is(T == class) && 
+            !isFinalClass!T &&
+            !isAbstractClass!T
+        ) ||
+        (is(T == interface))
+    ) {
     
     private {
         string identity_;
-        Locator!() originalLocator_;
+        Locator!() source_;
     }
     
     public {
         
-        this() {
-            
-        }
-        
         this(string identity, Locator!() original) {
             this.identity = identity;
-            this.originalLocator = originalLocator;
+            this.source = source;
         }
         
-        Object factory() {
-            auto proxy = new Proxy!Z;
+        T factory() {
+            auto proxy = new Proxy!T;
             proxy.__id__ = this.identity;
-            proxy.__locator__ = this.originalLocator;
+            proxy.__locator__ = this.source;
             
             return proxy;
         }
         
         @property {
+            /**
+            Set the identity of proxied object
+
+            Params:
+            	identity = the identity of proxied object
             
-            ProxyFactoryImpl identity(string identity) {
+            Returns:
+            	this
+            **/
+            ProxyFactory!T identity(string identity) {
             	this.identity_ = identity;
             
             	return this;
             }
             
+            /**
+            Get the identity of proxied object.
+            
+            Returns:
+            	string identity
+            **/
             string identity() {
             	return this.identity_;
             }
             
-            ProxyFactoryImpl originalLocator(Locator!() originalLocator) {
-            	this.originalLocator_ = originalLocator;
+            /**
+            Set the source of proxied object.
+            
+            Params:
+            	source = source locator where proxied object resides.
+            
+            Returns:
+            	this
+            **/
+            ProxyFactory!T source(Locator!() source) {
+            	this.source_ = source;
             
             	return this;
             }
             
-            Locator!() originalLocator() {
-            	return this.originalLocator_;
+            /**
+            Get the source of proxied object.
+            
+            Returns:
+            	Locator!() source
+            **/
+            Locator!() source() {
+            	return this.source_;
             }
         }
     }
 }
 
-template Proxy(T)
-    if (is(T == class) && !isFinalClass!T) {
-    import std.typecons;
-    import std.range;
-    import std.algorithm;
-    import std.traits;
-    import std.meta;
+/**
+Auto implements a proxy for object or interface of type T which
+is not a final or abstract class.
+
+Warning:
+    Current implmentation uses AutoImplement from phobos which
+    has some unfixed bugs.
+**/
+template ProxyImpl(T)
+    if (
+        (
+            is(T == class) && 
+            !isFinalClass!T &&
+            !isAbstractClass!T
+        ) ||
+        is(T == interface)
+    ) {
     
     static class ProxyImpl : T {
         private {
@@ -114,41 +159,44 @@ template Proxy(T)
         public {
             
             this() {
-
+                super();
             }
         }
         
         @property public {
-            ProxyImpl __locator__(Locator!() locator) @safe nothrow @nogc pure {
+            ProxyImpl __locator__(Locator!() locator) @safe nothrow @nogc {
             	this.__locator_ = locator;
             
             	return this;
             }
             
-            Locator!() __locator__() @safe nothrow @nogc pure {
+            Locator!() __locator__() @safe nothrow @nogc {
             	return this.__locator_;
             }
             
-            ProxyImpl __id__(string id) @safe nothrow @nogc pure {
+            ProxyImpl __id__(string id) @safe nothrow @nogc {
             	this.__id_ = id;
             
             	return this;
             }
             
-            string __id__() @safe nothrow @nogc pure {
+            string __id__() @safe nothrow @nogc {
             	return this.__id_;
             }
         }
-        
     }
-    
-    string how(C, alias fun)() {
+}
+
+template how(T) {
+    static string how(C, alias fun)() {
         string stmt = "
             import aermicioi.aedi.storage.locator;
+            import aermicioi.aedi.exception.di_exception;
+            import aermicioi.aedi.factory.proxy_factory;
         " ~  identifier!C ~ " original;
             try {
-                original = this.__locator__.locate!(" ~ name!T ~ ")(this.__id__);
-            } catch (Exception e) {
+                original = this.__locator__.locate!(" ~ fullyQualifiedName!T ~ ")(this.__id__);
+            } catch (AediException e) {
                 assert(false, \"Failed to fetch \" ~ __id__ ~ \" in proxy object.\");
             }
         ";
@@ -165,71 +213,101 @@ template Proxy(T)
         
         return stmt;
     }
-    pragma(msg, ProxyImpl);
+}
     
-    alias Proxy = AutoImplement!(ProxyImpl, how, templateAnd!(
-            templateNot!isFinalFunction
-    ));
+alias Proxy(T) = AutoImplement!(ProxyImpl!T, how!T, templateAnd!(
+        templateNot!isFinalFunction
+));
+    
+/**
+A ProxyObjectFactory instantiates a proxy to some type of object located in source locator.
+**/
+interface ProxyObjectFactory : ObjectFactory {
+    
+    @property {
+        
+        /**
+        Get the identity of original object that proxy factory will intantiate proxy object.
+        
+        Returns:
+        	string the original object identity
+        **/
+        string identity() @safe nothrow;
+        
+        /**
+        Get the original locator that is used by proxy to fetch the proxied object.
+        
+        Returns:
+        	Locator!() original locator containing the proxied object.
+        **/
+        Locator!() source() @safe nothrow;
+    }
 }
 
-//template Proxy(T)
-//    if (is(T == class) && !isFinalClass!T) {
-//    import std.typecons;
-//    import std.range;
-//    import std.algorithm;
-//    
-//    alias Proxy = Identity!(mixin(makeProxy));
-//    
-//    string makeProxy() {
-//        string clss = q{
-//            
-//            class ProxyImpl : T {
-//                private {
-//                
-//                    Locator!() locator_;
-//                    string id;
-//                }
-//                
-//                @property public {
-//                    ProxyImpl __locator__(Locator!() locator) {
-//                    	this.locator_ = locator;
-//                    
-//                    	return this;
-//                    }
-//                    
-//                    Locator!() __locator__() {
-//                    	return this.locator_;
-//                    }
-//                    
-//                    ProxyImpl __id__(string id) {
-//                    	this.id_ = id;
-//                    
-//                    	return this;
-//                    }
-//                    
-//                    string __id__() {
-//                    	return this.id_;
-//                    }
-//                }
-//                
-//            } ~ __traits(allMembers, T).map!((a) => makeOverload!a).joiner ~ q{
-//            }
-//        };
-//    }
-//    
-//    string makeOverload(string member)() {
-//        
-//        return MemberFunctionsTuple!member.map!(
-//            (a) => makeMethod!(member, fun, Parameters!fun)
-//        ).joiner;
-//    }
-//    
-//    string makeMethod(string name, alias func, parameters...)() {
-//        string overloader = "override " ~ ReturnType!func ~ " " ~ name ~ "(" ~ staticMap!(identifier, parameters") {";
-//        
-//    }
-//    
-//    template typeToString(alias T) {
-//        alias typeToString = fullyQualifiedName!T;
-//    }
-//}
+class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Factory!T)
+    if (is(T : Object) && !isFinalClass!T) {
+    
+    private {
+        ProxyFactory!T decorated_;
+        
+        string identity_;
+        Locator!() source_;
+        Locator!() locator_;
+    }
+    
+    public {
+        this(ProxyFactory!T factory) {
+            this.decorated = factory;
+        }
+        
+        @property {
+            ProxyObjectWrappingFactory!T identity(string identity) @safe nothrow {
+            	this.identity_ = identity;
+            
+            	return this;
+            }
+            
+            string identity() @safe nothrow {
+            	return this.identity_;
+            }
+            
+            ProxyObjectWrappingFactory!T source(Locator!() source) @safe nothrow {
+            	this.source_ = source;
+            
+            	return this;
+            }
+            
+            Locator!() source() @safe nothrow {
+            	return this.source_;
+            }
+            
+            ProxyObjectWrappingFactory!T decorated(ProxyFactory!T decorated) @safe nothrow {
+            	this.decorated_ = decorated;
+            
+            	return this;
+            }
+            
+            ProxyFactory!T decorated() @safe nothrow {
+            	return this.decorated_;
+            }
+            
+            ProxyObjectWrappingFactory!T locator(Locator!() locator) @safe nothrow {
+            	this.locator_ = locator;
+            
+            	return this;
+            }
+            
+            Locator!() locator() @safe nothrow {
+            	return this.locator_;
+            }
+            
+            TypeInfo type() {
+                return this.decorated.type;
+            }
+        }
+        
+        Object factory() {
+            return this.decorated.factory();
+        }
+    }
+}

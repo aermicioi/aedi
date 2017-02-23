@@ -58,7 +58,7 @@ unittest {
     import std.typecons;
     AggregateLocatorImpl!() locator = new AggregateLocatorImpl!();
     ObjectStorage!() storage = new ObjectStorage!();
-    locator.set("parameters", storage);
+    locator.set(storage, "parameters");
     
     storage.register(new Job("Salesman", Currency(20)), "salesman");
     storage.register(new Job("Trader", Currency(20)));
@@ -79,7 +79,7 @@ unittest {
     import std.typecons;
     AggregateLocatorImpl!() locator = new AggregateLocatorImpl!();
     ObjectStorage!() storage = new ObjectStorage!();
-    locator.set("parameters", storage);
+    locator.set(storage, "parameters");
         
     storage.register(10);
     storage.register("A simple string");
@@ -100,7 +100,7 @@ unittest {
     import std.typecons;
     AggregateLocatorImpl!() locator = new AggregateLocatorImpl!();
     ObjectStorage!() storage = new ObjectStorage!();
-    locator.set("parameters", storage);
+    locator.set(storage, "parameters");
     
     locator.registerInto(cast(int) 10, "parameters");
     locator.registerInto("A simple string", "parameters");

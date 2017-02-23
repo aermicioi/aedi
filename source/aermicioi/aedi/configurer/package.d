@@ -42,4 +42,4 @@ Authors:
 module aermicioi.aedi.configurer;
 
 public import aermicioi.aedi.configurer.annotation;
-public import aermicioi.aedi.configurer.configurer;
+public import aermicioi.aedi.configurer.register;
