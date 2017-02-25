@@ -1,0 +1,15 @@
+{
+	"name" : "configuration_primitives",
+	"description" : "Introduction example, to aedi library. Configuration primitives offered by aedi.",
+	"authors" : [ "Alexandru Ermicioi" ],
+	"license" : "BSL-1.0",
+	"targetType" : "executable",
+	"importPaths" : [
+		"./source"
+	],
+	"dependencies" : {
+		"aedi" : {
+			"path" : "../../"
+		}
+	}
+}
