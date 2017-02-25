@@ -11,10 +11,10 @@ feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
 $(BIG $(B Usage ))
 
-As previously stated, aedi implements dependency injection pattern, and is used to
+As previously stated, Aedi implements dependency injection pattern, and is used to
 construct your application's components and wire between them.
 
-The process of configuring your components using aedi consists of following steps:
+The process of configuring your components using Aedi consists of following steps:
 
 $(UL
     $(LI Create a container )
@@ -36,7 +36,7 @@ Next we register a component into container:
     container.register!Color
 ---------------
 
-We register a component by calling .register method on container with type of registered component.
+We register a component by calling .register method on container with type of component.
 Note, that in example we do not end the statement. That's because we have to configure it next:
 ---------------
         .set!"r"(cast(ubyte) 250)
@@ -51,7 +51,7 @@ Once we have registered and configured our components, we need to boot our conta
     container.instantiate();
 ---------------
 
-Container during the boot operation, will do various stuff, including creation and wiring of your components
+Container during boot operation, will do various stuff, including creation and wiring of your components
 between them. It's important to call `container.instantiate()` after all of your application's components 
 are registered into container, otherwise it is not guaranteed that your application will work correctly.
 

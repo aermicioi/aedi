@@ -15,7 +15,8 @@ Minimal example, showed us the simplest case of usage. A Color struct that is
 registered in container and printed afterwards. Clearly the example didn't show
 true purpose of a dependency injection pattern, which is to wire your application's
 components between themselves. In this example we will show how we can do it using
-aedi library.
+Aedi library.
+
 Suppose we have a car, and we want to construct it. Suppose it has three sizes, and
 a color. The most dumbest way to construct such a car is to instantiate it's
 sizes and color right in car's constructor, just like in following example:
@@ -55,12 +56,11 @@ void main() {
 }
 ------------------
 
-Yep now is nicer, we can now configure our car to our needs, yet we'd have tons of such
+New version is nicer, we can now configure our car to our needs, yet we'd have tons of such
 code when, our application will grow, and at some point it will become clunky and hard
-to maintain construction and configuration of our components. An DI library will eliminate such
+to maintain construction and configuration of our components. A DI library will eliminate such
 problems, since it will do construction and configuration of components instead of us.
-Let's see how with help of aedi we can construct a Car. First of all we have to create our container:
-a particular color and size:
+Let's see how with help of Aedi we can construct a Car. First of all, we have to create our container:
 ------------------
 SingletonContainer container = new SingletonContainer;
 ------------------
@@ -78,7 +78,7 @@ Next, we will register Color and Size into container:
         .set!"length"(500UL);
 ------------------
 
-Ok, so we have needed components for Car construction. Next we should define how Car can be
+So currently we have all needed components for Car construction. Next we should define how Car can be
 constructed.
 ------------------
     container.register!Car
@@ -89,31 +89,33 @@ constructed.
 Nice, we've defined how a car can be constructed.
 $(UL
     $(LI Note first line in example, tells container to register a car into it. )
-    $(LI On second line we tell it that car should be constructed using Size struct 
-        present in same container. Note that a special notation `lref!<Type>` is 
+    $(LI On second line we tell it, that car should be constructed using Size struct 
+        present in same container. Note that a special notation `lref!(Type)` is 
         used to denote that argument should be searched in container, 
         and passed afterwards as argument to constructor, or a method. ) 
      $(LI On third line just like on second one, we tell container that 
         color should be assigned to Color struct present in container. )
 
 Ok, now we have defined blueprints for Color, Size, and Car. Now we need
-to boot the container.
+to boot up the container.
 ------------------
     container.instantiate();
 ------------------
 
-Good, seems we have encountered no problems. We can now get newly built car from
+Good, seems we have encountered no problems. We can now get newly car from
 container, and print it's specs:
 ------------------
 container.locate!Car.print;
 ------------------
 
-At end we should see our newly built greeny car:
+At end we should see our newly greeny car:
 ------------------
 You bought a new car with following specs:
 Size:	Size(200, 150, 500)
 Color:	Color(0, 255, 0)
 ------------------
+
+Try example in this module. Modify it, play with it to understand the dependency configuration.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003

@@ -37,7 +37,7 @@ Color:	Color(0, 0, 0)
 We can conclude that we can identify only one car in container by it's type.
 In case, when another configuration of Car is needed, we will have to name that
 configuration. Same problem with only one Color and Size possible to store by
-type is resolved by naming custom variants. Let's take it sequentially, first
+type is resolved by naming custom variants. Let's take it sequentially. First
 let's register two colors into container:
 -----------------
     container.register!Color("color.green") // Register "green" color into container.
@@ -51,7 +51,7 @@ let's register two colors into container:
         .set!"b"(cast(ubyte) 255);
 -----------------
 
-As in example we can see that it's quite simple to name a component in container.
+In example we can see that it's quite simple to name a component in container.
 Just pass name as a string as first argument to register method, and it will be
 saved as "color.green" or any other name/identity. Same process is done 
 when defining two types of sizes (smart, and sedan):
@@ -67,7 +67,7 @@ when defining two types of sizes (smart, and sedan):
         .set!"length"(300UL);
 -----------------
 
-Cool, now having needed types of sizes, and colors we can define our configurations of cars:
+Cool, now having needed types of sizes, and colors we can now define our configurations of cars:
 -----------------
     container.register!Car("sedan.green") // Register a car with sedan sizes and of green color.
         .construct("size.sedan".lref)
@@ -83,16 +83,24 @@ Cool, now having needed types of sizes, and colors we can define our configurati
 -----------------
 
 Now we have three new and shining cars!
-Though, you'll ask yourself: In previous example we used `lref!<Type>` notation to
+Though, you'll ask yourself: In previous example we used `lref!(Type)` notation to
 reference Car's size and color in container, won't we reference same Color and Size
-if we use that notation, for our all three cars? Yes, it's true, when we reference a component by `lref!<Type>`
+if we use that notation, for our all three cars? Yes, it's true, when we reference a component by `lref!(Type)`
 it's basically like saying that "Hey in order to construct our new and shining car, we
 need a color or size identified by it's type!". So in order to reference a color or size
 component by name rather than it's type, we'd use following notation `"my_super_duper_car_color_name".lref`.
 Actually little thing at the end of string ".lref" says that the string passed to configuration
 is actually the name of a component present in container, rather than a simple string.
 
-Let's print the specifications of our newly built cars:
+If you want to get your green sedan from container, locate it like in previous example.
+Just pass as well it's name. Without it how can we identify which one of three cars container
+should give it to you? Check this example:
+-----------------
+container.locate!Car("sedan.green").print("sedan green");
+-----------------
+That's how you should do it when, a named component is required to get from container.
+
+So let's print the resulting specifications of our shiny new cars:
 -----------------
 You bough a new car sedan green with following specs:
 Size:	Size(200, 150, 500)
@@ -104,6 +112,8 @@ You bough a new car smarty blue with following specs:
 Size:	Size(200, 150, 300)
 Color:	Color(0, 0, 255)
 -----------------
+
+Check example below. Play with it, to get the gist of named components.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
