@@ -4,41 +4,50 @@ Aedi, a dependency injection library.
 Aedi is a dependency injection library. It does provide a set of containers that do
 IoC, and an interface to configure application components (structs, objects, etc.) 
 
-$(BIG $(B Aim ))
+Aim:
 
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-$(BIG $(B Usage ))
+Usage:
 
-Sometimes except of basic component, we'd want to have same component but
-with other configuration of dependencies. Let's say that we'd like to have multiple
-configurations of a car. Not just one like in previous example were we learned how to 
-configure container to construct our components. We'd like to have a car
-of sedan sizes of color green and blue, and a car of smart car sizes with blue
-color. Taking a small peek into previous chapter, we'd see that it's possible to
-register only one Car, since it's implicitly identified by it's type. Trying
-to register another in it, will simply replace it with newly registered one.
-Let's try this. Take previous example and right after we register first Car
-register another one:
+This tutorial will show how to register a component with custom identity in container, and
+how to reference components with custom identities. The tutorial is based on car 
+simulation presented in previous example, and will continue to improve it.
+
+Sometimes except of a single implementation of a component, some variations of it
+are desired. In context of car simulation example, imagine that besides
+a car with default parameters, several other are desired with different colors
+or sizes. For example two cars of sedan size with green/blue color, and one car of smart
+sizes of green color. Previous example, explained how to register components
+in container by their type, yet it didn't show how to add multiple instances of same
+component with various dependencies (or how to register a component by custom identity). 
+Trying to register a variation of component by it's type will just overwrite previous one,
+just like in example below: 
+
 -----------------
+    container.register!Car
+        .construct(lref!Size)
+        .set!"color"(lref!Color);
+        
     container.register!Car
         .construct(lref!Size)
         .set!"color"(Color(0, 0, 0));
 -----------------
 
-Let's run modified example. Well see the following output:
+Trying to run previous example with another car added, will print only the last one:
 -----------------
 You bought a new car with following specs:
 Size:	Size(200, 150, 500)
 Color:	Color(0, 0, 0)
 -----------------
 
-We can conclude that we can identify only one car in container by it's type.
-In case, when another configuration of Car is needed, we will have to name that
-configuration. Same problem with only one Color and Size possible to store by
-type is resolved by naming custom variants. Let's take it sequentially. First
-let's register two colors into container:
+Components registered in containers of are identified by a string 
+identifier, which is implicitly assigned to the fully qualified name of a component,
+when no explicit identity is provided. To register a component by custom identity,
+pass the identity as an argument to .register method. Check example 
+below to see how to register a component with custom identity:
+
 -----------------
     container.register!Color("color.green") // Register "green" color into container.
         .set!"r"(cast(ubyte) 0) 
@@ -51,10 +60,7 @@ let's register two colors into container:
         .set!"b"(cast(ubyte) 255);
 -----------------
 
-In example we can see that it's quite simple to name a component in container.
-Just pass name as a string as first argument to register method, and it will be
-saved as "color.green" or any other name/identity. Same process is done 
-when defining two types of sizes (smart, and sedan):
+As with green and blue color, same procedure is done with size component:
 -----------------
     container.register!Size("size.sedan") // Register a size of a generic "sedan" into container
         .set!"width"(200UL) 
@@ -67,7 +73,8 @@ when defining two types of sizes (smart, and sedan):
         .set!"length"(300UL);
 -----------------
 
-Cool, now having needed types of sizes, and colors we can now define our configurations of cars:
+Once components used by cars are present in container, it is time to register car's variations
+in container:
 -----------------
     container.register!Car("sedan.green") // Register a car with sedan sizes and of green color.
         .construct("size.sedan".lref)
@@ -82,25 +89,22 @@ Cool, now having needed types of sizes, and colors we can now define our configu
         .set!"color"("color.blue".lref);
 -----------------
 
-Now we have three new and shining cars!
-Though, you'll ask yourself: In previous example we used `lref!(Type)` notation to
-reference Car's size and color in container, won't we reference same Color and Size
-if we use that notation, for our all three cars? Yes, it's true, when we reference a component by `lref!(Type)`
-it's basically like saying that "Hey in order to construct our new and shining car, we
-need a color or size identified by it's type!". So in order to reference a color or size
-component by name rather than it's type, we'd use following notation `"my_super_duper_car_color_name".lref`.
-Actually little thing at the end of string ".lref" says that the string passed to configuration
-is actually the name of a component present in container, rather than a simple string.
+Take a look at the configuration of those three cars. In previous example to reference
+a dependcy present in container `lref!(Type)` was used to do it. `lref!(Type)`
+denotes a reference to a component present in container which is identified by fully qualified name (FQN)
+of Type. To reference a component which has other identity from type's FQN, 
+use `lref("<identity>")` or `"<identity>".lref` which is in UFCS (unified function call syntax) notation. 
+Container during build will understand that it is a reference, and pass referenced component instead 
+of actual reference to constructor or method.
 
-If you want to get your green sedan from container, locate it like in previous example.
-Just pass as well it's name. Without it how can we identify which one of three cars container
-should give it to you? Check this example:
+To get a component that has custom identity, pass the identity as an argument to locate method:
+
 -----------------
 container.locate!Car("sedan.green").print("sedan green");
 -----------------
-That's how you should do it when, a named component is required to get from container.
 
-So let's print the resulting specifications of our shiny new cars:
+To be sure that all modifications done in this tutorial are working, run the application to see
+following output:
 -----------------
 You bough a new car sedan green with following specs:
 Size:	Size(200, 150, 500)

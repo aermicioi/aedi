@@ -4,17 +4,21 @@ Aedi, a dependency injection library.
 Aedi is a dependency injection library. It does provide a set of containers that do
 IoC, and an interface to configure application components (structs, objects, etc.) 
 
-$(BIG $(B Aim ))
+Aim:
 
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-$(BIG $(B Usage ))
+Usage:
 
-Examples, like examples, but if take the previous one, where we learned how to
-name components in container, you'd ask yourself: How, how can a car be without
-an engine? No it can't, a car must have an engine. Se let's improve previous example
-by adding an engine to it. So let's add a gasoline engine to it:
+In this tutorial, we will talk about design loosely coupled components and
+how Aedi can help in doing this. This tutorial will teach how to register
+components by their interface.
+
+Taking previous example, where we learned how to
+name components in container, you probably asked yourself: How, can a car be without
+an engine? No it can't, a car must have an engine. So let's improve previous example
+by adding a gasoline engine to it:
 ------------------
 class GasolineEngine {
     public {
@@ -73,18 +77,13 @@ class Car {
 }
 ------------------
 
+Now, car can use an engine to propel itself.
 
-Ok, now we can drive our car! It has an engine and therefore it
-can burn gasoline to propel the car.
-
-Yet, at some point in time, you'd like to put in a diesel engine
+Yet, at some point in time, it is decided to put in a diesel engine
 instead of a gasoline one, since it's performance is higher, and
-it's usually more powerful. But what a bummer, we have designed
-our car only with a gasoline engine. We cannot put other type
-of engine, only gasoline one. But since we're in OOP world
-a bright idea have appeared to us! Let's subclass our gasoline
-engine, and make diesel engine from it. Let's add another class
-that subclasses gasoline engine, and defines it's own way of running:
+it's usually more powerful. Since till now we were using a gasoline
+engine, to allow a diesel one, we could subclass gasoline engine
+and implement a diesel engine:
 ------------------
 class DieselEngine : GasolineEngine {
     public {
@@ -101,27 +100,22 @@ class DieselEngine : GasolineEngine {
 }
 ------------------
 
-Nice, we can now put a diesel engine into our car instead of gasoline one.
+Now a diesel engine can be installed into car instead of gasoline one.
 It's a workable solution to do such subclassing in order to implement another behavior,
-yet it's not desired to do in such a way, since a gasoline engine, can change.
-For example, we could add option to fuel it with a certain amount of gasoline:
+yet it's not desired to do in such a way, since we subclass a concrete implementation
+that itself can change over time. For example, we could add option to fuel it with 
+a certain amount of gasoline:
 ------------------
     public void fuel(Gasoline gasoline) {...}
 ------------------
 
-And in this case, we have to think: "ok, a gasoline engine can accept gasoline fuel
-but what about diesel engine that we have subclassed from gasoline one?" It can't
-work on gasoline, it should work on diesel instead. It's a problem, that can occur
-quite often with such designs like above. Anyway we have tried to solve a symptom
-and not the cause of symptom. 
+The desing used previously can only lead to solutions that use workarounds, to allow
+both gasoline and diesel engine work. It is like treating the symptom instead
+of the cause, which in our case is that car can accept only gasoline engine.
 
-So which is the cause of symptom? Clearly its the fact that car accepts only 
-gasoline engine. If we think in depth, wy does a car need to know what kind
-of engine it has installed into? Gasoline or Diesel one? A car should only
-know that an engine can be started, it can run, and it can be stopped. Other
-stuff is implementation details of an engine. Therefore instead of defining our
-car to accept a gasoline engine only, we'd design an interface for engine, through
-which a car can interact with different types of engines. Let's implement the interface:
+A better solution, would be to redesing car to accept engines that are implementing
+some interface, through which it can interact with engines: 
+
 ------------------
 interface Engine {
     public {
@@ -130,11 +124,7 @@ interface Engine {
         void turnOff();
     }
 }
-------------------
 
-Now, having an interface for engines, instead of specifing a gasoline engine in
-car, wed put there an interface to engine:
-------------------
 class Car {
     private {
         Color color_; // Car color
@@ -191,8 +181,8 @@ class Car {
 }
 ------------------
 
-Now let's redesing our gasoline and diesel engines. They should implement now
-Engine interface:
+Once car accepts Engine implementations, both gasoline and diesel engine should
+implement the interface:
 ------------------
 class GasolineEngine : Engine {
     
@@ -231,11 +221,13 @@ class DieselEngine : Engine {
 }
 ------------------
 
-We can now easily substitue diesel engine with gasoline engine, and vice versa.
+The current solution won't suffer from consequences presented before, since
+diesel implementation and gasoline one are not dependent between each other.
 
-Actually entire example presented up to this point talks about the principles
-of dependency injection, and how it should be used, to gain full power from it.
-The di pattern itself it's a particular implementation of inversion of control principle,
+The purpose of the tutorial up to this point is to show basic principle on
+how to design loosely coupled components, which is to model components
+to interact with rest of them by their interfaces instead of direct interaction.
+The DI pattern itself it's a particular implementation of inversion of control principle,
 where a client instead of managing it's dependencies itself, delegates this 
 responsibility to a third party (the injector, or container in our case). By doing
 so, client code won't need to hassle with construction of it's dependencies, or
@@ -243,22 +235,16 @@ what dependency it should use for a particular case, and so on. It has to know
 only how it can interface with it's dependency just like we did with Engine interface
 in last example, and that's all. Therefore, such design encourages highly decoupled components,
 allows us to follow single responsibility principle quite easily.
-During design phase of our applications's components, we design them not to use
-concrete implementations of dependent components, but design them to use interfaces
-implemented by those components.
 
 Yet, up to this point, we didn't talk anything about Aedi library, and how it can help us
-in such case. So let's talk how can Aedi help us to implement seamlessly our example.
-First of all, with help of it, we can define a default implementation of an interface
+in such case. First of all, with help of it, we can define a default implementation of an interface
 that can be used by dependent components. We can register a concrete implementation
 by it's interface like so:
 ------------------
     container.register!(Engine, GasolineEngine);
 ------------------
 
-Here we state that, a GasolineEngine implementation of Engine interface should be
-registered by it's Engine interface, and used everywhere were a component requires
-an Engine implementation. Next let's define our car that uses this engine:
+Next let's define our car that uses this engine:
 ------------------
     container.register!Car("sedan.engine.default") // Register a car with a default engine
         .construct("size.sedan".lref, lref!Engine)
@@ -266,9 +252,8 @@ an Engine implementation. Next let's define our car that uses this engine:
 ------------------
 
 Take a look, here we pass to constructor of a car, a reference to an implementation of 
-Engine interface present in container. Once container will instantiate a Car, it will
-see that an implementation of Engine is required, and therefore will pass it to constructor
-of Car.
+Engine interface present in container. Once container will try to construct car, it will
+see use implementation of Engine that was registered by Engine interface.
 
 Sometimes though, we'd like to have cars that are not with default implementation of interface
 but with some other concrete implementation. Let's define two concrete implementations of Engine:
@@ -277,7 +262,7 @@ but with some other concrete implementation. Let's define two concrete implement
     container.register!DieselEngine; 
 ------------------
 
-Now, let's define two cars, one with gasoline, and other with diesel engine:
+We can now define two cars, one with gasoline, and other with diesel engine:
 ------------------
     container.register!Car("sedan.engine.gasoline") // Register a car with gasoline engine
         .construct("size.sedan".lref, lref!GasolineEngine)
@@ -288,20 +273,16 @@ Now, let's define two cars, one with gasoline, and other with diesel engine:
         .set!"color"("color.green".lref);
 ------------------
 
-See? We've just referenced concrete implementations instead of Engine's default implementation.
-That's all. Now we can boot our container:
+The remaining parts of our tutorial is to boot container and drive created cars:
 ------------------
-container.instantiate();
-------------------
-
-Now let's try to drive those three cars:
-------------------
+    container.instantiate();
+    
     container.locate!Car("sedan.engine.default").drive("Default car");
     container.locate!Car("sedan.engine.gasoline").drive("Gasoline car");
     container.locate!Car("sedan.engine.diesel").drive("Diesel car");
 ------------------
 
-We'd see the following output:
+Upon driving, we'd see the following output:
 ------------------
 Uuh, what a nice car, Default car with following specs:
 Size:	Size(200, 150, 500)

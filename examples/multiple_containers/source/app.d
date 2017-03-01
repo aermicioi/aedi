@@ -4,12 +4,12 @@ Aedi, a dependency injection library.
 Aedi is a dependency injection library. It does provide a set of containers that do
 IoC, and an interface to configure application components (structs, objects, etc.) 
 
-$(BIG $(B Aim ))
+Aim:
 
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-$(BIG $(B Usage ))
+Usage:
 
 In this tutorial, we're going to learn more about containers, and how we
 can use them together to build a more sophisticated construction/wiring logic.
@@ -414,6 +414,9 @@ class ElectricEngine : Engine {
     }
 }
 
+/**
+Tire, what it can represent else?
+**/
 class Tire {
     private {
         int size_;

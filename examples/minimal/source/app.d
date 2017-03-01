@@ -4,64 +4,60 @@ Aedi, a dependency injection library.
 Aedi is a dependency injection library. It does provide a set of containers that do
 IoC, and an interface to configure application components (structs, objects, etc.) 
 
-$(BIG $(B Aim ))
-
+Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-$(BIG $(B Usage ))
-
-As previously stated, Aedi implements dependency injection pattern, and is used to
-construct your application's components and wire between them.
-
-The process of configuring your components using Aedi consists of following steps:
+Usage:
+The process of configuring components using Aedi consists of following steps:
 
 $(UL
     $(LI Create a container )
-    $(LI Register an application component. By components, we define any objects, structs, etc. )
+    $(LI Register an application component. Any data (struct, object, union, etc) is treated as application component. )
     $(LI Write a wiring configuration )
     $(LI Repeat process for other components. )
     $(LI Boot container )
 )
 
-First of all we should create a container:
+First of all a container should be created:
 ---------------
     SingletonContainer container = new SingletonContainer;
 ---------------
 
-Container is responsible for storing, and managing our application's components.
+Container is responsible for storing, and managing application's components.
 
-Next we register a component into container:
+Next, register component into container:
 ---------------
     container.register!Color
 ---------------
 
-We register a component by calling .register method on container with type of component.
-Note, that in example we do not end the statement. That's because we have to configure it next:
+Component is registered by calling .register method on container with type of component.
+Note, that in example we do not end the statement. That's because component should be 
+configured next:
 ---------------
         .set!"r"(cast(ubyte) 250)
         .set!"g"(cast(ubyte) 210)
         .set!"b"(cast(ubyte) 255);
 ---------------
 
-As we, see here we configured rgb colors to specific values. Take a look at end of example.
-We see that it ends in `;` hence it states that it's end of statement and Color registration.
-Once we have registered and configured our components, we need to boot our container:
+.set method configures component properties to specific values (setter injection in other words).
+Note the example ends in `;` which means that it's end of statement and Color registration/configuration.
+Once components are registered and configured, container needs to be booted (instantiated):
 ---------------
     container.instantiate();
 ---------------
 
-Container during boot operation, will do various stuff, including creation and wiring of your components
-between them. It's important to call `container.instantiate()` after all of your application's components 
-are registered into container, otherwise it is not guaranteed that your application will work correctly.
+Container during boot operation, will do various stuff, including creation and wiring of components
+between them. It's important to call `container.instantiate()` after all application's components 
+have been registered into container, otherwise it is not guaranteed that application will work correctly.
 
-Once container is booted, we can use components that are stored in it. 
+Once container is booted, components in it are available for use. 
 To fetch it use locate method like in following example:
 --------------- 
 container.locate!Color.print;
 ---------------
 
-Try running the example, and you'll see in output the Color that was registered in container.
+Try running the example, the output of example will be the Color that was registered in container.
 ---------------
 Color is:	Color(250, 210, 255)
 ---------------
