@@ -1,0 +1,15 @@
+{
+	"name" : "value_container",
+	"description" : "Introduction example, to aedi library. Container for values.",
+	"authors" : [ "Alexandru Ermicioi" ],
+	"license" : "BSL-1.0",
+	"targetType" : "executable",
+	"importPaths" : [
+		"./source"
+	],
+	"dependencies" : {
+		"aedi" : {
+			"path" : "../../"
+		}
+	}
+}

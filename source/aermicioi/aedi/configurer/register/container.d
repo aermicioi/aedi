@@ -31,7 +31,7 @@ module aermicioi.aedi.configurer.register.container;
 
 import aermicioi.aedi.container;
 
-auto singletion() {
+auto singleton() {
     return new SingletonContainer();
 }
 
