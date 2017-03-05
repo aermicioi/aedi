@@ -1,0 +1,15 @@
+{
+	"name" : "extending_generic_factory",
+	"description" : "Internals example, of aedi library. Extending generic factory components, with own components.",
+	"authors" : [ "Alexandru Ermicioi" ],
+	"license" : "BSL-1.0",
+	"targetType" : "executable",
+	"importPaths" : [
+		"./source"
+	],
+	"dependencies" : {
+		"aedi" : {
+			"path" : "../../"
+		}
+	}
+}
