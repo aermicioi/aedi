@@ -1,0 +1,15 @@
+{
+	"name" : "extending_containers",
+	"description" : "Internals example, of aedi library. Creating your own component container.",
+	"authors" : [ "Alexandru Ermicioi" ],
+	"license" : "BSL-1.0",
+	"targetType" : "executable",
+	"importPaths" : [
+		"./source"
+	],
+	"dependencies" : {
+		"aedi" : {
+			"path" : "../../"
+		}
+	}
+}
