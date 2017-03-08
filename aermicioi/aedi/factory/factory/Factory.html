@@ -20,14 +20,42 @@
 							<li class="collapsed tree-view">
 								<a href="#" class="package">configurer</a>
 						<ul class="tree-view">
+							<li class="collapsed tree-view">
+								<a href="#" class="package">annotation</a>
+						<ul class="tree-view">
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/annotation.html" class=" module">Package members</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/annotation/annotation.html" class=" module">annotation</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/annotation/component_scan.html" class=" module">component_scan</a>
+							</li>
+						</ul>
+							</li>
+							<li class="collapsed tree-view">
+								<a href="#" class="package">register</a>
+						<ul class="tree-view">
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/register.html" class=" module">Package members</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/register/environment.html" class=" module">environment</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/register/factory_configurer.html" class=" module">factory_configurer</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/register/generic_factory_metadata_decorator.html" class=" module">generic_factory_metadata_decorator</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/configurer/register/register.html" class=" module">register</a>
+							</li>
+						</ul>
+							</li>
 							<li>
 								<a href="../../../../aermicioi/aedi/configurer.html" class=" module">Package members</a>
-							</li>
-							<li>
-								<a href="../../../../aermicioi/aedi/configurer/annotation.html" class=" module">annotation</a>
-							</li>
-							<li>
-								<a href="../../../../aermicioi/aedi/configurer/configurer.html" class=" module">configurer</a>
 							</li>
 						</ul>
 							</li>
@@ -59,6 +87,9 @@
 								<a href="../../../../aermicioi/aedi/container/singleton_container.html" class=" module">singleton_container</a>
 							</li>
 							<li>
+								<a href="../../../../aermicioi/aedi/container/subscribable_container.html" class=" module">subscribable_container</a>
+							</li>
+							<li>
 								<a href="../../../../aermicioi/aedi/container/switchable_container.html" class=" module">switchable_container</a>
 							</li>
 						</ul>
@@ -76,6 +107,9 @@
 								<a href="../../../../aermicioi/aedi/exception/di_exception.html" class=" module">di_exception</a>
 							</li>
 							<li>
+								<a href="../../../../aermicioi/aedi/exception/instance_factory_exception.html" class=" module">instance_factory_exception</a>
+							</li>
+							<li>
 								<a href="../../../../aermicioi/aedi/exception/invalid_cast_exception.html" class=" module">invalid_cast_exception</a>
 							</li>
 							<li>
@@ -83,6 +117,9 @@
 							</li>
 							<li>
 								<a href="../../../../aermicioi/aedi/exception/not_found_exception.html" class=" module">not_found_exception</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/exception/property_configurer_exception.html" class=" module">property_configurer_exception</a>
 							</li>
 						</ul>
 							</li>
@@ -93,13 +130,19 @@
 								<a href="../../../../aermicioi/aedi/factory.html" class=" module">Package members</a>
 							</li>
 							<li>
+								<a href="../../../../aermicioi/aedi/factory/decorating_factory.html" class=" module">decorating_factory</a>
+							</li>
+							<li>
 								<a href="../../../../aermicioi/aedi/factory/factory.html" class="selected module">factory</a>
 							</li>
 							<li>
-								<a href="../../../../aermicioi/aedi/factory/genericfactory.html" class=" module">genericfactory</a>
+								<a href="../../../../aermicioi/aedi/factory/generic_factory.html" class=" module">generic_factory</a>
 							</li>
 							<li>
 								<a href="../../../../aermicioi/aedi/factory/proxy_factory.html" class=" module">proxy_factory</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/factory/reference.html" class=" module">reference</a>
 							</li>
 						</ul>
 							</li>
@@ -114,6 +157,12 @@
 							</li>
 							<li>
 								<a href="../../../../aermicioi/aedi/storage/alias_aware.html" class=" module">alias_aware</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/storage/container.html" class=" module">container</a>
+							</li>
+							<li>
+								<a href="../../../../aermicioi/aedi/storage/decorator.html" class=" module">decorator</a>
 							</li>
 							<li>
 								<a href="../../../../aermicioi/aedi/storage/delegating_locator.html" class=" module">delegating_locator</a>
@@ -144,6 +193,9 @@
 							<li class="collapsed tree-view">
 								<a href="#" class="package">configurer</a>
 						<ul class="tree-view">
+							<li>
+								<a href="../../../../aermicioi/aedi/test/configurer/annotation.html" class=" module">annotation</a>
+							</li>
 							<li>
 								<a href="../../../../aermicioi/aedi/test/configurer/configurer.html" class=" module">configurer</a>
 							</li>
@@ -227,44 +279,19 @@ $('#symbolSearchPane').show();
 		<div id="main-contents">
 			<h1>Interface Factory</h1>
 			<section>
-				<p>Interface for objects that create objects.
+				<p>Interface for objects able to create some instance of type T.
 </p>
-<section><p>It is used to store different types of object factories in DI containers.
-Any factory extending this interface will encapsulate logic required to construct an object that will be
-setd by DI container to client application.
-If there is need to implement custom logic for creation of some kind of objects, a client should encapsulate
-factory logic into a class which inherits Factory interface, afterwards, this factory will be acceptable by all
-DI containers, and DI containers will call this factory when a new object is required.
+<section><p>Intent of this interface is to provide a single entry for objects, able to
+instantiate something.
 </p>
 </section>
 
 					<section>
-						<h3>Inherits from</h3>
-						<ul>
-							<li>
-								<code class="prettyprint lang-d"><span class="pln">aermicioi<wbr/></span><span class="pun">.</span><span class="pln">aedi<wbr/></span><span class="pun">.</span><span class="pln">storage<wbr/></span><span class="pun">.</span><span class="pln">locator_aware<wbr/></span><span class="pun">.</span><span class="typ">LocatorAware</span>!(object.Object,string)</code>
-							</li>
-						</ul>
-					</section>
-					<section>
-						<h3>Properties</h3>
-						<table>
-							<col class="caption"/>
-							<tr>
-								<th>Name</th>
-								<th>Type</th>
-								<th>Description</th>
-							</tr>
-							<tr>
-								<td>
-									<a href="../../../../aermicioi/aedi/factory/factory/Factory.type.html" class="public property"><code>type</code></a>
-									<span class="tableEntryAnnotation">[get]</span>
-								</td>
-								<td class="typecol"><code class="prettyprint lang-d"><span class="typ">TypeInfo</span></code></td>
-								<td>Get the type info of object that is created.
-</td>
-							</tr>
-						</table>
+						<h3>Template arguments</h3>
+						<div class="prototype">
+							<code class="lang-d"><span class="kwd">interface</span> <span class="typ">Factory</span><span class="pun">(</span><span class="pln">T</span><span class="pun">)</span>;
+							</code>
+						</div>
 					</section>
 					<section>
 						<h3>Methods</h3>
@@ -280,7 +307,16 @@ DI containers, and DI containers will call this factory when a new object is req
 										<code>factory</code>
 									</a>
 								</td>
-								<td>Factories an object of a certain type.
+								<td>Instantiates something of type T.
+</td>
+							</tr>
+							<tr>
+								<td>
+									<a href="../../../../aermicioi/aedi/factory/factory/Factory.type.html" class="public">
+										<code>type</code>
+									</a>
+								</td>
+								<td>Get the type info of T that is created.
 </td>
 							</tr>
 						</table>
