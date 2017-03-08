@@ -4,10 +4,10 @@ containers/containers (singleton, prototype, etc.) as well as other data.
 
 See:
 $(UL
-    $(LI configurer.d -> implements a cleaner api for registering objects into 
+    $(LI register package -> implements a cleaner api for registering objects into 
     containers/containers, instead of manually storing factories into
     containers/containers. )
-    $(LI annotation.d -> implements annotation based logic of object registration
+    $(LI annotation package -> implements annotation based logic of object registration
     into containers/containers. )
     ) 
 

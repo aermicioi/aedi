@@ -1,4 +1,6 @@
 /**
+Provides annotation based configuration and registration for components.
+
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
 

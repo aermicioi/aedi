@@ -253,7 +253,7 @@ Next let's define our car that uses this engine:
 
 Take a look, here we pass to constructor of a car, a reference to an implementation of 
 Engine interface present in container. Once container will try to construct car, it will
-see use implementation of Engine that was registered by Engine interface.
+use implementation of Engine that was registered by Engine interface.
 
 Sometimes though, we'd like to have cars that are not with default implementation of interface
 but with some other concrete implementation. Let's define two concrete implementations of Engine:

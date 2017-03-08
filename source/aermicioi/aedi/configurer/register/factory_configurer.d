@@ -1,5 +1,6 @@
 /**
-This module provides api based configuration of containers.
+This module provides fluent api based configuration of components with custom 
+configuration errors.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
@@ -336,6 +337,7 @@ auto tag(T, Z)(MetadataDecoratedGenericFactory!T factory, auto ref Z tag) {
         factory.wrapper = taggableDecorator;
         
         taggable = taggableDecorator;
+        factory.storage.set(factory.wrapper, factory.identity);
     }
     
     taggable.tag(tag);
@@ -373,31 +375,28 @@ auto tag(T, Z)(MetadataDecoratedGenericFactory!T factory, auto ref Z tag) {
 //    return factory;
 //}
 
-package {
+/**
+Find a decorator in decorator chain that implements Needle type.
+
+Find a decorator in decorator chain that implements Needle type.
+
+Params:
+	Needle = the type searched decorator should implement
+	Haystack = type of the chain of decorators through which to traverse
+	decorated = top of decorator chain.
+
+Returns:
+	Decorator or null if not found.
+**/
+Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) {
     
-    /**
-    Find a decorator in decorator chain that implements Needle type.
+    Haystack decorator = cast(Haystack) decorated;
+    Needle needle = cast(Needle) decorated;
     
-    Find a decorator in decorator chain that implements Needle type.
-    
-    Params:
-    	Needle = the type searched decorator should implement
-    	Haystack = type of the chain of decorators through which to traverse
-    	decorated = top of decorator chain.
-    
-    Returns:
-    	Decorator or null if not found.
-    **/
-    Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) {
-        
-        Haystack decorator = cast(Haystack) decorated;
-        Needle needle = cast(Needle) decorated;
-        
-        while ((needle is null) && (decorator !is null)) {
-            decorator = cast(Haystack) decorator.decorated;
-            needle = cast(Needle) decorator;
-        }
-        
-        return needle;
+    while ((needle is null) && (decorator !is null)) {
+        decorator = cast(Haystack) decorator.decorated;
+        needle = cast(Needle) decorator;
     }
+    
+    return needle;
 }

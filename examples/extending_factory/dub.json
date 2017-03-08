@@ -1,6 +1,6 @@
 {
 	"name" : "extending_factory",
-	"description" : "Internals example, of aedi library. Extending component factories, own factory.",
+	"description" : "Internals example, of aedi library. Extending component factories, with own factory.",
 	"authors" : [ "Alexandru Ermicioi" ],
 	"license" : "BSL-1.0",
 	"targetType" : "executable",

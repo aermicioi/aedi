@@ -1,6 +1,6 @@
 {
 	"name" : "decorating_containers",
-	"description" : "Introduction example, to aedi library. Decorating types of containers.",
+	"description" : "Advanced example, of aedi library. Decorating containers.",
 	"authors" : [ "Alexandru Ermicioi" ],
 	"license" : "BSL-1.0",
 	"targetType" : "executable",

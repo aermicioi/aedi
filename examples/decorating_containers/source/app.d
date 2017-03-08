@@ -144,7 +144,7 @@ $(OL
 )
 
 With help of them it is possible to customize behavior of container (and not only). It is possible
-for example to scan all components in a container, select some of them, and them to other component,
+for example to scan all components in a container, select some of them, and add them to other component,
 and so on.
 
 Try running this example. Experiment with it, to understand decorating containers.

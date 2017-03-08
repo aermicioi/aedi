@@ -31,10 +31,11 @@ Authors:
 module aermicioi.aedi.container.factory;
 
 import aermicioi.aedi.factory.factory;
+import aermicioi.aedi.factory.decorating_factory;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.storage.locator;
 
-public class InProcessObjectFactoryDecorator : ObjectFactory {
+public class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
     
     private {
         ObjectFactory decorated_;
@@ -86,7 +87,7 @@ public class InProcessObjectFactoryDecorator : ObjectFactory {
     }
 }
 
-package class ExceptionChainingObjectFactory : ObjectFactory {
+package class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
     
     private {
         ObjectFactory decorated_;
