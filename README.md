@@ -41,10 +41,13 @@ feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
 Add Aedi library as a dependency to a dub project:
 
+Json configuration:
+
 ```json
 "aedi": "~>0.2.0"
 ```
 
+SDL configuration:
 ```sdl
 dependency "aedi" version="~>0.2.0"
 ```
