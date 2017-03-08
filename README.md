@@ -1,4 +1,4 @@
-# Aedi, a dependency injection library. 
+# Aedi, a dependency injection framework. 
 
 [![Dub license](https://img.shields.io/dub/l/aedi.svg)]()
 [![Travis CI](https://img.shields.io/travis/aermicioi/aedi/master.svg)](https://travis-ci.org/aermicioi/aedi)
@@ -6,40 +6,24 @@
 [![Dub version](https://img.shields.io/dub/v/aedi.svg)](https://code.dlang.org/packages/aedi)
 [![Dub downloads](https://img.shields.io/dub/dt/aedi.svg)](https://code.dlang.org/packages/aedi)
 
-Aedi is a dependency injection library. It does provide a set of containers that do
+Aedi is a dependency injection framework. It provides a set of containers that do
 IoC, and an interface to configure application components (structs, objects, etc.) 
 
 ## Aim
 
-The aim of library is to provide a dependency injection solution that is
+The aim of framework is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-## Why should it be used
+## Features
 
-1.  Decouples components in your application. 
-2.  Decreases hassle with application components setup (wiring and creation) 
-3.  Increases code reusability (since no dependencies are created in dependent objects.) 
-4.  Allows easier to test code that is dependent on other components 
-5.  Eases the implementation single responsibility principle in components
+- Configuration through code or annotations.
+- Modular design.
+- Documentation. Usage tutorial as well api documentation is available (check Documentation section).
+- Unittested.
 
-### Features
+## Installation
 
-1. Configuration through code or annotations.
-2. Documentation: usage tutorial as well api documentation is available (check Documentation section).
-3. Unittested.
-4. Easy to extend up to your needs (check extending tutorials in wiki).
-
-## When should it be used
-
-1.  When an application has to be highly configurable. 
-2.  When an application has a high number of interdependent components. 
-3.  When doing unit testing of highly dependent components. 
-    
-## How should it be used
-
-### Install
-
-Add Aedi library as a dependency to a dub project:
+Add Aedi as a dependency to a dub project:
 
 Json configuration:
 
@@ -48,11 +32,12 @@ Json configuration:
 ```
 
 SDL configuration:
+
 ```sdl
 dependency "aedi" version="~>0.2.0"
 ```
 
-### Quickstart
+## Quickstart
 
 1. Create a container
 2. Register an application component. Any data (struct, object, union, etc) is treated as application component.
@@ -63,10 +48,9 @@ dependency "aedi" version="~>0.2.0"
 First of all a container should be created:
 
 ```D
+	// Containers are responsible for storing, and managing application's components.
     SingletonContainer container = new SingletonContainer;
 ```
-
-Container is responsible for storing, and managing application's components.
 
 Next, register component into container:
 
@@ -74,7 +58,7 @@ Next, register component into container:
     container.register!Color
 ```
 
-Component is registered by calling .register method on container with type of component.
+Component is registered by calling `.register` method on container with type of component.
 Note, that in example we do not end the statement. That's because component should be 
 configured next:
 
@@ -84,7 +68,7 @@ configured next:
         .set!"b"(cast(ubyte) 255);
 ```
 
-.set method configures component properties to specific values (setter injection in other words).
+`.set` method configures component properties to specific values (setter injection in other words).
 Note the example ends in `;` which means that it's end of statement and Color registration/configuration.
 Once components are registered and configured, container needs to be booted (instantiated):
 
@@ -113,5 +97,5 @@ Color is:	Color(250, 210, 255)
 
 All public api documentation is available on [aermicioi.github.io/aedi/](https://aermicioi.github.io/aedi/).
 
-For a more comprehensive understanding of how library should be used, a set of tutorials are available on
+For a more comprehensive understanding of how framework should be used, a set of tutorials are available on
 github [wiki](https://github.com/aermicioi/aedi/wiki).
