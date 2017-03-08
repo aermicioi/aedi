@@ -41,6 +41,12 @@
 								<a href="../aermicioi/aedi/configurer/register.html" class=" module">Package members</a>
 							</li>
 							<li>
+								<a href="../aermicioi/aedi/configurer/register/container.html" class=" module">container</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/configurer/register/contextual_register.html" class=" module">contextual_register</a>
+							</li>
+							<li>
 								<a href="../aermicioi/aedi/configurer/register/environment.html" class=" module">environment</a>
 							</li>
 							<li>
@@ -165,9 +171,6 @@
 								<a href="../aermicioi/aedi/storage/decorator.html" class=" module">decorator</a>
 							</li>
 							<li>
-								<a href="../aermicioi/aedi/storage/delegating_locator.html" class=" module">delegating_locator</a>
-							</li>
-							<li>
 								<a href="../aermicioi/aedi/storage/locator.html" class=" module">locator</a>
 							</li>
 							<li>
@@ -205,7 +208,50 @@
 								<a href="#" class="package">container</a>
 						<ul class="tree-view">
 							<li>
-								<a href="../aermicioi/aedi/test/container/container.html" class=" module">container</a>
+								<a href="../aermicioi/aedi/test/container/application_container.html" class=" module">application_container</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/container/factory.html" class=" module">factory</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/container/inheritance_container.html" class=" module">inheritance_container</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/container/prototype_container.html" class=" module">prototype_container</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/container/singleton_container.html" class=" module">singleton_container</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/container/subscribable_container.html" class=" module">subscribable_container</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/container/switchable_container.html" class=" module">switchable_container</a>
+							</li>
+						</ul>
+							</li>
+							<li class="collapsed tree-view">
+								<a href="#" class="package">exception</a>
+						<ul class="tree-view">
+							<li>
+								<a href="../aermicioi/aedi/test/exception/exception.html" class=" module">exception</a>
+							</li>
+						</ul>
+							</li>
+							<li class="collapsed tree-view">
+								<a href="#" class="package">factory</a>
+						<ul class="tree-view">
+							<li>
+								<a href="../aermicioi/aedi/test/factory/decorating_factory.html" class=" module">decorating_factory</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/factory/factory.html" class=" module">factory</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/factory/generic_factory.html" class=" module">generic_factory</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/factory/reference.html" class=" module">reference</a>
 							</li>
 						</ul>
 							</li>
@@ -213,15 +259,21 @@
 								<a href="#" class="package">storage</a>
 						<ul class="tree-view">
 							<li>
+								<a href="../aermicioi/aedi/test/storage/aggregate_locator.html" class=" module">aggregate_locator</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/storage/locator.html" class=" module">locator</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aedi/test/storage/object_storage.html" class=" module">object_storage</a>
+							</li>
+							<li>
 								<a href="../aermicioi/aedi/test/storage/storage.html" class=" module">storage</a>
 							</li>
 						</ul>
 							</li>
 							<li>
 								<a href="../aermicioi/aedi/test/example.html" class=" module">example</a>
-							</li>
-							<li>
-								<a href="../aermicioi/aedi/test/factory.html" class=" module">factory</a>
 							</li>
 							<li>
 								<a href="../aermicioi/aedi/test/fixture.html" class=" module">fixture</a>
@@ -233,6 +285,27 @@
 							</li>
 							<li>
 								<a href="../aermicioi/aedi.html" class="selected module">Package members</a>
+							</li>
+						</ul>
+							</li>
+							<li class="collapsed tree-view">
+								<a href="#" class="package">aermicioi</a>
+						<ul class="tree-view">
+							<li class="collapsed tree-view">
+								<a href="#" class="package">aedi</a>
+						<ul class="tree-view">
+							<li class="collapsed tree-view">
+								<a href="#" class="package">test</a>
+						<ul class="tree-view">
+							<li>
+								<a href="../aermicioi/aermicioi/aedi/test/environment.html" class=" module">environment</a>
+							</li>
+							<li>
+								<a href="../aermicioi/aermicioi/aedi/test/factory_configurer.html" class=" module">factory_configurer</a>
+							</li>
+						</ul>
+							</li>
+						</ul>
 							</li>
 						</ul>
 							</li>
@@ -280,16 +353,30 @@ $('#symbolSearchPane').show();
 			<h1>Module aermicioi.aedi</h1>
 			<p>Aedi, a dependency injection library.
 </p>
-<section><p><b>Why should it be used: </b>
-<ul>    <li>Eases the development of applications by taking the task of wiring the
-    interdependent code (objects). </li>
-    <li>Helps in decopling of different components of application. </li>
-    <li>Eases the management of dependencies between application components. </li>
+<section><p>Aedi is a dependency injection library. It does provide a set of containers that do
+IoC, and an interface to configure application components (structs, objects, etc.)
+</p>
+
+<p><b>Aim: </b>
+</p>
+
+<p>The aim of library is to provide a dependency injection solution that is
+feature rich, easy to use, easy to learn, and easy to extend up to your needs.
+</p>
+
+<p><b>Why should it be used: </b>
+<ul>    <li>Decouples components in your application. </li>
+    <li>Decreases hassle with application components setup (wiring and creation) </li>
+    <li>Increases code reusability (since no dependencies are created in dependent objects.) </li>
+    <li>Allows easier to test code that is dependent on other components </li>
+    <li>Eases the implementation single responsibility principle in components </li>
     </ul>
 </p>
 
 <p><b>When should it be used: </b>
-<ul>    <li>When a project has a high number of interdependent components. </li>
+<ul>    <li>When an application has to be highly configurable. </li>
+    <li>When an application has a high number of interdependent components. </li>
+    <li>When doing unit testing of highly dependent components. </li>
     </ul>
 </p>
 
@@ -299,733 +386,53 @@ $('#symbolSearchPane').show();
 <p>It's simple:
 </p>
 
-<p><ol>    <li>Spawn a container. </li>
-    <li>Register an object. </li>
-    <li>Configure object. </li>
-    <li>Repeat 2-3, if another object needs to be in container. </li>
-    <li>Done </li>
-    </ol>
-</p>
-
-<p>Here is an example:
-</p>
-<pre class="code"><code class="lang-d"><span class="pun">@</span><span class="pln">component
-</span><span class="kwd">struct </span><span class="typ">Color </span><span class="pun">{
-    @</span><span class="pln">setter</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">200</span><span class="pun">)
-    </span><span class="typ">ubyte </span><span class="pln">r</span><span class="pun">;
-
-    @</span><span class="pln">setter</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">200</span><span class="pun">)
-    </span><span class="typ">ubyte </span><span class="pln">g</span><span class="pun">;
-
-    @</span><span class="pln">setter</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">200</span><span class="pun">)
-    </span><span class="typ">ubyte </span><span class="pln">b</span><span class="pun">;
-}
-
-@</span><span class="pln">component
-</span><span class="kwd">struct </span><span class="typ">Size </span><span class="pun">{
-
-    @</span><span class="pln">setter</span><span class="pun">(</span><span class="lit">295</span><span class="pun">)
-    </span><span class="typ">ulong </span><span class="pln">width</span><span class="pun">;
-
-    @</span><span class="pln">setter</span><span class="pun">(</span><span class="lit">210</span><span class="pun">)
-    </span><span class="typ">ulong </span><span class="pln">height</span><span class="pun">;
-}
-
-@</span><span class="pln">component </span><span class="com">// mark an aggregate as a component managed by di container.
-</span><span class="pun">@</span><span class="pln">qualifier</span><span class="pun">(</span><span class="str">"page.paper"</span><span class="pun">) </span><span class="com">// use it, to name a component other that by it's type.
-</span><span class="kwd">class </span><span class="typ">Paper </span><span class="pun">{
-    </span><span class="kwd">public </span><span class="pun">{
-        </span><span class="kwd">enum </span><span class="typ">Quality </span><span class="pun">{
-            </span><span class="pln">low</span><span class="pun">,
-            </span><span class="pln">medium</span><span class="pun">,
-            </span><span class="pln">high
-        </span><span class="pun">}
-    }
-
-    </span><span class="kwd">private </span><span class="pun">{
-        </span><span class="typ">Quality </span><span class="pln">quality_</span><span class="pun">;
-        </span><span class="typ">Color </span><span class="pln">color_</span><span class="pun">;
-    }
-
-    </span><span class="kwd">public </span><span class="pun">{
-
-        @</span><span class="pln">constructor</span><span class="pun">(</span><span class="pln">lref</span><span class="pun">!(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality</span><span class="pun">), </span><span class="str">"color.white"<wbr/></span><span class="pun">.</span><span class="pln">lref</span><span class="pun">) </span><span class="com">// Use constructor annotation to denote that component is buildable using a constructor.
-        </span><span class="kwd">this</span><span class="pun">(</span><span class="typ">Quality </span><span class="pln">q</span><span class="pun">, </span><span class="typ">Color </span><span class="pln">c</span><span class="pun">) {
-            </span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">quality</span><span class="pun">(</span><span class="pln">q</span><span class="pun">);
-            </span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">color</span><span class="pun">(</span><span class="pln">c</span><span class="pun">);
-        }
-
-        </span><span class="typ">Paper </span><span class="pln">quality</span><span class="pun">(</span><span class="typ">Quality </span><span class="pln">quality</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">quality_ </span><span class="pun">= </span><span class="pln">quality</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        </span><span class="typ">Quality </span><span class="pln">quality</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">quality_</span><span class="pun">;
-        }
-
-        </span><span class="typ">Paper </span><span class="pln">color</span><span class="pun">(</span><span class="typ">Color </span><span class="pln">color</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">color_ </span><span class="pun">= </span><span class="pln">color</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        </span><span class="typ">Color </span><span class="pln">color</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">color_</span><span class="pun">;
-        }
-    }
-}
-
-@</span><span class="pln">component
-</span><span class="pun">@</span><span class="pln">fact</span><span class="pun">(</span><span class="com">// An aggregate can be annotated with a custom factory.
-    </span><span class="pun">(</span><span class="typ">Locator</span><span class="pun">!() </span><span class="pln">loc</span><span class="pun">) {
-        </span><span class="kwd">auto </span><span class="pln">paper </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">HardenedPaper</span><span class="pun">(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality<wbr/></span><span class="pun">.</span><span class="pln">high</span><span class="pun">, </span><span class="pln">loc<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color</span><span class="pun">);
-        </span><span class="pln">paper<wbr/></span><span class="pun">.</span><span class="pln">color </span><span class="pun">= </span><span class="pln">loc<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color</span><span class="pun">;
-
-        </span><span class="kwd">return </span><span class="pln">paper</span><span class="pun">;
-})
-
-@</span><span class="pln">component
-</span><span class="pun">@</span><span class="pln">qualifier</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">() </span><span class="com">// It's possible to name an aggregate by some Type FQN's.
-</span><span class="kwd">class </span><span class="typ">HardenedPaper </span><span class="pun">: </span><span class="typ">Paper </span><span class="pun">{
-
-    </span><span class="kwd">this</span><span class="pun">(</span><span class="typ">Quality </span><span class="pln">q</span><span class="pun">, </span><span class="typ">Color </span><span class="pln">c</span><span class="pun">) {
-        </span><span class="kwd">super</span><span class="pun">(</span><span class="pln">q</span><span class="pun">, </span><span class="pln">c</span><span class="pun">);
-    }
-}
-
-@</span><span class="pln">component
-</span><span class="pun">@</span><span class="pln">contained</span><span class="pun">(</span><span class="str">"prototype"</span><span class="pun">) </span><span class="com">// If di container consists of more than one container, use contained to denote which sub-container should manage/contian component.
-</span><span class="kwd">class </span><span class="typ">Page </span><span class="pun">{
-    </span><span class="kwd">private </span><span class="pun">{
-        </span><span class="typ">Paper </span><span class="pln">paper_</span><span class="pun">;
-        </span><span class="typ">string </span><span class="pln">text_</span><span class="pun">;
-        </span><span class="typ">Color </span><span class="pln">textColor_</span><span class="pun">;
-        </span><span class="typ">Color </span><span class="pln">foreground_</span><span class="pun">;
-    }
-
-    </span><span class="kwd">public </span><span class="pun">{
-
-        @</span><span class="pln">setter</span><span class="pun">(</span><span class="pln">lref</span><span class="pun">!</span><span class="typ">Size</span><span class="pun">) </span><span class="com">// Set the field to a component identified by Size's FQN (fully qualified name).
-        </span><span class="typ">Size </span><span class="pln">size</span><span class="pun">;
-
-        @</span><span class="pln">setter</span><span class="pun">(</span><span class="str">"page.paper"<wbr/></span><span class="pun">.</span><span class="pln">lref</span><span class="pun">) </span><span class="com">// Set the field to a component identified by a custom name.
-        </span><span class="typ">Page </span><span class="pln">paper</span><span class="pun">(</span><span class="typ">Paper </span><span class="pln">paper</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">paper_ </span><span class="pun">= </span><span class="pln">paper</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        @</span><span class="pln">autowired </span><span class="com">// Wire the field by type's FQN
-        </span><span class="typ">Color </span><span class="pln">textColor</span><span class="pun">;
-
-        @</span><span class="pln">autowired </span><span class="com">// Wire the field by arguments FQN's. Multiple arguments can be automatically wired.
-        </span><span class="typ">Page </span><span class="pln">foreground</span><span class="pun">(</span><span class="typ">Color </span><span class="pln">foreground</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">foreground_ </span><span class="pun">= </span><span class="pln">foreground</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        @</span><span class="pln">autowired
-        </span><span class="typ">Page </span><span class="pln">text</span><span class="pun">(</span><span class="typ">string </span><span class="pln">text</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">text_ </span><span class="pun">= </span><span class="pln">text</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        </span><span class="typ">Color </span><span class="pln">foreground</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">foreground_</span><span class="pun">;
-        }
-
-        </span><span class="typ">Paper </span><span class="pln">paper</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">paper_</span><span class="pun">;
-        }
-
-        </span><span class="typ">string </span><span class="pln">text</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">text_</span><span class="pun">;
-        }
-    }
-}
-
-@</span><span class="pln">component
-</span><span class="kwd">class </span><span class="typ">Cover </span><span class="pun">{
-    </span><span class="kwd">private </span><span class="pun">{
-        </span><span class="typ">Paper </span><span class="pln">material_</span><span class="pun">;
-        </span><span class="typ">string </span><span class="pln">title_</span><span class="pun">;
-    }
-
-    </span><span class="kwd">public </span><span class="pun">{
-
-        @</span><span class="pln">setter</span><span class="pun">(</span><span class="pln">lref</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">)
-        </span><span class="typ">Cover </span><span class="pln">material</span><span class="pun">(</span><span class="typ">Paper </span><span class="pln">material</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">material_ </span><span class="pun">= </span><span class="pln">material</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        @</span><span class="pln">setter</span><span class="pun">(</span><span class="str">"book.title"<wbr/></span><span class="pun">.</span><span class="pln">lref</span><span class="pun">)
-        </span><span class="typ">Cover </span><span class="pln">title</span><span class="pun">(</span><span class="typ">string </span><span class="pln">title</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">title_ </span><span class="pun">= </span><span class="pln">title</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        </span><span class="typ">Paper </span><span class="pln">material</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">material_</span><span class="pun">;
-        }
-
-        </span><span class="typ">string </span><span class="pln">title</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">title_</span><span class="pun">;
-        }
-    }
-}
-
-@</span><span class="pln">component
-</span><span class="pun">@</span><span class="pln">callback</span><span class="pun">((</span><span class="typ">Locator</span><span class="pun">!() </span><span class="pln">loc</span><span class="pun">, </span><span class="typ">Book </span><span class="pln">book</span><span class="pun">) { </span><span class="com">// Use it, when object is required to be configured in way that is not possible to do by means of library annotations.
-    </span><span class="typ">Page</span><span class="pun">[] </span><span class="pln">pages</span><span class="pun">;
-    </span><span class="kwd">foreach </span><span class="pun">(</span><span class="pln">i</span><span class="pun">; </span><span class="lit">0 </span><span class="pun">.. </span><span class="lit">99</span><span class="pun">) {
-        </span><span class="kwd">import </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">conv</span><span class="pun">;
-
-        </span><span class="pln">pages </span><span class="pun">~= </span><span class="pln">loc<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Page</span><span class="pun">;
-        </span><span class="pln">pages</span><span class="pun">[$ - </span><span class="lit">1</span><span class="pun">]<wbr/>.</span><span class="pln">text</span><span class="pun">(</span><span class="str">"Some text on page " </span><span class="pun">~ </span><span class="pln">i<wbr/></span><span class="pun">.</span><span class="pln">to</span><span class="pun">!</span><span class="typ">string</span><span class="pun">);
-    }
-
-    </span><span class="pln">book<wbr/></span><span class="pun">.</span><span class="pln">pages</span><span class="pun">(</span><span class="pln">pages</span><span class="pun">);
-})
-</span><span class="kwd">class </span><span class="typ">Book </span><span class="pun">{
-    </span><span class="kwd">private </span><span class="pun">{
-        </span><span class="typ">Cover </span><span class="pln">cover_</span><span class="pun">;
-        </span><span class="typ">Page</span><span class="pun">[] </span><span class="pln">pages_</span><span class="pun">;
-    }
-
-    </span><span class="kwd">public </span><span class="pun">{
-
-        @</span><span class="pln">autowired
-        </span><span class="typ">Book </span><span class="pln">cover</span><span class="pun">(</span><span class="typ">Cover </span><span class="pln">cover</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">cover_ </span><span class="pun">= </span><span class="pln">cover</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        </span><span class="typ">Cover </span><span class="pln">cover</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">cover_</span><span class="pun">;
-        }
-
-        </span><span class="typ">Book </span><span class="pln">pages</span><span class="pun">(</span><span class="typ">Page</span><span class="pun">[] </span><span class="pln">pages</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">pages_ </span><span class="pun">= </span><span class="pln">pages</span><span class="pun">;
-
-        	</span><span class="kwd">return this</span><span class="pun">;
-        }
-
-        </span><span class="typ">Page</span><span class="pun">[] </span><span class="pln">pages</span><span class="pun">() </span><span class="kwd">@safe nothrow </span><span class="pun">{
-        	</span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">pages_</span><span class="pun">;
-        }
-    }
-}
-
-@</span><span class="pln">component
-</span><span class="kwd">class </span><span class="typ">Bookshelf </span><span class="pun">{
-
-    </span><span class="kwd">public </span><span class="pun">{
-
-        </span><span class="typ">Book </span><span class="pln">getABook</span><span class="pun">() {
-            </span><span class="kwd">return new </span><span class="typ">Book</span><span class="pun">;
-        }
-    }
-}
-
-</span><span class="kwd">unittest </span><span class="pun">{
-    </span><span class="typ">SingletonContainer </span><span class="pln">container </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">SingletonContainer</span><span class="pun">; </span><span class="com">// Container that will hold our objects.
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Bookshelf</span><span class="pun">; </span><span class="com">// Register Bookshelf as a component in container.
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Color </span><span class="com">// Register Color struct as a component in container.
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"r"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">200</span><span class="pun">)
-        <wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"g"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">201</span><span class="pun">)	</span><span class="com">// Set field g to ubyte 201.
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"b"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">202</span><span class="pun">);
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">link</span><span class="pun">(</span><span class="pln">name</span><span class="pun">!</span><span class="typ">Color</span><span class="pun">, </span><span class="str">"color.white"</span><span class="pun">);
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Size </span><span class="com">// Register Size struct as a component in container.
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"width"</span><span class="pun">(</span><span class="lit">295</span><span class="pun">)
-        <wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"height"</span><span class="pun">(</span><span class="lit">210</span><span class="pun">); </span><span class="com">// Set field height to ubyte 210.
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">(</span><span class="str">"page.paper"</span><span class="pun">) </span><span class="com">// Register paper by page.paper identity.
-        <wbr/></span><span class="pun">.</span><span class="pln">construct</span><span class="pun">( </span><span class="com">// instantiate Paper using it's constructor.
-            </span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality<wbr/></span><span class="pun">.</span><span class="pln">high</span><span class="pun">,
-            </span><span class="str">"color.white"<wbr/></span><span class="pun">.</span><span class="pln">lref
-        </span><span class="pun">);
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Page</span><span class="pun">() </span><span class="com">// store component in Prototype container
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"size"
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"paper"</span><span class="pun">(</span><span class="str">"page.paper"<wbr/></span><span class="pun">.</span><span class="pln">lref</span><span class="pun">) </span><span class="com">// set paper to an object located in container.
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"textColor"
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"foreground"</span><span class="pun">;
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">instantiate</span><span class="pun">(); </span><span class="com">// prepare container for serving objects.
-
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Bookshelf </span><span class="pun">!</span><span class="kwd">is null</span><span class="pun">); </span><span class="com">// Check if instantiated
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color </span><span class="pun">== </span><span class="typ">Color</span><span class="pun">(</span><span class="lit">200</span><span class="pun">, </span><span class="lit">201</span><span class="pun">, </span><span class="lit">202</span><span class="pun">)); </span><span class="com">// Checking if Color was properly set.
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Size </span><span class="pun">== </span><span class="typ">Size</span><span class="pun">(</span><span class="lit">295</span><span class="pun">, </span><span class="lit">210</span><span class="pun">));
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">(</span><span class="str">"page.paper"</span><span class="pun">)<wbr/>.</span><span class="pln">quality </span><span class="pun">== </span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality<wbr/></span><span class="pun">.</span><span class="pln">high</span><span class="pun">); </span><span class="com">// Checking if quality of page.paper is same as for Paper.Quality in container
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Page<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Size</span><span class="pun">); </span><span class="com">// Check if page's size was set correctly.
-</span><span class="pun">}</span></code></pre>
-
-<p>As seen in example, the first step is to create the container that will hold objects.
-Once container is spawned, we proceed to registering into container object that it will wire.
-</p>
-
-<p>The third line from unittest is the most simple variant to use:
-</p>
-<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Bookshelf</span><span class="pun">; </span><span class="com">// Register Bookshelf as a component in container.</span></code></pre>
-<p>It adds Bookshelf to container to be managed by it.
-</p>
-
-<p>Once the object is added to container, a factory for this object will be returned.
-This factory can be further configured, on how to construct the object.
-On fifth line we can see a way on how to configure the factory:
-</p>
-<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Color </span><span class="com">// Register Color struct as a component in container.
-    <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"r"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">200</span><span class="pun">)
-    <wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"g"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">201</span><span class="pun">)	</span><span class="com">// Set field g to ubyte 201.
-    <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"b"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">202</span><span class="pun">);</span></code></pre>
-<p>Color struct is added to container, and afterwards the set method is used to
-configure factory to set r,g,b fields of Color to their respective value.
-</p>
-
-<p>Since the task of container is to wire objects between them, it should know
-what should be wired, and what should not. To tell the container which dependencies
-it should wire use lref to indicate that an argument is a reference to a dependency
-in container, just like on line 45:
-</p>
-<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">(</span><span class="str">"page.paper"</span><span class="pun">) </span><span class="com">// Register paper by page.paper identity.
-    <wbr/></span><span class="pun">.</span><span class="pln">construct</span><span class="pun">( </span><span class="com">// instantiate Paper using it's constructor.
-        </span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality<wbr/></span><span class="pun">.</span><span class="pln">high</span><span class="pun">,
-        </span><span class="str">"color.white"<wbr/></span><span class="pun">.</span><span class="pln">lref
-    </span><span class="pun">);</span></code></pre>
-<p>We've told container that second argument of constructor is actually a reference to
-something in container.
-</p>
-
-<p>Following lines of code do basically the same, they add a struct/object to
-container, and configure their factories on how to instantiate them.
-</p>
-
-<p>Following methods are available to configure a struct/object's factory:
-    <ol>        <li>construct - construct object using provided arguments</li>
-        <li>fact - use delegate/function to construct object</li>
-        <li>factoryMethod - use factory method pattern to create an object</li>
-        <li>set - set a field, call a method with passed arguments</li>
-        <li>autowire - construct/set with passed arguments</li>
-        <li>callback - call function/delegate to do some stuff on object</li>
-    </ol>
-</p>
-
-<p>A full example can be seen in aermicioi.aedi.test.example module. It shows almost
-everything implemented in library.
-</p>
-
-<p>An alternative to configuration of container by writing register commands, is using of
-annotations on object/structs that are managed by container.
-</p>
-
-<p>Here is an example of annotation based configuration (Annotations are present on objects from previous example):
-</p>
-<pre class="code"><code class="lang-d"><span class="kwd">unittest </span><span class="pun">{
-    </span><span class="typ">ApplicationContainer </span><span class="pln">container </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">ApplicationContainer</span><span class="pun">;
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="typ">Color</span><span class="pun">(</span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">), </span><span class="str">"color.white"</span><span class="pun">); </span><span class="com">//Save a struct in storage of values, identified by color.white.
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="str">"Aedi tutorial."</span><span class="pun">, </span><span class="str">"book.title"</span><span class="pun">); </span><span class="com">//Same as with Color struct.
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">(</span><span class="str">"A value saved by it's type FQN"</span><span class="pun">); </span><span class="com">//Save a value in storage, identified by it's type FQN.
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality<wbr/></span><span class="pun">.</span><span class="pln">medium</span><span class="pun">);
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="str">"Book title"</span><span class="pun">, </span><span class="str">"book.title"</span><span class="pun">);
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">componentScan</span><span class="pun">!</span><span class="typ">Color</span><span class="pun">; </span><span class="com">// scan struct component and save it in container.
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">componentScan</span><span class="pun">!</span><span class="typ">Size</span><span class="pun">;
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">componentScan</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">; </span><span class="com">// scan object component and save it in container. Use parameters container to fetch it's dependencies
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">componentScan</span><span class="pun">!(</span><span class="typ">Paper</span><span class="pun">, </span><span class="typ">HardenedPaper</span><span class="pun">); </span><span class="com">// scan object and save it by Paper's type FQN. Use parameters container to fetch it's dependencies
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">componentScan</span><span class="pun">!(</span><span class="typ">Page</span><span class="pun">, </span><span class="typ">Cover</span><span class="pun">, </span><span class="typ">Book</span><span class="pun">, </span><span class="typ">Bookshelf</span><span class="pun">); </span><span class="com">// scan several aggregates and save them in container. An object prefixed with one of it's interfaces will be registered by it in container.
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">instantiate</span><span class="pun">;
-
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Bookshelf </span><span class="pun">!</span><span class="kwd">is null</span><span class="pun">); </span><span class="com">// Check if instantiated
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color </span><span class="pun">== </span><span class="typ">Color</span><span class="pun">(</span><span class="lit">200</span><span class="pun">, </span><span class="lit">200</span><span class="pun">, </span><span class="lit">200</span><span class="pun">)); </span><span class="com">// Checking if Color was properly set.
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Size </span><span class="pun">== </span><span class="typ">Size</span><span class="pun">(</span><span class="lit">295</span><span class="pun">, </span><span class="lit">210</span><span class="pun">));
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">(</span><span class="str">"page.paper"</span><span class="pun">)<wbr/>.</span><span class="pln">quality </span><span class="pun">== </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality</span><span class="pun">)); </span><span class="com">// Checking if quality of page.paper is same as for Paper.Quality in container
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Cover<wbr/></span><span class="pun">.</span><span class="pln">material </span><span class="kwd">is </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">); </span><span class="com">// Checking if cover material is from a hardened paper.
-</span><span class="pun">}</span></code></pre>
-
-<p>As we can see, the process is almost like in example where register is used to add objects to container.
-the difference is that, the container will fetch all required information about object's dependency from
-annotations present on it. Furthermore, it's possible to specify a list of components to be registered instead
-of one per componentScan. It's possible to pass one or more modules in componentScan, to scan them for
-objects or structs that should be managed by container. Here is an example on how to do it:
-</p>
-<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">componentScan</span><span class="pun">!(<a href="../aermicioi/aedi/test/example.html"></span><span class="pln">aermicioi<wbr/></span><span class="pun">.</span><span class="pln">aedi<wbr/></span><span class="pun">.</span><span class="pln">test<wbr/></span><span class="pun">.</span><span class="pln">example</span></a><span class="pun">);</span></code></pre>
-<p>Pass one, or more modules. Container will scan them for components (objects/structs etc.).
-</p>
-
-<p>Following annotations can be used to configure a container:
-    <ol>        <li>component -&gt; Marks a struct or object as manageable by container. </li>
-        <li>constructor -&gt; Marks constructor to be called. </li>
-        <li>setter -&gt; Call, or set the annotated field. </li>
-        <li>autowired -&gt; Depending what is annotated with autowired annotation, it will construct, set a field, or call a method, using FQN of argument type to search for dependencies in container</li>.
-        <li>fact -&gt; Use a function to construct object</li>
-        <li>callback -&gt; Use a function to manipulate object somehow</li>
-        <li>@qualifier -&gt; denotes how a component will be named in container </li>
-    </ol>
-</p>
-
-<p>Currently the library provides 2 containers:
-    <ol>        <li>singleton -&gt; serves same object, during it's lifetime. </li>
-        <li>prototype -&gt; serves new object, on each request. </li>
-    </ol>
-</p>
-
-<p>Both of them support either way of configuring.
-</p>
-
-<p><b>Container for values: </b>
-</p>
-
-<p>In some cases, it is needed to store some data, that does not have any dependency on other elements
-in container, and can be entirely stored. For such cases, there is a special container, that accepts
-such data. To store data in it use register as in example below:
-</p>
-<pre class="code"><code class="lang-d"><span class="kwd">unittest </span><span class="pun">{
-    </span><span class="typ">ObjectStorage</span><span class="pun">!() </span><span class="pln">storage </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">ObjectStorage</span><span class="pun">!();
-
-    </span><span class="pln">storage<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="typ">Color</span><span class="pun">(</span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">), </span><span class="str">"color.white"</span><span class="pun">); </span><span class="com">//Save a struct in storage of values, identified by color.white.
-    </span><span class="pln">storage<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="str">"Aedi tutorial."</span><span class="pun">, </span><span class="str">"book.title"</span><span class="pun">); </span><span class="com">//Same as with Color struct.
-    </span><span class="pln">storage<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="str">"A value saved by it's type FQN"</span><span class="pun">); </span><span class="com">//Save a value in storage, identified by it's type FQN.
-
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">storage<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color</span><span class="pun">(</span><span class="str">"color.white"</span><span class="pun">) == </span><span class="typ">Color</span><span class="pun">(</span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">));
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">storage<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">string</span><span class="pun">(</span><span class="str">"book.title"</span><span class="pun">) == </span><span class="str">"Aedi tutorial."</span><span class="pun">);
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">storage<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">string </span><span class="pun">== </span><span class="str">"A value saved by it's type FQN"</span><span class="pun">);
-}</span></code></pre>
-<p>Usage is pretty simple, call register, pass the value, and identity to it.
-If no identity is passed to register, it is implied that the value has
-as identity FQN of it's type.
-One important remark is, that data saved in container, cannot be implicitly
-casted to some other compatible type. For example, we stored an ubyte by id
-"uby", and at some point we try to fetch it as an int. Such attempt will generate
-only not found exception.
-</p>
-
-<p><b>Composition of multiple containers: </b>
-</p>
-
-<p>In many cases it is required to have not a single container, but several, that implement different
-behavior, like Singleton or Prototype. In such cases it possible to compose them into one bigger
-container, and use it for wiring dependencies. Most flexible way to compose them is to use
-AggregateLocator container (see aermicioi.aedi.storage.aggregate_locator), but for simpler cases
-there is ApplicationContainer, that by default contains a singleton, prototype and value container.
-The syntax for composite containers differs only a little in comparison with examples above.
-Here is an example:
-</p>
-<pre class="code"><code class="lang-d"><span class="kwd">unittest </span><span class="pun">{
-    </span><span class="typ">ApplicationContainer </span><span class="pln">container </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">ApplicationContainer</span><span class="pun">; </span><span class="com">// A composite container that consists of Singleton, Prototype, containers and a value storage.
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="typ">Color</span><span class="pun">(</span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">, </span><span class="lit">255</span><span class="pun">), </span><span class="str">"color.white"</span><span class="pun">); </span><span class="com">//Save a struct in storage of values, identified by color.white.
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">(</span><span class="str">"Aedi tutorial."</span><span class="pun">, </span><span class="str">"book.title"</span><span class="pun">); </span><span class="com">//Same as with Color struct.
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">(</span><span class="str">"A value saved by it's type FQN"</span><span class="pun">); </span><span class="com">//Save a value in storage, identified by it's type FQN.
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality<wbr/></span><span class="pun">.</span><span class="pln">medium</span><span class="pun">);
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Bookshelf</span><span class="pun">; </span><span class="com">// Register Bookshelf as a component in container.
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Color </span><span class="com">// Register Color struct as a component in container.
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"r"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">200</span><span class="pun">)
-        <wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"g"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">201</span><span class="pun">)	</span><span class="com">// Set field g to ubyte 201.
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"b"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">202</span><span class="pun">);
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Size </span><span class="com">// Register Size struct as a component in container.
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"width"</span><span class="pun">(</span><span class="lit">295</span><span class="pun">)
-        <wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"height"</span><span class="pun">(</span><span class="lit">210</span><span class="pun">); </span><span class="com">// Set field g to ubyte 210.
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">(</span><span class="str">"page.paper"</span><span class="pun">)
-        <wbr/>.</span><span class="pln">construct</span><span class="pun">( </span><span class="com">// instantiate Paper using it's constructor.
-            </span><span class="pln">lref</span><span class="pun">!(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality</span><span class="pun">), </span><span class="com">// lref is used to indicate that argument, is located in container. Check if it is of right type will be done at runtime.
-            </span><span class="str">"color.white"<wbr/></span><span class="pun">.</span><span class="pln">lref
-        </span><span class="pun">);
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!(</span><span class="typ">Paper</span><span class="pun">, </span><span class="typ">HardenedPaper</span><span class="pun">) </span><span class="com">// Register HardenedPaper in container with identity of Paper's FQN.
-        <wbr/></span><span class="pun">.</span><span class="pln">fact</span><span class="pun">( </span><span class="com">// use the delegate to construct HardenedPaper. Useful to use when some special instantiation logic is required.
-            </span><span class="kwd">delegate</span><span class="pun">(</span><span class="typ">Locator</span><span class="pun">!() </span><span class="pln">loc</span><span class="pun">) {
-                </span><span class="kwd">return new </span><span class="typ">HardenedPaper</span><span class="pun">(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality<wbr/></span><span class="pun">.</span><span class="pln">high</span><span class="pun">, </span><span class="pln">loc<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color</span><span class="pun">);
-            }
-        );
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Cover
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"material" </span><span class="com">// autowire material. Searches a value for material field in container by it's type FQN.
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"title"</span><span class="pun">(</span><span class="str">"Random title"</span><span class="pun">);
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Page</span><span class="pun">(</span><span class="str">"prototype"</span><span class="pun">) </span><span class="com">// store component in Prototype container
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"size"
-        <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"paper"</span><span class="pun">(</span><span class="str">"page.paper"<wbr/></span><span class="pun">.</span><span class="pln">lref</span><span class="pun">) </span><span class="com">// set paper to an object located in container.
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"textColor"
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"foreground"
-        <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"text"</span><span class="pun">;
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Book
-        <wbr/></span><span class="pun">.</span><span class="pln">factoryMethod</span><span class="pun">!(</span><span class="typ">Bookshelf</span><span class="pun">, </span><span class="str">"getABook"</span><span class="pun">)(</span><span class="pln">lref</span><span class="pun">!</span><span class="typ">Bookshelf</span><span class="pun">) </span><span class="com">// Use Bookshelf's method getABook to create the Book.
-        <wbr/></span><span class="pun">.</span><span class="pln">callback</span><span class="pun">(
-            (</span><span class="typ">Locator</span><span class="pun">!() </span><span class="pln">loc</span><span class="pun">, </span><span class="typ">Book </span><span class="pln">book</span><span class="pun">) { </span><span class="com">// Use it, when object is required to be configured in way that is not possible to do by means of library annotations.
-                </span><span class="typ">Page</span><span class="pun">[] </span><span class="pln">pages</span><span class="pun">;
-                </span><span class="kwd">foreach </span><span class="pun">(</span><span class="pln">i</span><span class="pun">; </span><span class="lit">0 </span><span class="pun">.. </span><span class="lit">99</span><span class="pun">) {
-                    </span><span class="kwd">import </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">conv</span><span class="pun">;
-
-                    </span><span class="pln">pages </span><span class="pun">~= </span><span class="pln">loc<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Page</span><span class="pun">;
-                    </span><span class="pln">pages</span><span class="pun">[$ - </span><span class="lit">1</span><span class="pun">]<wbr/>.</span><span class="pln">text</span><span class="pun">(</span><span class="str">"Some text on page " </span><span class="pun">~ </span><span class="pln">i<wbr/></span><span class="pun">.</span><span class="pln">to</span><span class="pun">!</span><span class="typ">string</span><span class="pun">);
-                }
-
-                </span><span class="pln">book<wbr/></span><span class="pun">.</span><span class="pln">pages</span><span class="pun">(</span><span class="pln">pages</span><span class="pun">);
-            }
-        );
-
-    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">instantiate</span><span class="pun">(); </span><span class="com">// prepare container to serve objects in it (instantiates them, and performs other things).
-
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Bookshelf </span><span class="pun">!</span><span class="kwd">is null</span><span class="pun">); </span><span class="com">// Check if instantiated
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color </span><span class="pun">== </span><span class="typ">Color</span><span class="pun">(</span><span class="lit">200</span><span class="pun">, </span><span class="lit">201</span><span class="pun">, </span><span class="lit">202</span><span class="pun">)); </span><span class="com">// Checking if Color was properly set.
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Size </span><span class="pun">== </span><span class="typ">Size</span><span class="pun">(</span><span class="lit">295</span><span class="pun">, </span><span class="lit">210</span><span class="pun">));
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">(</span><span class="str">"page.paper"</span><span class="pun">)<wbr/>.</span><span class="pln">quality </span><span class="pun">== </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!(</span><span class="typ">Paper<wbr/></span><span class="pun">.</span><span class="typ">Quality</span><span class="pun">)); </span><span class="com">// Checking if quality of page.paper is same as for Paper.Quality in container
-    </span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Cover<wbr/></span><span class="pun">.</span><span class="pln">material </span><span class="kwd">is </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Paper</span><span class="pun">); </span><span class="com">// Checking if cover material is from a hardened paper.
-</span><span class="pun">}</span></code></pre>
-
-<p>As seen above, nothing changes except for some register lines, like this one:
-</p>
-<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Color </span><span class="com">// Register Color struct as a component in container.</span></code></pre>
-<p>Instead of a simple register we see registerInto call. This is due to ambiguity
-risen if we would use only register. Since ApplicationContainer is a composite
-container, we should allow somehow to specify which of three containers would
-manage added component. To do so, register methods do allow additional argument
-to be passed that is a path to container separated by dots (composite container
-can consist of several levels of hierarchy) just like in example below:
-</p>
-<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerInto</span><span class="pun">!</span><span class="typ">Page</span><span class="pun">(</span><span class="str">"prototype"</span><span class="pun">) </span><span class="com">// store component in Prototype container
-    <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"size"
-    <wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"paper"</span><span class="pun">(</span><span class="str">"page.paper"<wbr/></span><span class="pun">.</span><span class="pln">lref</span><span class="pun">) </span><span class="com">// set paper to an object located in container.
-    <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"textColor"
-    <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"foreground"
-    <wbr/></span><span class="pun">.</span><span class="pln">autowire</span><span class="pun">!</span><span class="str">"text"</span><span class="pun">;</span></code></pre>
-<p>We show that Page should be stored in prototype container instead of default one.
-When we add a component to composite container without specifying where it should
-be, it is implicitly defined that a "singleton" sub-container exists, and there it should
-be stored.
-The ambiguity mentioned before, is due to this additional argument passed to register
-(path to sub-container). Just remember, use register to add a component to container with
-some custom id, while registerInto with a default one.
-</p>
-
-<p>So, what about annotation based configuration for composite containers?
-It works the same as for simple containers, with some additional conventions
-and annotations.
-Since a composite container consists of multiple ones, there is an annotation that does
-allow to specify in which container should reside component. It is:
-<ol>    <li>@contained -&gt; specifies in which container should be component stored </li>
-</ol>
-As with register methods, when container is not specified, same convention applies to
-annotation based configuration. By not defining @contained annotation on component,
-it is implicitly defined that a sub-container by identity "singleton" is present in composite
-and is available for storage. In both versions, if "singleton" container does not exists
-not found exception is thrown stating that singleton container is not present.
-</p>
-
-<p>In both configuration modes, a composite container should not accept any component to be
-added. If allowed to do so, it will not be treated anymore as a composite container.
-</p>
-
-<p><b>Extending: </b>
-</p>
-
-<p>The library was designed with intent to be easily extendable, and
-does allow two directions of extending it:
-<ol>    <li>Container extension. </li>
-    <li>Factory extension. </li>
-</ol>
-</p>
-
-<p>Following subchapters will tell in detail responsibilities of each component.
-</p>
-
-<p><b>Container extending: </b>
-</p>
-
-<p>The intent behind containers, is to have something that stores objects in
-it, and manages their lifetime, as well as serving them.
-</p>
-
-<p>The storage mechanism is not defined by library. It can be basically
-a storage in memory, or objects can be stored in exterior of application
-(Mysql, Redis etc.).
-</p>
-
-<p>Another responsibility of containers is lifetime management.
-A container is responsible to keep some track, of served objects, and
-upon their lifetime end, free the occupied memory. By this definition
-Singleton container will keep alive objects, until the container itself
-will be destroyed. Same should be valid for Prototype container.
-</p>
-
-<p>The last responsibility of containers, is how it does serve the objects.
-Different behavior can be implemented. For example singleton container
-will always serve same object which is identified by some id, say "page".
-Prototype container, on each serve will give a perfect copy of configured
-object.
-</p>
-
-<p>Create/implement a new container, when logic behind storing, managing lifetime,
-or serving differs from the ones provided by library and cannot be done using
-them.
-</p>
-
-<p><b>Factory extending: </b>
-</p>
-
-<p>Factories are like blueprints, for constructable objects/structs. A container
-initially does not store the actual object, but a blueprint (factory) for it,
-that is used to construct a version of object. Singleton will construct an object
-once and serve it during it's lifetime, while Prototype will construct an object using
-factory each time it is requested to serve.
-</p>
-
-<p>Containers, accept a factory in it's entirety. They do not provide any means for
-factory configuration. Therefore, a factory should be configured before passing it to
-container, or by saving a reference to it somewhere for further configuration. In this
-way register methods, and annotation configuration works. It creates a factory, configures it
-and saves it in container.
-</p>
-
-<p>By peeking at aermicioi.aedi.factory.factory, we can see that most basic interface for a
-factory provides only two methods, first is factory which will create the object, and type
-which returns typeid of object. Though it does provide minimal interface for creating an
-object it does not provide any means on how to configure a factory. For factories that can
-be configured another interface that extends Factory is available in
-aermicioi.aedi.factory.generic_factory which is GenericFactory(T).
-</p>
-
-<p>The GenericFactory(T) interface, splits the process of object construction in two steps:
-    <ul>        <li>Object allocation, and construction</li>
-        <li>Object configuration</li>
-    </ul>
-Instances of GenericFactory are used by register methods, as well as by annotation configuration.
-</p>
-
-<p>Note - T argument used as template argument for GenericFactory or further, is the type of object instantiated
-by the factory.
-</p>
-
-<p>The logic of first step itself is encapsulated in an implementation InstanceFactory(T) object.
-In some way an implementation of InstanceFactory is like a foundation bluepring for Object.
-The task of it is to allocate memory, and initialize object in there. Methods used to configure
-objects in example above like construct, fact, autowire, encapsulate their logic into
-an implementation of InstanceFactory(T) and pass it to GenericFactory(T).
-</p>
-
-<p>The second step consists of a set of configuration steps that are performed on object
-instantiated by the first step. Each configuration step itself is encapsulated in an implementation
-of PropertyConfigurer(T) interface. Methods such as set, callback, autowire, or annotations like
-setter, autowire, callback encapsulate their logic into PropertyConfigurer(T) implementations
-and save them into GenericFactory(T) for future call.
-</p>
-
-<p>In cases when, there is a need of custom creation logic, in application, and it
-is possible to encapsulate it in one of steps used by GenericFactory(T) it is recomended
-to encapsulate in them instead of defining a full blown implementation of Factory.
-Encapsulating in one those steps will, allow easier integration with provided api.
-A full blown implementation of Factory should be used, when the logic doesn't fit in
-one of these steps.
-</p>
-
-<p>The last two imporant pieces to know in this chapter are the following:
-    <ol>        <li>            How can a Factory detect that a dependency is located in container?
-            From examples above, we saw that lref notation can be used to denote a reference.
-            The lref notation (it's a function actually, can be seen in aermicioi.aedi.storage.locator)
-            reduces itself to a LocatorReference instance that is used by InstanceFactories and
-            PropertyConfigurers to detect, arguments that should be replaced with objects from
-            container. LocatorReference itself does contain the identity of referenced object in container.
-        </li>
-        <li>            While talking about Factory extending, no mentioning of struct construction, is ever mentioned.
-            This is, because containers store objects, and not structs, or other data. So how we can
-            implement a step, or an entire factory for structs, and possibly other type of data (unions, etc.)?
-            It's simple. Any data that is not rooted in Object class, should be wrapped by Wrapper object
-            that is present in aermicioi.aedi.storage.wrapper module. GenericFactories that return a struct, actually
-            return a Wrapper!T where T is some structure. Any InstanceFactories, or PropertyConfigurers that should work
-            on structs, should accept a Wrapper!T object, and configure the value stored in it.
-        </li>
-    </ol>
-</p>
-
-<p><b>Extending configurer package: </b>
-</p>
-
-<p>By reading previous two chapters, it becomes clear that register methods, and
-annotation configuration that is used to configure containers, are not actually defined
-by their interfaces. Both configuration methods are build on top of interfaces provided by
-containers, and factories. In both implementations, GenericFactory is used as basis for
-micro-configurations. Each implementation can be extended, and it will be discussed in topics
-below.
-</p>
-
-<p>First of all, register methods, are set of overloaded functions that accept as input following arguments:
-    <ol>        <li>storage -&gt;
-            an object that implements Storage!(Factory, string), and defines methods
-            to set or remove Factory from it. All containers should implement it, if it
-            is expected to store some data.
-        </li>
-        <li>locator -&gt;
-            an object that implements Locator!(Object, string), that is used to
-            locate possible dependencies of registered object. All containers should implement it.
-            Withouth implementing it, there is no way how library will be able to know that
-            container can serve objects.
-        </li>
-        <li>identity -&gt;
-            identity by which to store registered object. Some overloaded versions of register, will
-            set identity to be registered Type's FQN, or of one interface that it implements.
-        </li>
-        <li>storageId -&gt;
-            path to storage, which should store registered object. This argument is used by overload set
-            working on composite locators, to find storage which will store object's factory.
-        </li>
-    </ol>
-Upon finishing, it will return a GenericFactory(T) implementation saved in storage that is possible to
-customize further, using set, autowire, construct, and so on.
-</p>
-
-<p>As mentioned in previous chapter, any customization, or creation logic is encapsulated in
-an implementation of InstanceFactory(T) or PropertyConfigurer(T). There for to allow, a flow
-like syntax, it is recommended to define a helper function of following format:
-</p>
-<pre class="code"><code class="lang-d"><span class="typ">GenericFactory</span><span class="pun">!</span><span class="pln">T helperFunction</span><span class="pun">(</span><span class="pln">T</span><span class="pun">, </span><span class="typ">Args</span><span class="pun">...)(</span><span class="typ">GenericFactory</span><span class="pun">!</span><span class="pln">T fact</span><span class="pun">, </span><span class="typ">Args </span><span class="pln">args</span><span class="pun">);</span></code></pre>
-<p>Which will wrap creation of InstanceFactory(T) or PropertyConfigurer(T), and add
-them to fact. In such format it will integrate seamlessly, with flow syntax provided
-by set, callback, autowire (which themselves are wrapper functions) etc.
-</p>
-
-<p>Annotation interface is also possible to extend to some extent. In order to be extendable
-the scanning is performed for particular annotations, but instead it will search for
-annotations that implement one of following static interfaces:
-<ul>    <li>canFactoryGenericFactory -&gt; annotation will be used to create an implementation of GenericFactory(T) </li>
-    <li>canFactoryInstanceFactory -&gt; annotation will be used to create an implementation of InstanceFactory(T) </li>
-    <li>canFactoryPropertyConfigurer -&gt; annotation will be used to create an implementation of PropertyConfigurer(T) </li>
+<p><ul>    <li>Create a container </li>
+    <li>Register an application component. Any data (struct, object, union, etc) is treated as application component. </li>
+    <li>Write a wiring configuration </li>
+    <li>Repeat process for other components. </li>
+    <li>Boot container </li>
 </ul>
-From description, of each interface, it is clearly that annotation itselves, are not used for sole purpose of
-marking object being managed by container, or by marking that it does have a InstanceFactory. They do contain
-logic required to spawn those implementations. In some way, they are similar to wrapper functions used with
-register functions (set, autowire, etc.).
-An annotation can implement from one to all three of them, there is aproximatively no limitation
-(though beware of subtle bugs). If there is need to extend annotation api, check
-aermicioi.aedi.configurer.annotation module. Interfaces defined above are defined in that module.
 </p>
 
-<p><b>Features to be implemented: </b>
-<ol>    <li>A way to allow, singleton objects to access objects that are in containers with a narrower scope. </li>
-    <li>Support for yaml based configuration. </li>
-    <li>Stable api. </li>
-    <li>Usage of allocators. </li>
-    <li>Anonymous aggregates and simple data. </li>
-    <li>Parent aggregates and simple data. </li>
-</ol>
+<p>First of all a container should be created:
 </p>
+<pre class="code"><code class="lang-d"><span class="typ">SingletonContainer </span><span class="pln">container </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">SingletonContainer</span><span class="pun">;</span></code></pre>
+
+<p>Container is responsible for storing, and managing application's components.
+</p>
+
+<p>Next, register component into container:
+</p>
+<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">register</span><span class="pun">!</span><span class="typ">Color</span></code></pre>
+
+<p>Component is registered by calling .register method on container with type of component.
+Note, that in example we do not end the statement. That's because component should be
+configured next:
+</p>
+<pre class="code"><code class="lang-d"><wbr/><span class="pun">.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"r"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">250</span><span class="pun">)
+<wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"g"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">210</span><span class="pun">)
+<wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"b"</span><span class="pun">(</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">) </span><span class="lit">255</span><span class="pun">);</span></code></pre>
+
+<p>.set method configures component properties to specific values (setter injection in other words).
+Note the example ends in <code class="lang-d"><span class="pun">;</span></code> which means that it's end of statement and Color registration/configuration.
+Once components are registered and configured, container needs to be booted (instantiated):
+</p>
+<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">instantiate</span><span class="pun">();</span></code></pre>
+
+<p>Container during boot operation, will do various stuff, including creation and wiring of components
+between them. It's important to call <code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">instantiate</span><span class="pun">()</span></code> after all application's components
+have been registered into container, otherwise it is not guaranteed that application will work correctly.
+</p>
+
+<p>Once container is booted, components in it are available for use.
+To fetch it use locate method like in following example:
+</p>
+<pre class="code"><code class="lang-d"><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Color<wbr/></span><span class="pun">.</span><span class="pln">writeln</span><span class="pun">;</span></code></pre>
+
+<p>Try running the minimal example from examples folder, the output of example will
+be the Color that was registered in container:
+</p>
+<pre class="code"><code class="lang-d"><span class="typ">Color </span><span class="kwd">is</span><span class="pun">:	</span><span class="typ">Color</span><span class="pun">(</span><span class="lit">250</span><span class="pun">, </span><span class="lit">210</span><span class="pun">, </span><span class="lit">255</span><span class="pun">)</span></code></pre>
 </section>
 
 			<section></section>
