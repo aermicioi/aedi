@@ -117,6 +117,24 @@ class LocatorReference : RuntimeReference {
     }
 }
 
+class TypeLocatorReference(T) : RuntimeReference {
+    
+    public {
+        
+        Object get(Locator!() locator) {
+            auto type = typeid(T);
+            
+            if (locator.has(type.toString())) {
+                
+                return locator.get(type.toString());
+            } else {
+                
+                return locator.get(fullyQualifiedName!T);
+            }
+        }
+    }
+}
+
 /**
 ditto
 **/
@@ -128,9 +146,7 @@ auto lref(string id) {
 ditto
 **/
 auto lref(T)() {
-    import std.traits;
-    
-    return (name!T).lref;
+    return new TypeLocatorReference!T;
 }
 
 /**

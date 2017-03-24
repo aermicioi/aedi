@@ -53,3 +53,4 @@ public import aermicioi.aedi.container.interface_container;
 public import aermicioi.aedi.container.switchable_container;
 public import aermicioi.aedi.container.application_container;
 public import aermicioi.aedi.container.subscribable_container;
+public import aermicioi.aedi.container.value_container;

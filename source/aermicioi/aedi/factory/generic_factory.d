@@ -519,7 +519,7 @@ Params:
 **/
 class FactoryMethodBasedFactory(T, string method, W, Args...) : ParameterHolder!Args, InstanceFactory!(ReturnType!(getCompatibleOverload!(T, method, Args)))
     if (
-        (is(W : LocatorReference) || is(W : T)) &&
+        (is(W : RuntimeReference) || is(W : T)) &&
         isMethodCompatible!(T, method, Args) &&
         isAggregateType!(ReturnType!(getCompatibleOverload!(T, method, Args)))
     ) {
@@ -607,7 +607,7 @@ Params:
 auto factoryMethodBasedFactory(T, string method, W, Args...)(Locator!() locator, auto ref W factoryMethod, auto ref Args args)
     if (
         isNonStaticMethodCompatible!(T, method, Args) &&
-        (is(W : T) || is(W : LocatorReference))
+        (is(W : T) || is(W : RuntimeReference))
     ) {
         
     auto constructor = new FactoryMethodBasedFactory!(T, method, W, Args)(factoryMethod, args);
@@ -915,7 +915,7 @@ template isArgumentListCompatible(alias func, ArgTuple...)
             bool result = true;
             foreach (index, Argument; ArgTuple) {
           
-                static if (!is(Argument : LocatorReference) && !isImplicitlyConvertible!(Argument, FuncParams[index])) {
+                static if (!is(Argument : RuntimeReference) && !isImplicitlyConvertible!(Argument, FuncParams[index])) {
           
                     result = false;
                     break;
@@ -934,13 +934,13 @@ mixin template assertFieldCompatible(T, string field, Arg) {
     
     static assert(isField!(T, field), name!T ~ "'s " ~ field ~ " member is not a field");
     static assert(isProtection!(T, field, "public"), name!T ~ "'s " ~ field ~ " is not public and therefore cannot be accessed.");
-    static assert(is(Arg : LocatorReference) ? true : isImplicitlyConvertible!(Arg, typeof(getMember!(T, field))), name!T ~"'s " ~ field ~ " type " ~ name!(typeof(getMember!(T, field))) ~ " doesn't match with passed arguments type " ~ name!Arg);
+    static assert(is(Arg : RuntimeReference) ? true : isImplicitlyConvertible!(Arg, typeof(getMember!(T, field))), name!T ~"'s " ~ field ~ " type " ~ name!(typeof(getMember!(T, field))) ~ " doesn't match with passed arguments type " ~ name!Arg);
 }
 
 enum bool isFieldCompatible(T, string field, Arg) = 
     isField!(T, field) &&
     isProtection!(T, field, "public") &&
-    is(Arg : LocatorReference) ? true : isImplicitlyConvertible!(Arg, typeof(getMember!(T, field)));
+    is(Arg : RuntimeReference) ? true : isImplicitlyConvertible!(Arg, typeof(getMember!(T, field)));
 
 mixin template assertObjectConstructorCompatible(T, Args...) {
     import aermicioi.util.traits;

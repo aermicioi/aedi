@@ -121,7 +121,7 @@ unittest {
     auto container = new ApplicationContainer;
     SingletonContainer singleton = container.locate!SingletonContainer("singleton");
     PrototypeContainer prototype = container.locate!PrototypeContainer("prototype");
-    ObjectStorage!() parameters = container.locate!(ObjectStorage!())("parameters");
+    ValueContainer parameters = container.locate!ValueContainer("parameters");
     
     container.register!(Employee)(parameters, "employee.custom", "singleton");
     container.register!(Person)("person.custom", "singleton");

@@ -95,7 +95,7 @@ Params:
 MetadataDecoratedGenericFactory!(X) factoryMethod(T, string method, X, W, Args...)(MetadataDecoratedGenericFactory!(X) factory, auto ref W factoryMethod, auto ref Args args)
     if (
         isNonStaticMethodCompatible!(T, method, Args) &&
-        (is(W : T) || is(W : LocatorReference))
+        (is(W : T) || is(W : RuntimeReference))
     ) {
     factory.setInstanceFactory(factoryMethodBasedFactory!(T, method)(factory.locator, factoryMethod, args));
     

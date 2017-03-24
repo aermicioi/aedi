@@ -27,34 +27,55 @@ License:
 Authors:
 	aermicioi
 **/
+module aermicioi.aedi.container.value_container;
 
-module aermicioi.aedi.container.application_container;
+import aermicioi.aedi.container.container;
+import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.object_storage;
+import aermicioi.aedi.exception.not_found_exception;
 
-import aermicioi.aedi.container.aggregate_container;
-import aermicioi.aedi.container.value_container;
-import aermicioi.aedi.container;
-import aermicioi.aedi.storage;
-import aermicioi.aedi.exception;
-
-import std.range.interfaces;
-import std.typecons;
-
-/**
-Application container
-
-A default container that provides singleton, and prototype containers as well as a storage for 
-already instantiated data. It should be sufficient for usages, when no specific hierarchy of storages
-is required.
-
-**/
-class ApplicationContainer : AggregateContainer {
+class ValueContainer : Container, Storage!(Object, string) {
+    
+    private {
+        ObjectStorage!(Object, string) values;
+    }
     
     public {
         
         this() {
-            this.set(new SingletonContainer, "singleton");
-            this.set(new PrototypeContainer, "prototype");
-            this.set(new ValueContainer, "parameters");
+            this.values = new ObjectStorage!(Object, string);
+        }
+        
+        ValueContainer set(Object container, string identity) {
+        	this.values.set(container, identity);
+        
+        	return this;
+        }
+        
+        ValueContainer remove(string identity) {
+        	this.values.remove(identity);
+        
+        	return this;
+        }
+        
+        Object get(string identity) {
+            if (this.values.has(identity)) {
+                return this.values.get(identity);
+            }
+            
+            return new NotFoundException("Object by id " ~ identity ~ " not found.");
+        }
+        
+        bool has(in string identity) inout {
+            
+            return this.values.has(identity);
+        }
+        
+        ValueContainer instantiate() {
+            
+//            We do nothing since all components is already instantiated.
+            return this;
         }
     }
 }
