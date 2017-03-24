@@ -133,6 +133,17 @@ unittest {
     assert(tagThree.tags == ["dev-ops", "team-lead"]);
 }
 
+unittest {
+    
+    SingletonContainer container = new SingletonContainer();
+    auto obj = new MockObject;
+    
+    container.register!MockObject()
+        .value(obj);
+    
+    assert(container.locate!MockObject() is obj);
+}
+
 //Leaving commented until bug 17177 will be fixed.
 //unittest {
 //    import aermicioi.aedi.container.proxy_container;

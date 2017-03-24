@@ -209,3 +209,12 @@ unittest {
     assert(str.property == 20);
     assertThrown!PropertyConfigurerException(secallback.configure(str));
 }
+
+unittest {
+    GenericFactory!MockObject factory = new GenericFactoryImpl!MockObject(null);
+    MockObject obj = new MockObject;
+    
+    factory.setInstanceFactory(new ValueInstanceFactory!MockObject(obj));
+    
+    assert(factory.factory() is obj);
+}

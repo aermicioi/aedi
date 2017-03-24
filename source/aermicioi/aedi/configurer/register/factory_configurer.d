@@ -48,9 +48,9 @@ import std.traits;
 import std.meta;
 
 /**
-Construct aggregate using args.
+Construct component using args.
 
-Constructs aggregate using args, that are passed to function.
+Constructs component using args, that are passed to function.
 The function will attempt to find at least one construct that 
 can accept passed argument list. If it fails, compiler will
 produce error, with respective problems.
@@ -73,10 +73,10 @@ auto construct(T, Args...)(MetadataDecoratedGenericFactory!T factory, auto ref A
 }
 
 /**
-Invoke T's method to create aggregate of type X.
+Invoke T's method to create component of type X.
 
-Configures aggregate's factory to call method of factoryMethod with args,
-in order to create aggregate of type X.
+Configures component's factory to call method of factoryMethod with args,
+in order to create component of type X.
 In case when method is not a static member, the function requires to
 pass a instance of factoryMethod or a reference to it.
 The algorithm will check for args compatiblity with parameters of 
@@ -84,11 +84,11 @@ factory method. No type check is done for arguments that are references
 at compile time.
 
 Params:
-    factory = aggregate's factory that is configured to call factoryMethod methods to spawn aggregate
-    factoryMethod = instance of factory method that will be used to instantiate aggregate
+    factory = component's factory that is configured to call factoryMethod methods to spawn component
+    factoryMethod = instance of factory method that will be used to instantiate component
     args = a list of arguments passed to factory method
     T = type of factoryMethod
-    method = the method that is called from T to instantiate aggregate
+    method = the method that is called from T to instantiate component
     W = either LocatorReference or T
     X = the return type of T.method member
 **/
@@ -115,9 +115,9 @@ MetadataDecoratedGenericFactory!(X) factoryMethod(T, string method, X, Args...)(
 }
 
 /**
-Invoke aggregate's method with supplied args.
+Invoke component's method with supplied args.
 
-Configures aggregate's factory to call specified method with passed args.
+Configures component's factory to call specified method with passed args.
 The function will check if the arguments passed to it are compatible with at 
 least one method from possible overload set.
 The args list can contain references to other objects in locator as well, though
@@ -140,9 +140,9 @@ auto set(string property, T, Args...)(MetadataDecoratedGenericFactory!T factory,
 }
 
 /**
-Set aggregate's public field to passed arg.
+Set component's public field to passed arg.
 
-Configures aggregate's factory to set specified field to passed arg.
+Configures component's factory to set specified field to passed arg.
 The function will check if passed argument is type compatible with specified field.
 The argument can be a reference as well. In case of argument being reference to another data
 in container, no type compatiblity checking will be done.
@@ -164,14 +164,14 @@ auto set(string property, T, Arg)(MetadataDecoratedGenericFactory!T factory, aut
 }
     
 /**
-Construct aggregate using a delegate.
+Construct component using a delegate.
 
-Constructs aggregate using a delegate, and a list of arguments passed to delegate.
+Constructs component using a delegate, and a list of arguments passed to delegate.
 
 Params:
-	factory = the factory which will use delegate to construct aggregate.
-	dg = the delegate that is responsible for creating aggregate, given a list of arguments.
-	args = the arguments that will be used by delegate to construct aggregate.
+	factory = the factory which will use delegate to construct component.
+	dg = the delegate that is responsible for creating component, given a list of arguments.
+	args = the arguments that will be used by delegate to construct component.
 	
 Returns:
 	MetadataDecoratedGenericFactory!T.
@@ -192,13 +192,13 @@ auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, T function(
 }
 
 /**
-Call dg on an aggregate that is in configuration phase.
+Call dg on an component that is in configuration phase.
 
-Call dg on aggregate to perform some modifications, using args as input.
+Call dg on component to perform some modifications, using args as input.
 
 Params:
     factory = factory which will call dg with args.
-    dg = delegate that will perform some modifications on aggregate using passed args.
+    dg = delegate that will perform some modifications on component using passed args.
     args = a list of arguments passed to dg.
     
 Returns:
@@ -250,8 +250,8 @@ Note: In case of constructors as well as methods that are overloaded,
 the first constructor or method from overload set is selected to be autowired.
 
 Params:
-    T = the aggregate type
-    member = field or method of aggregate T
+    T = the component type
+    member = field or method of component T
     factory = MetadataDecoratedGenericFactory where to inject the constructor or method configurer
     
 Returns:
@@ -276,6 +276,23 @@ ditto
 auto autowire(string member, T)(MetadataDecoratedGenericFactory!T factory) 
     if (isField!(T, member)) {
     return factory.set!(member)(lref!(typeof(getMember!(T, member))));
+}
+
+/**
+Instantiates a component using a value as basis.
+
+Instantiates a component using a value as basis.
+As a consequence, any reference based type will 
+point to same content when it is instantiated 
+multiple times.
+
+Params:
+    T = the component type
+    factory = MetadataDecoratedGenericFactory where to inject the constructor or method configurer
+    value = default value used to instantiate component
+**/
+auto value(T)(MetadataDecoratedGenericFactory!T factory, auto ref T value) {
+    return factory.setInstanceFactory(new ValueInstanceFactory!T(value));
 }
 
 /**

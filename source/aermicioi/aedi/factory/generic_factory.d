@@ -99,6 +99,9 @@ interface GenericFactory(T) : Factory!T {
             **/
             GenericFactory!T setInstanceFactory(InstanceFactory!T factory);
             
+            
+            alias locator = Factory!T.locator;
+            
             /**
             Get the GenericFactory locator.
             
@@ -788,6 +791,43 @@ auto callbackConfigurer(T, Args...)(Locator!() locator, void function(Locator!()
     auto constr = new CallbackConfigurer!(T, void function(Locator!(), ref T, Args), Args)(dg, args);
     constr.locator = locator;
     return constr;
+}
+
+
+/**
+Instantiates a component using a value as basis.
+
+Instantiates a component using a value as basis.
+As a consequence, any reference based type will 
+point to same content when it is instantiated 
+multiple times. 
+**/
+class ValueInstanceFactory(T) : InstanceFactory!T {
+    private {
+        T initial_;
+    }
+    
+    public {
+        this(T initial) {
+            this.initial = initial;
+        }
+        
+        @property {
+        	ValueInstanceFactory!T initial(T initial) @safe nothrow {
+        		this.initial_ = initial;
+        	
+        		return this;
+        	}
+        	
+        	T initial() @safe nothrow {
+        		return this.initial_;
+        	}
+        }
+        
+        T factory() {
+            return this.initial();
+        }
+    }
 }
 
 /**
