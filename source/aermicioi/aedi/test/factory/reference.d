@@ -44,9 +44,9 @@ unittest {
     MockStruct structt = MockStruct(10);
     
     storage.set(object, "obj");
-    storage.set(new Wrapper!MockExternObject(eobject), "eobj");
-    storage.set(new Wrapper!MockExternInterface(eobject), "eiface");
-    storage.set(new Wrapper!MockStruct(structt), "str");
+    storage.set(new WrapperImpl!MockExternObject(eobject), "eobj");
+    storage.set(new WrapperImpl!MockExternInterface(eobject), "eiface");
+    storage.set(new WrapperImpl!MockStruct(structt), "str");
     
     auto objReference = new LocatorReference("obj");
     auto eobjReference = new LocatorReference("eobj");
@@ -82,5 +82,5 @@ unittest {
     assert(anonymous(cfactory).resolve!MockObject(storage).classinfo is typeid(MockObject));
     
     assert(anonymous(sfactory).resolve!int(storage) !is null);
-    assert(anonymous(sfactory).resolve!int(storage).classinfo is typeid(Wrapper!int));
+    assert(anonymous(sfactory).resolve!int(storage) == 0);
 }

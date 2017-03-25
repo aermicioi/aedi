@@ -192,7 +192,7 @@ class AnonymousFactoryReference : RuntimeReference {
 ditto
 **/
 auto anonymous(T : Factory!X, X)(T factory) {
-    import aermicioi.aedi.factory.decorating_factory;
+    import aermicioi.aedi.factory.wrapping_factory;
     return anonymous(new WrappingFactory!T(factory));
 }
 

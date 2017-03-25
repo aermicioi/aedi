@@ -60,7 +60,7 @@ unittest {
     auto rmethod = methodConfigurer!("method", MockObject)(storage, new LocatorReference("int"), 10);
     auto emethod = methodConfigurer!("nasty", MockObject)(storage);
     
-    storage.set(new Wrapper!int(10), "int");
+    storage.set(new WrapperImpl!int(10), "int");
     
     smethod.configure(obj);
     assert(obj.property == 30);
@@ -76,7 +76,7 @@ unittest {
     auto rproperty = fieldConfigurer!("property", MockObject)(storage, new LocatorReference("int"));
     auto eproperty = fieldConfigurer!("property", MockObject)(storage, new LocatorReference("unknown"));
     
-    storage.set(new Wrapper!int(20), "int");
+    storage.set(new WrapperImpl!int(20), "int");
     
     sproperty.configure(obj);
     assert(obj.property == 10);
@@ -99,7 +99,7 @@ unittest {
     auto crfactory = constructorBasedFactory!MockObject(storage, new LocatorReference("int"));
     auto cefactory = constructorBasedFactory!MockObject(storage, new LocatorReference("unknown"));
     
-    storage.set(new Wrapper!int(20), "int");
+    storage.set(new WrapperImpl!int(20), "int");
     
     assert(csfactory.factory.property == 10);
     assert(crfactory.factory.property == 20);
@@ -129,7 +129,7 @@ unittest {
     auto dsrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(storage, new LocatorReference("dfactory"));
     auto dsefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(storage, new LocatorReference("unknown"));
     
-    storage.set(new Wrapper!int(20), "int");
+    storage.set(new WrapperImpl!int(20), "int");
     
     assert(scsfactory.factory.property == 10);
     assert(scrfactory.factory.property == 20);
@@ -160,7 +160,7 @@ unittest {
         throw new Exception("Not going to instantiate");
     }, cast(int) 10);
     
-    storage.set(new Wrapper!int(20), "int");
+    storage.set(new WrapperImpl!int(20), "int");
     
     assert(csfactory.factory.property == 10);
     assert(crfactory.factory.property == 20);
@@ -195,7 +195,7 @@ unittest {
         obj.property = i.resolve!int(loc);
     }, new LocatorReference("unk"));
     
-    storage.set(new Wrapper!int(20), "int");
+    storage.set(new WrapperImpl!int(20), "int");
     
     cscallback.configure(obj);
     assert(obj.property == 10);

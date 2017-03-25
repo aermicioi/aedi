@@ -36,7 +36,7 @@ import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory;
 import aermicioi.aedi.factory.generic_factory;
-import aermicioi.aedi.factory.decorating_factory : WrappingFactory;
+import aermicioi.aedi.factory.wrapping_factory : WrappingFactory;
 import aermicioi.aedi.factory.proxy_factory;
 import aermicioi.aedi.container.proxy_container;
 import aermicioi.aedi.container.container;
@@ -222,14 +222,14 @@ Returns:
     the storage were data was saved.
 **/
 auto register(Type)(Storage!(Object, string) storage, Type data, string id) {
-    import aermicioi.aedi.storage.wrapper : Wrapper;
+    import aermicioi.aedi.storage.wrapper : WrapperImpl;
     
     static if (is(Type : Object)) {
         
         storage.set(data, id);
     } else {
 
-        auto wrapper = new Wrapper!Type(data);
+        auto wrapper = new WrapperImpl!Type(data);
         storage.set(wrapper, id);
     }
     

@@ -40,56 +40,6 @@ import aermicioi.aedi.storage.decorator;
 alias ObjectFactoryDecorator = Decorator!ObjectFactory;
 
 /**
-Wraps up the result of some factory in Wrapper object if data is not
-subclass of Object.
-**/
-class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
-    
-    private {
-        T decorated_;
-    }
-    
-    public {
-        this(T factory) {
-            this.decorated = factory;
-        }
-        
-        @property {
-        	WrappingFactory!(T, Z) decorated(T decorated) @safe nothrow {
-        		this.decorated_ = decorated;
-        	
-        		return this;
-        	}
-        	
-        	T decorated() @safe nothrow {
-        		return this.decorated_;
-        	}
-        	
-        	TypeInfo type() {
-        	    return this.decorated.type;
-        	}
-        	
-        	WrappingFactory!T locator(Locator!() locator) {
-        		this.decorated.locator = locator;
-        	
-        		return this;
-        	}
-        	
-        }
-        
-        Object factory() {
-            static if (is(Z : Object)) {
-                
-                return this.decorated.factory;
-            } else {
-                import aermicioi.aedi.storage.wrapper;
-                return new Wrapper!Z(this.decorated.factory);
-            }
-        }
-    }
-}
-
-/**
 A base class for generic factory decorators that channels calls
 to decorated generic factory.
 **/

@@ -50,8 +50,8 @@ unittest {
 
 unittest {
     ObjectStorage!() parameters = new ObjectStorage!();
-    parameters.set(new Wrapper!string("scrapper"), name!string);
-    parameters.set(new Wrapper!ubyte(20), name!ubyte);
+    parameters.set(new WrapperImpl!string("scrapper"), name!string);
+    parameters.set(new WrapperImpl!ubyte(20), name!ubyte);
     parameters.set(new Job("scrapper", Currency(20000)), name!Job);
     parameters.link(name!Job, "job");
     parameters.link(name!string, "name");
@@ -92,11 +92,11 @@ unittest {
 
 unittest {
     ObjectStorage!() parameters = new ObjectStorage!();
-    parameters.set(new Wrapper!string("scrapper"), name!string);
-    parameters.set(new Wrapper!ubyte(20), name!ubyte);
+    parameters.set(new WrapperImpl!string("scrapper"), name!string);
+    parameters.set(new WrapperImpl!ubyte(20), name!ubyte);
     parameters.set(new Job("scrapper", Currency(20000)), name!Job);
     parameters.set(new FixtureFactory(new Job("salaryman", Currency(2000))), "factory");
-    parameters.set(new Wrapper!StructFixtureFactory(StructFixtureFactory(new Job("salaryman", Currency(2000)))), "structFactory");
+    parameters.set(new WrapperImpl!StructFixtureFactory(StructFixtureFactory(new Job("salaryman", Currency(2000)))), "structFactory");
     parameters.link(name!Job, "job");
     parameters.link(name!string, "name");
     parameters.link(name!ubyte, "age");
@@ -196,8 +196,8 @@ unittest {
 
 unittest {
     ObjectStorage!() parameters = new ObjectStorage!();
-    parameters.set(new Wrapper!string("scrapper"), "name");
-    parameters.set(new Wrapper!ubyte(20), "age");
+    parameters.set(new WrapperImpl!string("scrapper"), "name");
+    parameters.set(new WrapperImpl!ubyte(20), "age");
     parameters.set(new Job("scrapper", Currency(20000)), name!Job);
     parameters.link(name!Job, "job");
     GenericFactory!Employee employeeFactory = new GenericFactoryImpl!Employee(parameters);

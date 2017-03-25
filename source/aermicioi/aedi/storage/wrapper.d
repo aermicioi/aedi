@@ -31,6 +31,14 @@ module aermicioi.aedi.storage.wrapper;
 
 import std.traits;
 
+interface Wrapper(T) {
+    public {
+        @property ref T value();
+        
+        alias value this;
+    }
+}
+
 /**
 Wrapper over some data of type T.
 
@@ -40,7 +48,7 @@ in order to be saveable into an object storage.
 Also thanks to alias value this semantics, in D is possible to do automatic
 unboxing of values, just like Java does with simple values :P.
 **/
-class Wrapper(T) {
+class WrapperImpl(T) : Wrapper!T {
     private {
         T value_;
     }
@@ -58,34 +66,6 @@ class Wrapper(T) {
         }
         
         alias value this;
-        
-        T opCast(T)() {
-            return value;
-        }
-        
-        auto opCall(Args...)(Args args)
-            if (isCallable!T) {
-            
-            static if (is(ReturnType!T == void)) {
-                value()(args);
-            } else {
-                return value()(args);
-            }
-        }
-        
-        alias opEquals = Object.opEquals;
-        
-        bool opEquals(ref T value) {
-            return this.value == value;
-        }
-        
-        bool opEquals(Wrapper!T wrapper) {
-            return this.value == wrapper.value;
-        }
-        
-        bool opEquals(T value) {
-            return this == value;
-        }
         
         @property ref T value() {
             return this.value_;

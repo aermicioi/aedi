@@ -27,38 +27,62 @@ License:
 Authors:
 	aermicioi
 **/
-module aermicioi.aedi.test.storage.locator;
+module aermicioi.aedi.factory.wrapping_factory;
 
-import aermicioi.aedi.storage.locator;
-import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.wrapper;
-import aermicioi.aedi.test.fixture;
-import aermicioi.aedi.exception.invalid_cast_exception;
-import std.exception;
+import aermicioi.aedi.factory.factory;
+import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.factory.generic_factory;
+import aermicioi.aedi.storage.decorator;
+import std.traits;
 
-unittest {
-    ObjectStorage!(Object, string) storage = new ObjectStorage!(Object, string);
-    auto john = new MockObject();
-    auto mary = new MockObject();
-    auto katty = new MockObject();
+/**
+Wraps up the result of some factory in Wrapper object if data is not
+subclass of Object.
+**/
+class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
     
-    storage.set(john, "john");
-    storage.set(mary, "mary");
-    storage.set(katty, "katty");
-    storage.link("katty", "aermicioi.aedi.test.fixture.MockObject");
-    storage.set(new WrapperImpl!(MockStruct)(MockStruct(10)), "alien");
-    storage.set(new WrapperImpl!(MockExternObject)(new MockExternObject(10)), "c++alien");
-    storage.set(new WrapperImpl!(MockExternInterface)(new MockExternObject(10)), "c++alienInterface");
+    private {
+        T decorated_;
+    }
     
-    assert(storage.locate!MockObject("john") is john);
-    assertThrown!InvalidCastException(storage.locate!MockObjectFactoryMethod("john"));
-    
-    assert(storage.locate!MockInterface("john") is john);
-    assert(storage.locate!MockExternInterface("c++alienInterface") !is null);
-    assertThrown!InvalidCastException(storage.locate!MockExternInterface("c++alien"));
-    
-    assert(storage.locate!MockStruct("alien") == MockStruct(10));
-    assertThrown!InvalidCastException(storage.locate!int("alien"));
-    
-    assert(storage.locate!MockObject is katty);
+    public {
+        this(T factory) {
+            this.decorated = factory;
+        }
+        
+        @property {
+        	WrappingFactory!(T, Z) decorated(T decorated) @safe nothrow {
+        		this.decorated_ = decorated;
+        	
+        		return this;
+        	}
+        	
+        	T decorated() @safe nothrow {
+        		return this.decorated_;
+        	}
+        	
+        	TypeInfo type() {
+        	    return this.decorated.type;
+        	}
+        	
+        	WrappingFactory!T locator(Locator!() locator) {
+        		this.decorated.locator = locator;
+        	
+        		return this;
+        	}
+        	
+        }
+        
+        Object factory() {
+            static if (is(Z : Object)) {
+                
+                return this.decorated.factory;
+            } else {
+                import aermicioi.aedi.storage.wrapper;
+                return new WrapperImpl!Z(this.decorated.factory);
+            }
+        }
+    }
 }
+

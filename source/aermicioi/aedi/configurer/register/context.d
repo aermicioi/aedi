@@ -33,7 +33,7 @@ import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.generic_factory;
-import aermicioi.aedi.factory.decorating_factory;
+import aermicioi.aedi.factory.wrapping_factory;
 import std.traits;
 
 import aermicioi.aedi.configurer.register.generic_factory_metadata_decorator;
@@ -294,7 +294,7 @@ struct ValueRegistrationContext {
             } else {
                 import aermicioi.aedi.storage.wrapper;
                 
-                storage.set(new Wrapper!T(value), identity);
+                storage.set(new WrapperImpl!T(value), identity);
             }
             
             return this;

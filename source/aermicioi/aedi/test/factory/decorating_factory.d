@@ -32,6 +32,7 @@ module aermicioi.aedi.test.factory.decorating_factory;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.test.fixture;
 import aermicioi.aedi.factory.decorating_factory;
+import aermicioi.aedi.factory.wrapping_factory;
 import std.exception;
 
 unittest {

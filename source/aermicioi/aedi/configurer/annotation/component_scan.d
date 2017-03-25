@@ -42,7 +42,7 @@ import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.factory.proxy_factory;
 import aermicioi.aedi.exception;
 import aermicioi.util.traits;
-import aermicioi.aedi.factory.decorating_factory : WrappingFactory;
+import aermicioi.aedi.factory.wrapping_factory : WrappingFactory;
 
 import std.traits;
 import std.meta;
