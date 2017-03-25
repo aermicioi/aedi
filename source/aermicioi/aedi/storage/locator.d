@@ -41,7 +41,7 @@ interface Locator(Type = Object, KeyType = string) {
     public {
         
 		/**
-		Get an Type that is associated with key.
+		Get a Type that is associated with key.
 		
 		Params:
 			identity = the element id.
@@ -59,7 +59,7 @@ interface Locator(Type = Object, KeyType = string) {
         
         Note:
         	This check should be done for elements that locator actually contains, and
-        	not in chained locator (when locator is also a DelegatingLocator) for example.
+        	not in chained locator.
         Params:
         	identity = identity of element.
         	

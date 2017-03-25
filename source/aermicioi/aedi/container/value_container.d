@@ -35,6 +35,10 @@ import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.exception.not_found_exception;
 
+/**
+Value container for instantiated components.
+
+**/
 class ValueContainer : Container, Storage!(Object, string) {
     
     private {
@@ -47,26 +51,72 @@ class ValueContainer : Container, Storage!(Object, string) {
             this.values = new ObjectStorage!(Object, string);
         }
         
-        ValueContainer set(Object container, string identity) {
-        	this.values.set(container, identity);
+        /**
+		Save an object in ValueContainer by identity.
+		
+		Params:
+			identity = identity of element in Storage.
+			object = element which is to be saved in Storage.
+			
+		Return:
+			ValueContainer 
+		**/
+        ValueContainer set(Object object, string identity) {
+        	this.values.set(object, identity);
         
         	return this;
         }
         
+        /**
+        Remove an object from ValueContainer with identity.
+        
+        Remove an object from ValueContainer with identity. If there is no element by provided identity, then no action is performed.
+        
+        Params:
+        	identity = the identity of element to be removed.
+        	
+    	Return:
+    		ValueContainer
+        **/
         ValueContainer remove(string identity) {
         	this.values.remove(identity);
         
         	return this;
         }
         
+        /**
+		Get an Object that is associated with identity.
+		
+		Params:
+			identity = the object id.
+			
+		Throws:
+			NotFoundException in case if the element wasn't found.
+		
+		Returns:
+			Object element if it is available.
+		**/
         Object get(string identity) {
+
             if (this.values.has(identity)) {
                 return this.values.get(identity);
             }
-            
-            return new NotFoundException("Object by id " ~ identity ~ " not found.");
+
+            throw new NotFoundException("Object by id " ~ identity ~ " not found.");
         }
         
+        /**
+        Check if an object is present in Locator by identity.
+        
+        Note:
+        	This check should be done for elements that locator actually contains, and
+        	not in chained locator.
+        Params:
+        	identity = identity of element.
+        	
+    	Returns:
+    		bool true if an element by key is present in Locator.
+        **/
         bool has(in string identity) inout {
             
             return this.values.has(identity);

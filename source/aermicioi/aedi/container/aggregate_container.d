@@ -37,6 +37,11 @@ import aermicioi.aedi.exception.not_found_exception;
 import std.range.interfaces;
 import std.typecons;
 
+/**
+Aggregate container, that delegates the task of locating to containers
+managed by it.
+
+**/
 class AggregateContainer : Container, Storage!(Container, string), AggregateLocator!(Object, string) {
     
     private {
@@ -49,18 +54,56 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
             this.containers = new ObjectStorage!(Container, string);
         }
         
+        /**
+        Set a container into aggregate container
+        
+        Set a container into aggregate container
+        Description
+        
+        Params:
+        	container = container that is added to aggregate container
+        	identity = identity by which container is identified in aggregate container
+        
+        Returns:
+        	AggregateContainer
+        **/
         AggregateContainer set(Container container, string identity) {
         	this.containers.set(container, identity);
         
         	return this;
         }
         
+        /**
+        Remove a container from aggregate container.
+        
+        Remove a container from aggregate container.
+
+        Params:
+        	identity = identity of container to be removed
+        
+        Returns:
+        	AggregateContainer
+        **/
         AggregateContainer remove(string identity) {
         	this.containers.remove(identity);
         
         	return this;
         }
         
+        /**
+        Get a container, or an object that is contained by managed containers.
+        
+        Get a container, or an object that is contained by managed containers.
+        
+        Params:
+        	identity = identity of object that is to be supplied.
+        
+        Throws:
+        	NotFoundException when no requested object by identity is present in container
+        
+        Returns:
+        	Object the object contained in one of containers or a container itself.
+        **/
         Object get(string identity) {
             if (this.containers.has(identity)) {
                 Object container = cast(Object) this.containers.get(identity); 
@@ -79,6 +122,17 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
         	throw new NotFoundException("Object by id " ~ identity ~ " not found.");
         }
         
+        /**
+        Check if an object is present in one of containers, or it is a container itself.
+        
+        Check if an object is present in one of containers, or it is a container itself.
+        
+        Params:
+        	identity = identity of object to be checked
+        
+        Returns:
+        	bool true if exists, false otherwise
+        **/
         bool has(in string identity) inout {
             if (this.containers.has(identity)) {
                 return true;
@@ -93,6 +147,14 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
             return false;
         }
         
+        /**
+        Finalize all unfinished initialization work in containers.
+        
+        Finalize all unfinished initialization work in containers.
+        
+        Returns:
+        	AggregateContainer
+        **/
         AggregateContainer instantiate() {
             
             foreach (container; this.containers) {
@@ -103,10 +165,10 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
         }
         
         /**
-        Get a specific locator.
+        Get a specific container.
         
         Params:
-            key = the locator identity.
+            key = the container identity.
         **/
         Locator!(Object, string) getLocator(string key) {
             
@@ -114,10 +176,10 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
         }
         
         /**
-        Get all locators in aggregate locator
+        Get all containers in aggregate container
         
         Returns:
-        	InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
+        	InputRange!(Tuple!(Locator!(Object, string), string)) a range of container => identity
         **/
         InputRange!(Tuple!(Locator!(Object, string), string)) getLocators() {
             import std.algorithm;
@@ -128,10 +190,10 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
         }
         
         /**
-        Check if aggregate locator contains a specific locator.
+        Check if aggregate container contains a specific container.
         
         Params:
-        	key = the identity of locator in aggregate locator
+        	key = the identity of container in aggregate container
         **/
         bool hasLocator(string key) inout {
             
