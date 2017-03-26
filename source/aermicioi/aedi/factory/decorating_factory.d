@@ -36,6 +36,7 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.exception.di_exception;
 
 alias ObjectFactoryDecorator = Decorator!ObjectFactory;
 
@@ -196,6 +197,185 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
         
         T factory() {
             return this.decorated.factory;
+        }
+    }
+}
+
+/**
+Interface for object that can provide some location in 
+code/file that is associated with some kind of registration event
+**/
+interface RegistrationLocation {
+    public {
+        @property {
+        	
+        	/**
+        	Get file in which registration occurred.
+        	
+        	Returns:
+            	string file in which a registration occured
+        	**/
+        	string file() @safe nothrow;
+        	
+        	/**
+        	Get line in file on which registration occurred.
+        	
+        	Returns:
+            	size_t line in file on which registration occurred.
+        	**/
+        	size_t line() @safe nothrow;
+        }
+    }
+}
+
+/**
+A decorating factory, that adds component registration information
+when decorated factory threws some kind of exception.
+**/
+class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Factory!T), RegistrationLocation {
+    
+    private {
+        
+        Factory!T decorated_;
+        
+        string file_;
+        size_t line_;
+    }
+    
+    public {
+        
+        @property {
+            
+            /**
+        	Set file in which registration occurred.
+        	
+        	Params:
+            	file = file in which a registration occured
+        	
+        	Returns:
+            	this
+        	**/
+        	RegistrationAwareDecoratingFactory!T file(string file) @safe nothrow {
+        		this.file_ = file;
+        	
+        		return this;
+        	}
+        	
+        	/**
+        	Get file in which registration occurred.
+        	
+        	Returns:
+            	string file in which a registration occured
+        	**/
+        	string file() @safe nothrow {
+        		return this.file_;
+        	}
+        	
+        	/**
+        	Set line in file on which registration occurred.
+        	
+        	Params:
+            	line = line in file on which registration occurred.
+        	
+        	Returns:
+            	this
+        	**/
+        	RegistrationAwareDecoratingFactory!T line(size_t line) @safe nothrow {
+        		this.line_ = line;
+        	
+        		return this;
+        	}
+        	
+        	/**
+        	Get line in file on which registration occurred.
+        	
+        	Returns:
+            	size_t line in file on which registration occurred.
+        	**/
+        	size_t line() @safe nothrow {
+        		return this.line_;
+        	}
+        	
+        	/**
+            Set the decorated factory for decorator.
+            
+            Params:
+                decorated = decorated factory
+            
+            Returns:
+            	this
+            **/
+        	RegistrationAwareDecoratingFactory!T decorated(Factory!T decorated) @safe nothrow {
+        		this.decorated_ = decorated;
+        	
+        		return this;
+        	}
+        	
+        	/**
+            Get the decorated object.
+            
+            Returns:
+            	Factory!T decorated factory
+            **/
+        	Factory!T decorated() @safe nothrow {
+        		return this.decorated_;
+        	}
+        	
+        	/**
+    		Get the type info of T that is created.
+    		
+    		Returns:
+    			TypeInfo object of created object.
+    		**/
+        	TypeInfo type() {
+        	    return this.decorated.type;
+        	}
+        	
+        	/**
+    		Set a locator for depedencies.
+    		
+    		Params:
+    			locator = the locator that is set to oject.
+    		
+    		Returns:
+    			this
+    		**/
+        	RegistrationAwareDecoratingFactory!T locator(Locator!() locator) {
+        	    this.decorated.locator = locator;
+        	    
+        	    return this;
+        	}
+        }
+        
+        /**
+		Instantiates component of type T.
+		
+		Instantiates component of type T. In case of some thrown exception, 
+		it will chain any thrown exception with an exception that has information
+        about location where component was registered.
+		
+		Throws:
+    		AediException when another exception occurred during construction
+		
+		Returns:
+			T instantiated data of type T.
+		**/
+        T factory() {
+            
+            try {
+                return this.decorated.factory;
+            } catch (Exception e) {
+                import std.conv;
+                throw new AediException(
+                    "An error occured during instantiation of component registered in file: " ~ 
+                    this.file ~ 
+                    " at line " ~
+                    this.line.to!string,
+                    this.file,
+                    this.line,
+                    e
+                );
+            }
         }
     }
 }

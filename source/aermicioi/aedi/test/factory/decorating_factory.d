@@ -32,6 +32,7 @@ module aermicioi.aedi.test.factory.decorating_factory;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.test.fixture;
 import aermicioi.aedi.factory.decorating_factory;
+import aermicioi.aedi.exception.di_exception;
 import aermicioi.aedi.factory.wrapping_factory;
 import std.exception;
 
@@ -69,4 +70,21 @@ unittest {
     assert(factory.type is typeid(MockObject));
     assert(ofactory.locator_ is locator);
     assert(factory.factory() !is null);
+}
+
+unittest {
+    import std.conv;
+    RegistrationAwareDecoratingFactory!Object factory = new RegistrationAwareDecoratingFactory!Object;
+    
+    factory.line = 20;
+    factory.file = "some/hyphotetical/folder";
+    factory.decorated = new MockFailingFactory!MockObject;
+    
+    assertThrown!AediException(
+        factory.factory,
+    );
+    
+    assert(factory.line == 20);
+    assert(factory.file == "some/hyphotetical/folder");
+    assert(factory.type is typeid(MockObject));
 }

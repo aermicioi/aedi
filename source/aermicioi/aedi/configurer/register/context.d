@@ -331,3 +331,128 @@ Returns:
 ValueRegistrationContext configure(Storage!(Object, string) storage) {
     return ValueRegistrationContext(storage);
 }
+
+/**
+Adds registration location information in component's factory for easier debugging.
+
+Params:
+    context = original preconfigured registration context to use as basis.
+**/
+struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alias Z) {
+    import aermicioi.aedi.factory.decorating_factory : RegistrationAwareDecoratingFactory;
+    
+    public {
+        
+        T context;
+        
+        alias context this;
+        
+        this(T context) {
+            this.context = context;
+        }
+        
+        /**
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Params:
+            Interface = interface of registered component that it implements
+        	T = type of registered component
+        	identity = identity by which component is stored in storage
+        
+        Returns:
+        	GenericFactory!T factory for component for further configuration
+        **/
+        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(string identity) {
+            auto factory = this.context.register!T(identity);
+            
+            this.inject(factory, file, line);
+            return factory;
+        }
+        
+        /**
+        ditto
+        **/
+        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)() {
+            auto factory = this.context.register!T();
+            
+            this.inject(factory, file, line);
+            return factory;
+        }
+        
+        /**
+        ditto
+        **/
+        MetadataDecoratedGenericFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)()
+            if (!is(T == Interface)) {
+            auto factory = this.context.register!(Interface, T)();
+            
+            this.inject(factory, file, line);
+            return factory;
+        }
+        
+        /**
+        Register a component of type T by identity, type, or interface it implements with a default value.
+        
+        Register a component of type T by identity, type, or interface it implements with a default value.
+        
+        Params:
+            Interface = interface of registered component that it implements
+        	T = type of registered component
+        	identity = identity by which component is stored in storage
+        	value = initial value of component;
+        
+        Returns:
+        	GenericFactory!T factory for component for further configuration
+        **/
+        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value, string identity) {
+            auto factory = this.context.register!T(value, identity);
+            
+            this.inject(factory, file, line);
+            return factory;
+        }
+        
+        /**
+        ditto
+        **/
+        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+            if (!is(T == string)) {
+            auto factory = this.context.register!T(value);
+            
+            this.inject(factory, file, line);
+            return factory;
+        }
+            
+        /**
+        ditto
+        **/
+        MetadataDecoratedGenericFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+            if (!is(T == Interface)) {
+            auto factory = this.context.register!(Interface, T)(value);
+            
+            this.inject(factory, file, line);
+            return factory;
+        }
+    }
+    
+    private {
+        void inject(T)(MetadataDecoratedGenericFactory!T factory, string file, size_t line) {
+            RegistrationAwareDecoratingFactory!Object wrapper = new RegistrationAwareDecoratingFactory!Object();
+            wrapper.file = file;
+            wrapper.line = line;
+            
+            wrapper.decorated = factory.wrapper;
+            factory.wrapper = wrapper;
+            
+            factory.storage.set(factory.wrapper, factory.identity);
+        }
+    }
+}
+
+/**
+ditto
+**/
+auto withRegistrationInfo(T : RegistrationContext!Z, alias Z)(auto ref T context) {
+    return RegistrationInfoTaggedRegistrationContext!T(context);
+}

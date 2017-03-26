@@ -168,6 +168,32 @@ class MockFactory(T) : ObjectFactory {
     }
 }
 
+class MockFailingFactory(T) : ObjectFactory {
+    
+    public {
+        Locator!() locator_;
+    }
+    
+    public {
+        Object factory() {
+            import aermicioi.aedi.exception.di_exception;
+            throw new AediException("Well, I'll just fail everything.");
+        }
+        
+        @property {
+            TypeInfo type() @safe nothrow {
+            	return typeid(T);
+            }
+            
+            MockFailingFactory!T locator(Locator!() loc) {
+                this.locator_ = loc;
+                
+                return this;
+            }
+        }
+    }
+}
+
 class MockValueFactory(T) : Factory!T {
     public {
         Locator!() locator_;

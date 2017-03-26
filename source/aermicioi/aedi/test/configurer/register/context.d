@@ -37,8 +37,10 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.exception.di_exception;
 import aermicioi.aedi.test.fixture;
 import std.traits;
+import std.exception;
 
 unittest {
     SingletonContainer container = new SingletonContainer;
@@ -125,5 +127,58 @@ unittest {
         assert(container.locate!ulong("a.long") == 10UL);
         assert(container.locate!ulong == 20UL);
         assert(container.locate!MockObject(fullyQualifiedName!MockInterface) !is null);
+    }
+}
+
+unittest {
+    SingletonContainer container = new SingletonContainer;
+
+    with (container.configure.withRegistrationInfo) {
+        
+        register!MockObject("identity")
+            .callback(
+                function MockObject(Locator!() loc) {
+                    throw new Exception("We'll fail graciously here");
+                }
+            );
+        register!MockObject()
+            .callback(
+                function MockObject(Locator!() loc) {
+                    throw new Exception("We'll fail graciously here");
+                }
+            );
+        register!(MockInterface, MockObject)()
+            .callback(
+                function MockObject(Locator!() loc) {
+                    throw new Exception("We'll fail graciously here");
+                }
+            );
+        
+        assertThrown!AediException(container.locate!MockObject("identity"));
+        assertThrown!AediException(container.locate!MockObject());
+        assertThrown!AediException(container.locate!MockObject(fullyQualifiedName!MockObject));
+        
+        register(10UL, "a.long")
+            .callback(
+                function void(Locator!() loc, ref ulong m) {
+                    throw new Exception("We'll fail graciously here");
+                }
+            );
+        register(20UL)
+            .callback(
+                function void(Locator!() loc, ref ulong m) {
+                    throw new Exception("We'll fail graciously here");
+                }
+            );
+        register!MockInterface(new MockObject)
+            .callback(
+                function void(Locator!() loc, ref MockObject m) {
+                    throw new Exception("We'll fail graciously here");
+                }
+            );
+        
+        assertThrown!AediException(container.locate!ulong("a.long"));
+        assertThrown!AediException(container.locate!ulong);
+        assertThrown!AediException(container.locate!MockObject(fullyQualifiedName!MockInterface));
     }
 }
