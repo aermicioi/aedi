@@ -66,3 +66,29 @@ interface MutableDecorator(T) : Decorator!T {
         }
     }
 }
+
+/**
+Find a decorator in decorator chain that implements Needle type.
+
+Find a decorator in decorator chain that implements Needle type.
+
+Params:
+	Needle = the type searched decorator should implement
+	Haystack = type of the chain of decorators through which to traverse
+	decorated = top of decorator chain.
+
+Returns:
+	Decorator or null if not found.
+**/
+Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) {
+    
+    Haystack decorator = cast(Haystack) decorated;
+    Needle needle = cast(Needle) decorated;
+    
+    while ((needle is null) && (decorator !is null)) {
+        decorator = cast(Haystack) decorator.decorated;
+        needle = cast(Needle) decorator;
+    }
+    
+    return needle;
+}

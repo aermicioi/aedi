@@ -98,7 +98,7 @@ template SwitchableContainer(T) {
     Set which the switchable decorated will decorate for T. By default
     Locator!() and Switchable is included.
     **/
-    alias InheritanceSet = AliasSeq!(Filter!(
+    alias InheritanceSet = NoDuplicates!(Filter!(
         templateOr!(
             partialSuffixed!(
                 isDerived,

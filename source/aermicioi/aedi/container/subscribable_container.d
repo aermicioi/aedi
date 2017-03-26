@@ -65,7 +65,7 @@ template SubscribableContainer(T) {
     Set which the switchable container will decorate for T. By default
     Locator!() and Subscribable!ContainerInstantiationEventType is included.
     **/
-    alias InheritanceSet = AliasSeq!(Filter!(
+    alias InheritanceSet = NoDuplicates!(Filter!(
         templateOr!(
             partialSuffixed!(
                 isDerived,
@@ -83,7 +83,8 @@ template SubscribableContainer(T) {
         InterfacesTuple!T),
         Container,
         Subscribable!ContainerInstantiationEventType,
-        MutableDecorator!T
+        MutableDecorator!T,
+        Decorator!Container
     );
     
     class SubscribableContainer : InheritanceSet {
