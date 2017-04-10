@@ -35,8 +35,10 @@ import aermicioi.aedi.configurer.register.environment;
 import aermicioi.aedi.configurer.register.register;
 import aermicioi.aedi.configurer.register.factory_configurer;
 import aermicioi.aedi.container.singleton_container;
+import aermicioi.aedi.exception;
 import aermicioi.aedi.test.fixture;
 import std.exception;
+import std.traits;
 
 unittest {
     auto container = new SingletonContainer;
@@ -142,6 +144,34 @@ unittest {
         .value(obj);
     
     assert(container.locate!MockObject() is obj);
+}
+
+unittest {
+    
+    SingletonContainer container = new SingletonContainer();
+    
+    MockObject obj = new MockObject;
+    MockValueFactory!MockObject fact = new MockValueFactory!MockObject;
+    
+    container.register!MockObject()
+        .value(obj);
+    
+    container.register!MockInterface
+        .parent(fact);
+    
+    container.register!MockObject("parented")
+        .parent(container, fullyQualifiedName!MockObject);
+        
+    assertThrown!InvalidCastException(
+        container.register!MockInterface("lohness")
+            .parent(container, fullyQualifiedName!MockObject)
+    );
+        
+    container.instantiate();
+    
+    assert(container.locate!MockObject is obj);
+    assert(container.locate!MockInterface !is null);
+    assert(container.locate!MockObject("parented") is obj);
 }
 
 //Leaving commented until bug 17177 will be fixed.

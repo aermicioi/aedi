@@ -86,3 +86,111 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
     }
 }
 
+/**
+A factory that coerces an object from object factory to
+some T type.
+
+A factory that coerces an object from object factory to
+some T type. If T is not rooted in Object class it is
+assumed by convention that Wrapper!T object is returned
+by object factory.
+**/
+class UnwrappingFactory(T) : Factory!T {
+    
+    private {
+        ObjectFactory decorated_;
+    }
+    
+    public {
+        this(ObjectFactory factory) {
+            this.decorated = factory;
+        }
+        
+        @property {
+            /**
+            Set the decorated object for decorator.
+            
+            Throws:
+                InvalidCastException when created type of object factory mismatches type of unwrapping factory.
+            
+            Params:
+                decorated = decorated data
+            
+            Returns:
+            	this
+            **/
+        	UnwrappingFactory!T decorated(ObjectFactory decorated) {
+        	    if (decorated.type != typeid(T)) {
+        	        import aermicioi.aedi.exception.invalid_cast_exception;
+        	        
+        	        throw new InvalidCastException("Cannot unwrap a type " ~ decorated.type.toString() ~ " and cast it to " ~ typeid(T).toString());
+        	    }
+        	    
+        		this.decorated_ = decorated;
+        	
+        		return this;
+        	}
+        	
+        	/**
+            Get the decorated object.
+            
+            Returns:
+            	ObjectFactory decorated object
+            **/
+        	ObjectFactory decorated() {
+        		return this.decorated_;
+        	}
+        	
+        	/**
+    		Get the type info of T that is created.
+    		
+    		Returns:
+    			TypeInfo object of created object.
+    		**/
+        	TypeInfo type() {
+        	    return this.decorated.type;
+        	}
+        	
+        	/**
+    		Set a locator to object.
+    		
+    		Params:
+    			locator = the locator that is set to oject.
+    		
+    		Returns:
+    			LocatorAware.
+    		**/
+        	UnwrappingFactory!T locator(Locator!() locator) {
+        	    this.decorated.locator = locator;
+        	    
+        	    return this;
+        	}
+        }
+        
+        /**
+		Instantiates something of type T.
+		
+		Returns:
+			T instantiated data of type T.
+		**/
+        T factory() {
+            Object wrapped = this.decorated.factory;
+            
+            static if (is(T : Object)) {
+                T component = cast(T) wrapped;
+                
+                if (component !is null) {
+                    return component;
+                }
+            } else {
+                Wrapper!T component = cast(Wrapper!T) wrapped;
+                
+                if (component !is null) {
+                    return component;
+                }
+            }
+            
+            assert(0, "Fatal error, application logic never should reach this region");
+        }
+    }
+}

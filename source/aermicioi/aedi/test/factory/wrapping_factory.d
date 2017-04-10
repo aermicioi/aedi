@@ -27,20 +27,38 @@ License:
 Authors:
 	aermicioi
 **/
-module aermicioi.aedi.exception.di_exception;
+module aermicioi.aedi.test.factory.wrapping_factory;
 
+import aermicioi.aedi.container.singleton_container;
+import aermicioi.aedi.factory.wrapping_factory;
+import aermicioi.aedi.storage.wrapper;
 import std.exception;
+import aermicioi.aedi.exception.invalid_cast_exception;
 
-@safe:
+import aermicioi.aedi.test.fixture;
 
-class AediException : Exception {
-    pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
-    {
-        super(msg, file, line, next);
-    }
+unittest {
+    SingletonContainer container = new SingletonContainer;
+    MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
+    WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(MockValueFactory!MockStruct)(fact);
+    
+    wrapper.locator = container;
+    
+    assert(wrapper.type == typeid(MockStruct));
+    assert(wrapper.factory.classinfo == typeid(WrapperImpl!MockStruct));
+}
 
-    nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
-    {
-        super(msg, file, line, next);
-    }
+unittest {
+    SingletonContainer container = new SingletonContainer;
+    MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
+    WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(MockValueFactory!MockStruct)(fact);
+    UnwrappingFactory!MockStruct unwrapper = new UnwrappingFactory!MockStruct(wrapper);
+    unwrapper.locator = container;
+    
+    assert(unwrapper.type == typeid(MockStruct));
+    assert(unwrapper.factory is MockStruct());
+    
+    MockFactory!MockObject wrong = new MockFactory!MockObject;
+
+    assertThrown!InvalidCastException(unwrapper.decorated = wrong);
 }

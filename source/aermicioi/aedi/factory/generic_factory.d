@@ -38,6 +38,7 @@ import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.storage.wrapper;
 import aermicioi.util.traits;
+import aermicioi.aedi.storage.decorator;
 
 import std.typecons;
 import std.traits;
@@ -71,24 +72,23 @@ interface InstanceFactory(T) {
         
         /**
         Create a new instance of object of type T.
+        
+        Returns:
+            T instantiated component
         **/
         T factory();
     }
 }
 
 /**
-A generic factory, is a factory that instantiates data of type T using InstanceFactory and a list of PropertyConfigurers.
-
-A generic factory, is a factory that instantiates data of type T using InstanceFactory and a list of PropertyConfigurers.
-It can optionally provide a Locator!() object to InstanceFactory and PropertyConfigurer to be used as a source of data. 
+Interface for objects that are aware of an instance factory
+and can use it to instantiate a component.
 **/
-interface GenericFactory(T) : Factory!T {
-    
+interface InstanceFactoryAware(T) {
     public {
         
         @property {
-            
-            /**
+        	/**
             Sets the constructor of new object.
             
             Params:
@@ -98,7 +98,39 @@ interface GenericFactory(T) : Factory!T {
     			The GenericFactoryInstance
             **/
             GenericFactory!T setInstanceFactory(InstanceFactory!T factory);
-            
+        }
+    }
+}
+
+/**
+Interface for objects that are aware of a set of property configurers
+and can use them to configure some component.
+**/
+interface PropertyConfigurersAware(T) {
+    public {
+        /**
+        Adds an configurer to the GenericFactory.
+        
+        Params:
+        	configurer = a configurer that will be invoked after factory of an object.
+        	
+    	Returns:
+    		The GenericFactoryInstance
+        **/
+        GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer);
+    }
+}
+/**
+A generic factory, is a factory that instantiates data of type T using InstanceFactory and a list of PropertyConfigurers.
+
+A generic factory, is a factory that instantiates data of type T using InstanceFactory and a list of PropertyConfigurers.
+It can optionally provide a Locator!() object to InstanceFactory and PropertyConfigurer to be used as a source of data. 
+**/
+interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigurersAware!T {
+    
+    public {
+        
+        @property {
             
             alias locator = Factory!T.locator;
             
@@ -110,17 +142,6 @@ interface GenericFactory(T) : Factory!T {
             **/
             Locator!() locator();
         }
-        
-        /**
-        Adds an configurer to the GenericFactory.
-        
-        Params:
-        	configurer = a configurer that will be invoked after factory of an object.
-        	
-    	Returns:
-    		The GenericFactoryInstance
-        **/
-        GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer);
     }
 }
 
@@ -831,61 +852,60 @@ class ValueInstanceFactory(T) : InstanceFactory!T {
 }
 
 /**
-Instantiates data of type T using another factory, and configures it with help of it's own property configurers.
+InstanceFactory that delegates the task of instantiating a component
+to some third party factory.
 **/
-class ParentAwareGenericFactory(T) : GenericFactory!T {
+class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!(Factory!X) {
     
     private {
-        Factory!T fact_;
-        Locator!() locator_;
-        PropertyConfigurer!T[] configurers;
+        Factory!X decorated_;
     }
     
     public {
+        
+        this() {
+            
+        }
+        
+        this(Factory!X factory) {
+            this.decorated = factory;
+        }
+        
         @property {
-        	ParentAwareGenericFactory fact(Factory!T fact) @safe nothrow {
-        		this.fact_ = fact;
+            /**
+            Set the decorated object for decorator.
+            
+            Params:
+                decorated = decorated data
+            
+            Returns:
+            	this
+            **/
+        	DelegatingInstanceFactory!(T, X) decorated(Factory!X decorated) @safe nothrow {
+        		this.decorated_ = decorated;
         	
         		return this;
         	}
         	
-        	Factory!T fact() @safe nothrow {
-        		return this.fact_;
-        	}
-        	
-        	ParentAwareGenericFactory locator(Locator!() locator) @safe nothrow {
-        		this.locator_ = locator;
-        	
-        		return this;
-        	}
-        	
-        	Locator!() locator() @safe nothrow {
-        		return this.locator_;
-        	}
-        	
-        	TypeInfo type() @safe nothrow {
-        		return typeid(T);
+        	/**
+            Get the decorated object.
+            
+            Returns:
+            	T decorated object
+            **/
+        	Factory!X decorated() @safe nothrow {
+        		return this.decorated_;
         	}
         }
         
+        /**
+        Create a new instance of object of type T.
+        
+        Returns:
+            T instantiated component
+        **/
         T factory() {
-            T result = this.fact.factory;
-            
-            foreach (configurer; this.configurers) {
-                configurer.configure(result);
-            }
-            
-            return result;
-        }
-        
-        ParentAwareGenericFactory!T setInstanceFactory(InstanceFactory!T factory) {
-            throw new AediException("Setting constructor for an object with parent is not supported yet.");
-        }
-        
-        ParentAwareGenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer) {
-            this.configurers ~= configurer;
-            
-            return this;
+            return this.decorated.factory();
         }
     }
 }

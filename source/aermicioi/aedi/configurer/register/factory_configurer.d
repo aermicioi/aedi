@@ -63,10 +63,10 @@ Params:
 	args = a list of arguments that will be passed to constructor.
 	
 Returns:
-	MetadataDecoratedGenericFactory!T.
+	Z.
 **/
 
-auto construct(T, Args...)(MetadataDecoratedGenericFactory!T factory, auto ref Args args) {
+auto construct(Z : InstanceFactoryAware!T, T, Args...)(Z factory, auto ref Args args) {
     factory.setInstanceFactory(constructorBasedFactory!T(factory.locator, args));
     
     return factory;
@@ -92,7 +92,7 @@ Params:
     W = either LocatorReference or T
     X = the return type of T.method member
 **/
-MetadataDecoratedGenericFactory!(X) factoryMethod(T, string method, X, W, Args...)(MetadataDecoratedGenericFactory!(X) factory, auto ref W factoryMethod, auto ref Args args)
+Z factoryMethod(T, string method, Z : InstanceFactoryAware!X, X, W, Args...)(Z factory, auto ref W factoryMethod, auto ref Args args)
     if (
         isNonStaticMethodCompatible!(T, method, Args) &&
         (is(W : T) || is(W : RuntimeReference))
@@ -105,7 +105,7 @@ MetadataDecoratedGenericFactory!(X) factoryMethod(T, string method, X, W, Args..
 /**
 ditto
 **/
-MetadataDecoratedGenericFactory!(X) factoryMethod(T, string method, X, Args...)(MetadataDecoratedGenericFactory!(X) factory, auto ref Args args)
+Z factoryMethod(T, string method, Z : InstanceFactoryAware!X, X, Args...)(Z factory, auto ref Args args)
     if (
         isStaticMethodCompatible!(T, method, Args)
     ) {
@@ -128,9 +128,9 @@ Params:
 	args = the arguments that will be used to invoke method on the new object.
 	
 Returns:
-	MetadataDecoratedGenericFactory!T.
+	Z.
 **/
-auto set(string property, T, Args...)(MetadataDecoratedGenericFactory!T factory, auto ref Args args) 
+auto set(string property, Z : PropertyConfigurersAware!T, T, Args...)(Z factory, auto ref Args args) 
     if (!isField!(T, property)) {
     mixin assertObjectMethodCompatible!(T, property, Args);
     
@@ -152,9 +152,9 @@ Params
 	arg = the value of property to be set, or reference to data in container.
 
 Returns:
-	MetadataDecoratedGenericFactory!T.
+	Z.
 **/
-auto set(string property, T, Arg)(MetadataDecoratedGenericFactory!T factory, auto ref Arg arg)
+auto set(string property, Z : PropertyConfigurersAware!T, T, Arg)(Z factory, auto ref Arg arg)
     if (isField!(T, property)) {
     mixin assertFieldCompatible!(T, property, Arg);
     
@@ -174,9 +174,9 @@ Params:
 	args = the arguments that will be used by delegate to construct component.
 	
 Returns:
-	MetadataDecoratedGenericFactory!T.
+	Z.
 **/
-auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, T delegate(Locator!(), Args) dg, auto ref Args args) {
+auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T delegate(Locator!(), Args) dg, auto ref Args args) {
     factory.setInstanceFactory(callbackFactory!T(factory.locator, dg, args));
 
     return factory;
@@ -185,7 +185,7 @@ auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, T delegate(
 /**
 ditto
 **/
-auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, T function(Locator!(), Args) dg, auto ref Args args) {
+auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T function(Locator!(), Args) dg, auto ref Args args) {
     factory.setInstanceFactory(callbackFactory!T(factory.locator, dg, args));
     
     return factory;
@@ -202,9 +202,9 @@ Params:
     args = a list of arguments passed to dg.
     
 Returns:
-    MetadataDecoratedGenericFactory!T
+    Z
 **/
-auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, void delegate(Locator!(), T, Args) dg, auto ref Args args) {
+auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delegate(Locator!(), T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(factory.locator, dg, args));
     
     return factory;
@@ -213,7 +213,7 @@ auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, void delega
 /**
 ditto
 **/
-auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, void function(Locator!(), T, Args) dg, auto ref Args args) {
+auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void function(Locator!(), T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(factory.locator, dg, args));
     
     return factory;
@@ -222,7 +222,7 @@ auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, void functi
 /**
 ditto
 **/
-auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, void delegate(Locator!(), ref T, Args) dg, auto ref Args args) {
+auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delegate(Locator!(), ref T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(factory.locator, dg, args));
     
     return factory;
@@ -231,7 +231,7 @@ auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, void delega
 /**
 ditto
 **/
-auto callback(T, Args...)(MetadataDecoratedGenericFactory!T factory, void function(Locator!(), ref T, Args) dg, auto ref Args args) {
+auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void function(Locator!(), ref T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(factory.locator, dg, args));
     
     return factory;
@@ -255,17 +255,17 @@ Params:
     factory = MetadataDecoratedGenericFactory where to inject the constructor or method configurer
     
 Returns:
-    MetadataDecoratedGenericFactory!T
+    Z
 **/
-auto autowire(T)(MetadataDecoratedGenericFactory!T factory) 
+auto autowire(Z : InstanceFactoryAware!T, T)(Z factory) 
     if (getMembersWithProtection!(T, "__ctor", "public").length > 0) {
-    return factory.construct!(T)(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, "__ctor", "public")[0])));
+    return factory.construct(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, "__ctor", "public")[0])));
 }
 
 /**
 ditto
 **/
-auto autowire(string member, T)(MetadataDecoratedGenericFactory!T factory) 
+auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory) 
     if (getMembersWithProtection!(T, member, "public").length > 0) {
     return factory.set!(member)(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, member, "public")[0])));
 }
@@ -273,7 +273,7 @@ auto autowire(string member, T)(MetadataDecoratedGenericFactory!T factory)
 /**
 ditto
 **/
-auto autowire(string member, T)(MetadataDecoratedGenericFactory!T factory) 
+auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory) 
     if (isField!(T, member)) {
     return factory.set!(member)(lref!(typeof(getMember!(T, member))));
 }
@@ -291,8 +291,46 @@ Params:
     factory = MetadataDecoratedGenericFactory where to inject the constructor or method configurer
     value = default value used to instantiate component
 **/
-auto value(T)(MetadataDecoratedGenericFactory!T factory, auto ref T value) {
+auto value(Z : InstanceFactoryAware!T, T)(Z factory, auto ref T value) {
     return factory.setInstanceFactory(new ValueInstanceFactory!T(value));
+}
+
+/**
+Instantiates a component using as basis some third party factory.
+
+Params:
+    T = the type of component that is to be configured
+    factory = factory that uses the parent factory for component instantiation
+    delegated = the factory used by factory to instantiate an object.
+**/
+auto parent(Z : InstanceFactoryAware!T, T, X : Factory!W, W : T)(Z factory, X delegated) {
+    return factory.setInstanceFactory(new DelegatingInstanceFactory!(T, W)(delegated));
+}
+
+/**
+Instantiates a component using as basis some third party factory.
+
+Instantiates a component using as basis some third party factory.
+When a parent factory from a source of factories is used,
+type checking of component returned by parent factory
+is done at runtime, and will throw an exception if type
+of parent factory mismatches the type of component that
+uses respective factory.
+
+Params:
+    T = the type of component that is to be configured
+    factory = factory that uses the parent factory for component instantiation
+    source = source of factories from which parent factory is extracted
+    identity = identity of factory used by factory to instantiate component
+**/
+auto parent(Z : InstanceFactoryAware!T, T, X : FactoryLocator!ObjectFactory)(Z factory, X source, string identity) {
+    return factory.setInstanceFactory(
+        new DelegatingInstanceFactory!(T, T)(
+            new UnwrappingFactory!T(
+                source.getFactory(identity)
+            )
+        )
+    );
 }
 
 /**
@@ -308,7 +346,7 @@ Params:
 Returns:
 	factory
 **/
-auto container(T)(MetadataDecoratedGenericFactory!T factory, Storage!(ObjectFactory, string) storage) {
+auto container(Z : Factory!T, T)(Z factory, Storage!(ObjectFactory, string) storage) {
     if (factory.storage !is null) {
         factory.storage.remove(factory.identity);
     }
@@ -322,7 +360,7 @@ auto container(T)(MetadataDecoratedGenericFactory!T factory, Storage!(ObjectFact
 /**
 ditto
 **/
-auto container(T)(MetadataDecoratedGenericFactory!T factory, string storageId) {
+auto container(Z : Factory!T, T)(Z factory, string storageId) {
     import std.algorithm;
     
     auto storage = factory.locator.locate!(Storage!(ObjectFactory, string))(storageId);
@@ -344,7 +382,7 @@ Params:
 Returns:
 	factory
 **/
-auto tag(T, Z)(MetadataDecoratedGenericFactory!T factory, auto ref Z tag) {
+auto tag(W : Factory!T, T, Z)(W factory, auto ref Z tag) {
     
     auto taggable = findDecorator!(Taggable!Z, ObjectFactoryDecorator)(factory.wrapper);
     
@@ -375,7 +413,7 @@ auto tag(T, Z)(MetadataDecoratedGenericFactory!T factory, auto ref Z tag) {
 //Returns:
 //	factory
 //
-//auto proxy(T)(MetadataDecoratedGenericFactory!T factory) {
+//auto proxy(Z : GenericFactory!T, T)(Z factory) {
 //    import aermicioi.aedi.factory.proxy_factory;
 //    import aermicioi.aedi.container.proxy_container;
 //    

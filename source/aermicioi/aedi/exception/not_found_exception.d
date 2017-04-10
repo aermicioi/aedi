@@ -31,7 +31,7 @@ Authors:
 module aermicioi.aedi.exception.not_found_exception;
 
 import aermicioi.aedi.exception.di_exception;
-
+@safe:
 /**
 Thrown when something can not find required element/object.
 

@@ -218,3 +218,14 @@ unittest {
     
     assert(factory.factory() is obj);
 }
+
+unittest {
+    GenericFactory!MockInterface factory = new GenericFactoryImpl!MockInterface(null);
+    MockValueFactory!MockObject pfact = new MockValueFactory!MockObject();
+    DelegatingInstanceFactory!(MockInterface, MockObject) ifact = new DelegatingInstanceFactory!(MockInterface, MockObject)(pfact);
+    
+    factory.setInstanceFactory(ifact);
+    
+    assert(factory.factory() !is null);
+    assert(ifact.decorated is pfact);
+}

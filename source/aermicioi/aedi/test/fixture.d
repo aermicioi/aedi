@@ -201,9 +201,11 @@ class MockValueFactory(T) : Factory!T {
     
     public {
         T factory() {
-            auto t = T();
-            
-            return t;
+            static if (is(T : Object)) {
+                return new T();
+            } else {
+                return T();
+            }
         }
         
         @property {
