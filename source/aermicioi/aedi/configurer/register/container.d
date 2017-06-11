@@ -30,6 +30,9 @@ Authors:
 module aermicioi.aedi.configurer.register.container;
 
 import aermicioi.aedi.container;
+import std.traits;
+import std.meta;
+import aermicioi.util.traits;
 
 auto singleton() {
     return new SingletonContainer();
@@ -39,10 +42,27 @@ auto prototype() {
     return new PrototypeContainer();
 }
 
+auto values() {
+    return new ValueContainer();
+}
+
 auto switchable(T : Container)(auto ref T container) {
     return (new SwitchableContainer!T).decorated(container);
 }
 
 auto subscribable(T : Container)(auto ref T container) {
     return (new SubscribableContainer!T).decorated(container);
+}
+
+auto typed(T : Container)(auto ref T container) {
+    return (new TypeBasedContainer).decorated(container);
+}
+
+auto interfaced(T : Container)(auto ref T container) {
+    return (new InterfaceInjectorContainer!T(container)).decorated(container);
+}
+
+auto delegator(T...)(auto ref T containers)
+    if (allSatisfy!(partialSuffixed!(isDerived, Container), T)) {
+    return new TupleContainer!T(containers);
 }

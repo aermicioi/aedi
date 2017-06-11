@@ -31,7 +31,7 @@ Authors:
 **/
 module aermicioi.aedi.configurer.register.register;
 
-import aermicioi.aedi.configurer.register.generic_factory_metadata_decorator;
+import aermicioi.aedi.configurer.register.configuration_context_factory;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory;
@@ -57,7 +57,7 @@ Returns:
 **/
 auto register(Type)(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, string id) {
     auto fact = new GenericFactoryImpl!Type(locator);
-    auto configurable = new MetadataDecoratedGenericFactory!Type();
+    auto configurable = new ConfigurationContextFactory!Type();
     configurable.storage = storage;
     configurable.locator = locator;
     configurable.identity = id;

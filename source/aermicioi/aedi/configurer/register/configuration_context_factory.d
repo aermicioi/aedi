@@ -30,7 +30,7 @@ License:
 Authors:
 	aermicioi
 **/
-module aermicioi.aedi.configurer.register.generic_factory_metadata_decorator;
+module aermicioi.aedi.configurer.register.configuration_context_factory;
 
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.factory.factory;
@@ -44,7 +44,7 @@ package {
     A decorator over generic factory, that sole purpose is to contain
     additional metadata usable for register api primitives.
     **/
-    class MetadataDecoratedGenericFactory(T) : DecoratableGenericFactory!T {
+    class ConfigurationContextFactory(T) : DecoratableGenericFactory!T {
         
         private {
             Storage!(ObjectFactory, string) storage_;
@@ -56,7 +56,7 @@ package {
         
         public {
             @property {
-            	MetadataDecoratedGenericFactory!T storage(Storage!(ObjectFactory, string) storage) @safe nothrow {
+            	ConfigurationContextFactory!T storage(Storage!(ObjectFactory, string) storage) @safe nothrow {
             		this.storage_ = storage;
             	
             		return this;
@@ -66,7 +66,7 @@ package {
             		return this.storage_;
             	}
             	
-            	MetadataDecoratedGenericFactory!T identity(string identity) @safe nothrow {
+            	ConfigurationContextFactory!T identity(string identity) @safe nothrow {
             		this.identity_ = identity;
             	
             		return this;
@@ -76,7 +76,7 @@ package {
             		return this.identity_;
             	}
             	
-            	MetadataDecoratedGenericFactory!T storageIdentity(string storageIdentity) @safe nothrow {
+            	ConfigurationContextFactory!T storageIdentity(string storageIdentity) @safe nothrow {
             		this.storageIdentity_ = storageIdentity;
             	
             		return this;
@@ -86,7 +86,7 @@ package {
             		return this.storageIdentity_;
             	}
             	
-            	MetadataDecoratedGenericFactory!T wrapper(ObjectFactory wrapper) @safe nothrow {
+            	ConfigurationContextFactory!T wrapper(ObjectFactory wrapper) @safe nothrow {
             		this.wrapper_ = wrapper;
             	
             		return this;

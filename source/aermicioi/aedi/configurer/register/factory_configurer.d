@@ -34,7 +34,7 @@ module aermicioi.aedi.configurer.register.factory_configurer;
 
 public import aermicioi.aedi.factory.reference : lref, anonymous;
 
-import aermicioi.aedi.configurer.register.generic_factory_metadata_decorator;
+import aermicioi.aedi.configurer.register.configuration_context_factory;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory;
@@ -252,7 +252,7 @@ the first constructor or method from overload set is selected to be autowired.
 Params:
     T = the component type
     member = field or method of component T
-    factory = MetadataDecoratedGenericFactory where to inject the constructor or method configurer
+    factory = ConfigurationContextFactory where to inject the constructor or method configurer
     
 Returns:
     Z
@@ -288,7 +288,7 @@ multiple times.
 
 Params:
     T = the component type
-    factory = MetadataDecoratedGenericFactory where to inject the constructor or method configurer
+    factory = ConfigurationContextFactory where to inject the constructor or method configurer
     value = default value used to instantiate component
 **/
 auto value(Z : InstanceFactoryAware!T, T)(Z factory, auto ref T value) {
@@ -326,7 +326,7 @@ Params:
 auto parent(Z : InstanceFactoryAware!T, T, X : FactoryLocator!ObjectFactory)(Z factory, X source, string identity) {
     return factory.setInstanceFactory(
         new DelegatingInstanceFactory!(T, T)(
-            new UnwrappingFactory!T(
+            new ClassUnwrappingFactory!T(
                 source.getFactory(identity)
             )
         )

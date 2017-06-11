@@ -87,6 +87,32 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
 }
 
 /**
+Wrapping factory that will wrap the result depending on runtime type information
+instead of compile time information.
+**/
+class RuntimeWrappingFactory(T : Factory!Z, Z) : WrappingFactory!(T) {
+    
+    public {
+        
+        this(T factory) {
+            super(factory);
+        }
+        
+        override Object factory() {
+            static if (is(Z == interface) || is(Z == class)) {
+                if (this.decorated.type.isDerived(typeid(Object))) {
+                    return cast(Object) this.decorated.factory;
+                }
+            }
+            
+            {
+                return new WrapperImpl!Z(this.decorated.factory);
+            }
+        }
+    }
+}
+
+/**
 A factory that coerces an object from object factory to
 some T type.
 
@@ -102,6 +128,7 @@ class UnwrappingFactory(T) : Factory!T {
     }
     
     public {
+        
         this(ObjectFactory factory) {
             this.decorated = factory;
         }
@@ -119,13 +146,15 @@ class UnwrappingFactory(T) : Factory!T {
             Returns:
             	this
             **/
-        	UnwrappingFactory!T decorated(ObjectFactory decorated) {
-        	    if (decorated.type != typeid(T)) {
+        	UnwrappingFactory!T decorated(ObjectFactory decorated)
+            in {
+                if (decorated.type != typeid(T)) {
         	        import aermicioi.aedi.exception.invalid_cast_exception;
         	        
         	        throw new InvalidCastException("Cannot unwrap a type " ~ decorated.type.toString() ~ " and cast it to " ~ typeid(T).toString());
         	    }
-        	    
+            }
+            body {
         		this.decorated_ = decorated;
         	
         		return this;
@@ -192,5 +221,183 @@ class UnwrappingFactory(T) : Factory!T {
             
             assert(0, "Fatal error, application logic never should reach this region");
         }
+    }
+}
+
+/**
+A factory that coerces an object from object factory to
+some T type.
+
+A factory that coerces an object from object factory to
+some T type. If T is not rooted in Object class it is
+assumed by convention that Wrapper!T object is returned
+by object factory.
+**/
+class ClassUnwrappingFactory(T) : Factory!T {
+    
+    private {
+        ObjectFactory decorated_;
+    }
+    
+    public {
+
+        this(ObjectFactory factory) {
+            this.decorated = factory;
+        }
+        
+        @property {
+            /**
+            Set the decorated object for decorator.
+            
+            Throws:
+                InvalidCastException when created type of object factory mismatches type of unwrapping factory.
+            
+            Params:
+                decorated = decorated data
+            
+            Returns:
+            	this
+            **/
+        	ClassUnwrappingFactory!T decorated(ObjectFactory decorated)
+            in {
+                if (!decorated.type.isDerived(typeid(T))) {
+        	        import aermicioi.aedi.exception.invalid_cast_exception;
+        	        
+        	        throw new InvalidCastException("Cannot unwrap a type " ~ decorated.type.toString() ~ " and cast it to " ~ typeid(T).toString());
+        	    }
+            }
+            body {
+        		this.decorated_ = decorated;
+        	
+        		return this;
+        	}
+        	
+        	/**
+            Get the decorated object.
+            
+            Returns:
+            	ObjectFactory decorated object
+            **/
+        	ObjectFactory decorated() {
+        		return this.decorated_;
+        	}
+        	
+        	/**
+    		Get the type info of T that is created.
+    		
+    		Returns:
+    			TypeInfo object of created object.
+    		**/
+        	TypeInfo type() {
+        	    return this.decorated.type;
+        	}
+        	
+        	/**
+    		Set a locator to object.
+    		
+    		Params:
+    			locator = the locator that is set to oject.
+    		
+    		Returns:
+    			LocatorAware.
+    		**/
+        	ClassUnwrappingFactory!T locator(Locator!() locator) {
+        	    this.decorated.locator = locator;
+        	    
+        	    return this;
+        	}
+        }
+        
+        /**
+		Instantiates something of type T.
+		
+		Returns:
+			T instantiated data of type T.
+		**/
+        T factory() {
+            Object wrapped = this.decorated.factory;
+            
+            {
+                static if (is(T : Object)) {
+                    
+                    T component = cast(T) wrapped;
+                    
+                    if (component !is null) {
+                        return component;
+                    }
+                } 
+            }
+             
+            {
+                static if (is(T == interface) || is(T == class)) {
+                    
+                    T component = cast(T) wrapped;
+                    
+                    if (component !is null) {
+                        return component;
+                    }
+                }
+            }
+             
+            Wrapper!T component = cast(Wrapper!T) wrapped;
+            
+            if (component !is null) {
+                return component;
+            }
+            
+            assert(0, "Fatal error, application logic never should reach this region");
+        }
+    }
+}
+
+private {
+    import std.stdio;
+    
+    bool isDerived(TypeInfo subject, TypeInfo derivation) {
+        if (subject == derivation) {
+            return true;
+        }
+        
+        if ((cast(ClassInfo) subject !is null) && (cast(ClassInfo) derivation !is null)) {
+            return isDerived(cast(ClassInfo) subject, cast(ClassInfo) derivation);
+        }
+        
+        if ((cast(ClassInfo) subject !is null) && (cast(TypeInfo_Interface) derivation !is null)) {
+            return isDerived(cast(ClassInfo) subject, cast(TypeInfo_Interface) derivation);
+        }
+        
+        if ((cast(TypeInfo_Interface) subject !is null) && (cast(TypeInfo_Interface) derivation !is null)) {
+            return isDerived(cast(TypeInfo_Interface) subject, cast(TypeInfo_Interface) derivation);
+        }
+        
+        return false;
+    }
+    
+    bool isDerived(ClassInfo subject, ClassInfo derivation) {
+        if (
+            (subject == derivation) ||
+            (
+                (subject.base !is null) && 
+                subject.base.isDerived(derivation)
+            )
+        ) {
+            return true;
+        }
+        
+        foreach (iface; subject.interfaces) {
+            if (iface.classinfo.isDerived(derivation)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    bool isDerived(ClassInfo subject, TypeInfo_Interface iface) {
+        return subject.isDerived(iface.info);
+    }
+    
+    bool isDerived(TypeInfo_Interface subject, TypeInfo_Interface iface) {
+        return subject.info.isDerived(iface.info);
     }
 }

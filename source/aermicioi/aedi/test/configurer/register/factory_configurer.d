@@ -31,7 +31,6 @@ Authors:
 module aermicioi.aermicioi.aedi.test.factory_configurer;
 
 import aermicioi.aedi.storage;
-import aermicioi.aedi.configurer.register.environment;
 import aermicioi.aedi.configurer.register.register;
 import aermicioi.aedi.configurer.register.factory_configurer;
 import aermicioi.aedi.container.singleton_container;
@@ -162,7 +161,7 @@ unittest {
     container.register!MockObject("parented")
         .parent(container, fullyQualifiedName!MockObject);
         
-    assertThrown!InvalidCastException(
+    assertNotThrown!InvalidCastException(
         container.register!MockInterface("lohness")
             .parent(container, fullyQualifiedName!MockObject)
     );

@@ -97,7 +97,7 @@ interface InstanceFactoryAware(T) {
         	Returns:
     			The GenericFactoryInstance
             **/
-            GenericFactory!T setInstanceFactory(InstanceFactory!T factory);
+            InstanceFactoryAware!T setInstanceFactory(InstanceFactory!T factory);
         }
     }
 }
@@ -117,7 +117,7 @@ interface PropertyConfigurersAware(T) {
     	Returns:
     		The GenericFactoryInstance
         **/
-        GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer);
+        PropertyConfigurersAware!T addPropertyConfigurer(PropertyConfigurer!T configurer);
     }
 }
 /**

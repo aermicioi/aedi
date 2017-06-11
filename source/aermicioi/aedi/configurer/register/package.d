@@ -34,4 +34,3 @@ module aermicioi.aedi.configurer.register;
 public import aermicioi.aedi.configurer.register.factory_configurer;
 public import aermicioi.aedi.configurer.register.register;
 public import aermicioi.aedi.configurer.register.context;
-public import aermicioi.aedi.configurer.register.environment;

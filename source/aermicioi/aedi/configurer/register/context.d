@@ -36,7 +36,7 @@ import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.factory.wrapping_factory;
 import std.traits;
 
-import aermicioi.aedi.configurer.register.generic_factory_metadata_decorator;
+import aermicioi.aedi.configurer.register.configuration_context_factory;
 
 /**
 A component registration interface for storage.
@@ -81,8 +81,8 @@ struct RegistrationContext(
         Returns:
         	GenericFactory!T factory for component for further configuration
         **/
-        MetadataDecoratedGenericFactory!T register(T)(string identity) {
-            MetadataDecoratedGenericFactory!T factory = new MetadataDecoratedGenericFactory!T();
+        ConfigurationContextFactory!T register(T)(string identity) {
+            ConfigurationContextFactory!T factory = new ConfigurationContextFactory!T();
             
             GenericFactoryImpl!T implementation = new GenericFactoryImpl!T(locator);
             ObjectWrappingFactory!(GenericFactory!T) wrapper = new ObjectWrappingFactory!(GenericFactory!T)(implementation);
@@ -100,14 +100,14 @@ struct RegistrationContext(
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(T)() {
+        ConfigurationContextFactory!T register(T)() {
             return register!T(fullyQualifiedName!T);
         }
         
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(Interface, T : Interface)()
+        ConfigurationContextFactory!T register(Interface, T : Interface)()
             if (!is(T == Interface)) {
             return register!T(fullyQualifiedName!Interface);
         }
@@ -126,10 +126,10 @@ struct RegistrationContext(
         Returns:
         	GenericFactory!T factory for component for further configuration
         **/
-        MetadataDecoratedGenericFactory!T register(T)(auto ref T value, string identity) {
+        ConfigurationContextFactory!T register(T)(auto ref T value, string identity) {
             import aermicioi.aedi.configurer.register.factory_configurer;
             
-            MetadataDecoratedGenericFactory!T factory = register!T(identity);
+            ConfigurationContextFactory!T factory = register!T(identity);
             
             factory.value(value);
             
@@ -139,7 +139,7 @@ struct RegistrationContext(
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(T)(auto ref T value)
+        ConfigurationContextFactory!T register(T)(auto ref T value)
             if (!is(T == string)) {
             
             return register(value, fullyQualifiedName!T);
@@ -148,7 +148,7 @@ struct RegistrationContext(
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(Interface, T : Interface)(auto ref T value)
+        ConfigurationContextFactory!T register(Interface, T : Interface)(auto ref T value)
             if (!is(T == Interface)) {
             
             return register(value, fullyQualifiedName!Interface);
@@ -364,7 +364,7 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         Returns:
         	GenericFactory!T factory for component for further configuration
         **/
-        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(string identity) {
+        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(string identity) {
             auto factory = this.context.register!T(identity);
             
             this.inject(factory, file, line);
@@ -374,7 +374,7 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)() {
+        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)() {
             auto factory = this.context.register!T();
             
             this.inject(factory, file, line);
@@ -384,7 +384,7 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)()
+        ConfigurationContextFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)()
             if (!is(T == Interface)) {
             auto factory = this.context.register!(Interface, T)();
             
@@ -406,7 +406,7 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         Returns:
         	GenericFactory!T factory for component for further configuration
         **/
-        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value, string identity) {
+        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value, string identity) {
             auto factory = this.context.register!T(value, identity);
             
             this.inject(factory, file, line);
@@ -416,7 +416,7 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
             if (!is(T == string)) {
             auto factory = this.context.register!T(value);
             
@@ -427,7 +427,7 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         /**
         ditto
         **/
-        MetadataDecoratedGenericFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+        ConfigurationContextFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
             if (!is(T == Interface)) {
             auto factory = this.context.register!(Interface, T)(value);
             
@@ -437,7 +437,7 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
     }
     
     private {
-        void inject(T)(MetadataDecoratedGenericFactory!T factory, string file, size_t line) {
+        void inject(T)(ConfigurationContextFactory!T factory, string file, size_t line) {
             RegistrationAwareDecoratingFactory!Object wrapper = new RegistrationAwareDecoratingFactory!Object();
             wrapper.file = file;
             wrapper.line = line;

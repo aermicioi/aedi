@@ -49,6 +49,19 @@ unittest {
 }
 
 unittest {
+    MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
+    MockFactory!MockObject oFact = new MockFactory!MockObject;
+    RuntimeWrappingFactory!(MockValueFactory!MockStruct) wrapper = new RuntimeWrappingFactory!(MockValueFactory!MockStruct)(fact);
+    RuntimeWrappingFactory!(MockFactory!MockObject) oWrapper = new RuntimeWrappingFactory!(MockFactory!MockObject)(oFact);
+    
+    assert(wrapper.type == typeid(MockStruct));
+    assert(wrapper.factory.classinfo == typeid(WrapperImpl!MockStruct));
+    
+    assert(oWrapper.type == typeid(MockObject));
+    assert(oWrapper.factory.classinfo == typeid(MockObject));
+}
+
+unittest {
     SingletonContainer container = new SingletonContainer;
     MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
     WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(MockValueFactory!MockStruct)(fact);
@@ -60,5 +73,20 @@ unittest {
     
     MockFactory!MockObject wrong = new MockFactory!MockObject;
 
+    assertThrown!InvalidCastException(unwrapper.decorated = wrong);
+}
+
+unittest {
+    SingletonContainer container = new SingletonContainer;
+    MockValueFactory!MockObject fact = new MockValueFactory!MockObject;
+    WrappingFactory!(MockValueFactory!MockObject) wrapper = new WrappingFactory!(MockValueFactory!MockObject)(fact);
+    ClassUnwrappingFactory!MockInterface unwrapper = new ClassUnwrappingFactory!MockInterface(wrapper);
+    unwrapper.locator = container;
+    
+    assert(unwrapper.type == typeid(MockObject));
+    import std.stdio;
+    assert(unwrapper.factory.classinfo == typeid(MockInterface).info);
+    
+    MockFactory!MockObjectFactoryMethod wrong = new MockFactory!MockObjectFactoryMethod;
     assertThrown!InvalidCastException(unwrapper.decorated = wrong);
 }

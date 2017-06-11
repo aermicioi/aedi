@@ -35,7 +35,10 @@ import aermicioi.aedi.factory.decorating_factory;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.storage.locator;
 
-public class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
+/**
+A decorating factory that detects circular reference insantiations.
+**/
+class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
     
     private {
         ObjectFactory decorated_;
@@ -87,7 +90,16 @@ public class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecor
     }
 }
 
-package class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
+/**
+A decorating factory that catches any thrown exceptions by decorated factory,
+and rethrows them with additional information.
+
+A decorating factory that catches any thrown exceptions by decorated factory,
+and chains it in a new exception that adds additonal debugging information
+such as registered identity, and cause of exception. It is useful for chaining
+component instantiation pipeline and printing it for debugging purposes.
+**/
+class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
     
     private {
         ObjectFactory decorated_;
