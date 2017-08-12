@@ -346,7 +346,7 @@ Params:
 Returns:
 	factory
 **/
-auto container(Z : Factory!T, T)(Z factory, Storage!(ObjectFactory, string) storage) {
+auto container(Z : ConfigurationContextFactory!T, T)(Z factory, Storage!(ObjectFactory, string) storage) {
     if (factory.storage !is null) {
         factory.storage.remove(factory.identity);
     }
@@ -360,7 +360,7 @@ auto container(Z : Factory!T, T)(Z factory, Storage!(ObjectFactory, string) stor
 /**
 ditto
 **/
-auto container(Z : Factory!T, T)(Z factory, string storageId) {
+auto container(Z : ConfigurationContextFactory!T, T)(Z factory, string storageId) {
     import std.algorithm;
     
     auto storage = factory.locator.locate!(Storage!(ObjectFactory, string))(storageId);
@@ -382,7 +382,7 @@ Params:
 Returns:
 	factory
 **/
-auto tag(W : Factory!T, T, Z)(W factory, auto ref Z tag) {
+auto tag(W : ConfigurationContextFactory!T, T, Z)(W factory, auto ref Z tag) {
     
     auto taggable = findDecorator!(Taggable!Z, ObjectFactoryDecorator)(factory.wrapper);
     
@@ -400,32 +400,30 @@ auto tag(W : Factory!T, T, Z)(W factory, auto ref Z tag) {
     return factory;
 }
 
-//Due to BUG 17177, minimal usage is not possible.
-//Mark constructed object to be provided through a proxy instead of directly doing so.
-//
-//Mark constructed object to be provided through a proxy instead of directly doing so.
-//Object will be proxied only in case when the storage where it is stored support 
-//storing of proxy object factories.
-//
-//Params:
-//	factory = factory for constructed object
-//
-//Returns:
-//	factory
-//
-//auto proxy(Z : GenericFactory!T, T)(Z factory) {
-//    import aermicioi.aedi.factory.proxy_factory;
-//    import aermicioi.aedi.container.proxy_container;
-//    
-//    auto proxyAware = cast(ProxyContainer) factory.storage;
-//    if (proxyAware !is null) {
-//        proxyAware.set(
-//            new ProxyObjectWrappingFactory!T(
-//                new ProxyFactory!T(factory.identity, proxyAware.decorated)
-//            ),
-//            factory.identity,
-//        );
-//    }
-//    
-//    return factory;
-//}
+/**
+Mark constructed object to be provided through a proxy instead of directly doing so.
+Object will be proxied only in case when the storage where it is stored support 
+storing of proxy object factories.
+
+Params:
+	factory = factory for constructed object
+
+Returns:
+	factory
+**/
+auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) {
+    import aermicioi.aedi.factory.proxy_factory;
+    import aermicioi.aedi.container.proxy_container;
+    
+    auto proxyAware = cast(ProxyContainer) factory.storage;
+    if (proxyAware !is null) {
+        proxyAware.set(
+            new ProxyObjectWrappingFactory!T(
+                new ProxyFactory!T(factory.identity, proxyAware.decorated)
+            ),
+            factory.identity,
+        );
+    }
+    
+    return factory;
+}

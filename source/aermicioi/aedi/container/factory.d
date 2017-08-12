@@ -82,8 +82,9 @@ class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
             }
             
             inProcess = true;
+            scope(exit) inProcess = false;
+            
             Object obj = this.decorated.factory();
-            inProcess = false;
             
             return obj;
         }

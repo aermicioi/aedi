@@ -47,8 +47,10 @@ import aermicioi.util.traits;
 /**
 TODO: Add description of what this is and why it was designed as such.
 **/
-interface ProxyContainer : Container, Storage!(ProxyObjectFactory, string), Decorator!(Locator!()) {
-    
+interface ProxyContainer : Container, Storage!(ProxyObjectFactory, string),
+    Decorator!(Locator!())
+{
+
 }
 
 /**
@@ -71,69 +73,62 @@ Params:
     T = The container that switchable container will decorate.
    
 **/
-template ProxyContainerImpl(T) {
+template ProxyContainerImpl(T)
+{
     /**
     Set which the switchable container will decorate for T. By default
     Locator!() and Switchable is included.
     **/
-    alias InheritanceSet = NoDuplicates!(Filter!(
-        templateOr!(
-            partialSuffixed!(
-                isDerived,
-                Storage!(ObjectFactory, string)
-            ),
-            partialSuffixed!(
-                isDerived,
-                AliasAware!string
-            ),
-            partialSuffixed!(
-                isDerived,
-                FactoryLocator!ObjectFactory
-            )
-        ),
-        InterfacesTuple!T),
-        ProxyContainer,
-        MutableDecorator!T
-    );
-    
+    alias InheritanceSet = NoDuplicates!(Filter!(templateOr!(partialSuffixed!(isDerived, Storage!(ObjectFactory,
+            string)), partialSuffixed!(isDerived, AliasAware!string),
+            partialSuffixed!(isDerived, FactoryLocator!ObjectFactory)), InterfacesTuple!T),
+            ProxyContainer, MutableDecorator!T);
+
     /**
     Templated proxy container.
     **/
-    class ProxyContainerImpl : InheritanceSet {
-        private {
+    class ProxyContainerImpl : InheritanceSet
+    {
+        private
+        {
             T decorated_;
-            
+
             ObjectStorage!(ProxyObjectFactory, string) proxyFactories;
         }
-        
-        public {
-            
-            @property {
-            	ProxyContainerImpl decorated(T decorated) @safe nothrow {
-            		this.decorated_ = decorated;
-            	
-            		return this;
-            	}
-            	
-            	T decorated() @safe nothrow {
-            		return this.decorated_;
-            	}
+
+        public
+        {
+
+            this() {
+
+                this.proxyFactories = new ObjectStorage!(ProxyObjectFactory, string);
             }
-            
-            ProxyContainerImpl set(ProxyObjectFactory factory, string identity) {
+
+            @property
+            {
+                ProxyContainerImpl decorated(T decorated) @safe nothrow
+                {
+                    this.decorated_ = decorated;
+
+                    return this;
+                }
+
+                T decorated() @safe nothrow
+                {
+                    return this.decorated_;
+                }
+            }
+
+            ProxyContainerImpl set(ProxyObjectFactory factory, string identity)
+            {
                 this.proxyFactories.set(factory, identity);
-                
+
                 return this;
             }
-            
-            ProxyContainerImpl remove(string identity) {
-                this.proxyFactories.remove(identity);
-                
-                return this;
-            }
-            
-            static if (is(T : Container)) {
-                
+
+            static if (is(T : Container))
+            {
+
                 /**
                 Prepare container to be used.
                 
@@ -142,14 +137,16 @@ template ProxyContainerImpl(T) {
                 Returns:
                 	ProxyContainer decorating container
                 **/
-                ProxyContainerImpl instantiate() {
+                ProxyContainerImpl instantiate()
+                {
                     decorated.instantiate();
-                    
+
                     return this;
                 }
             }
-            
-            static if (is(T : Storage!(ObjectFactory, string))) {
+
+            static if (is(T : Storage!(ObjectFactory, string)))
+            {
                 /**
         		Set factory in container by identity.
         		
@@ -160,12 +157,13 @@ template ProxyContainerImpl(T) {
         		Return:
         			ProxyContainer decorating container.
         		**/
-                ProxyContainerImpl set(ObjectFactory element, string identity) {
+                ProxyContainerImpl set(ObjectFactory element, string identity)
+                {
                     decorated.set(element, identity);
-                    
+
                     return this;
                 }
-                
+
                 /**
                 Remove factory from container with identity.
                 
@@ -177,14 +175,27 @@ template ProxyContainerImpl(T) {
             	Return:
             		ProxyContainer decorating container
                 **/
-                ProxyContainerImpl remove(string identity) {
-                    decorated.remove(identity);
-                    
+                ProxyContainerImpl remove(string identity)
+                {
+                    this.decorated.remove(identity);
+                    this.proxyFactories.remove(identity);
+
                     return this;
                 }
             }
-            
-            static if (is(T : AliasAware!string)) {
+            else
+            {
+
+                ProxyContainerImpl remove(string identity)
+                {
+                    this.proxyFactories.remove(identity);
+
+                    return this;
+                }
+            }
+
+            static if (is(T : AliasAware!string))
+            {
                 /**
                 Alias identity to an alias_.
                         
@@ -195,13 +206,14 @@ template ProxyContainerImpl(T) {
         		Returns:
         			ProxyContainer decorating container
                 **/
-                ProxyContainerImpl link(string identity, string alias_) {
+                ProxyContainerImpl link(string identity, string alias_)
+                {
                     this.decorated.link(identity, alias_);
                     this.proxyFactories.link(identity, alias_);
-                    
+
                     return this;
                 }
-                
+
                 /**
                 Removes alias.
                 
@@ -211,13 +223,14 @@ template ProxyContainerImpl(T) {
                 Returns:
                     ProxyContainer decorating container
                 **/
-                ProxyContainerImpl unlink(string alias_) {
+                ProxyContainerImpl unlink(string alias_)
+                {
                     this.decorated.unlink(alias_);
                     this.proxyFactories.unlink(alias_);
-                    
+
                     return this;
                 }
-                
+
                 /**
                 Resolve an alias to original identity, if possible.
                 
@@ -228,22 +241,26 @@ template ProxyContainerImpl(T) {
                 	const(string) the last identity in alias chain if container is enabled, or alias_ when not.
                 
                 **/
-                const(string) resolve(in string alias_) const {
+                const(string) resolve(in string alias_) const
+                {
                     return this.proxyFactories.resolve(alias_);
                 }
             }
-            
-            static if (is(T : FactoryLocator!ObjectFactory)) {
-                
-                ObjectFactory getFactory(string identity) {
+
+            static if (is(T : FactoryLocator!ObjectFactory))
+            {
+
+                ObjectFactory getFactory(string identity)
+                {
                     return this.decorated.getFactory(identity);
                 }
-                
-                InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+
+                InputRange!(Tuple!(ObjectFactory, string)) getFactories()
+                {
                     return this.decorated.getFactories();
                 }
             }
-            
+
             /**
     		Get object that is associated with identity.
     		
@@ -256,10 +273,11 @@ template ProxyContainerImpl(T) {
     		Returns:
     			Object if it is available.
     		**/
-            Object get(string identity) {
+            Object get(string identity)
+            {
                 return proxyFactories.get(identity).factory();
             }
-            
+
             /**
             Check if object is present in ProxyContainer by key identity.
             
@@ -272,7 +290,8 @@ template ProxyContainerImpl(T) {
         	Returns:
         		bool true if container is enabled and has object by identity.
             **/
-            bool has(in string identity) inout {
+            bool has(in string identity) inout
+            {
                 return proxyFactories.has(identity);
             }
         }

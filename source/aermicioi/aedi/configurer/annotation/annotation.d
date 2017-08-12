@@ -364,7 +364,6 @@ struct AutowiredAnnotation {
         
         alias paramType = typeof(getMember!(T, property));
         
-        pragma(msg, T, ".", property);
         auto lref = toLref!paramType;
         auto method = new FieldConfigurer!(T, property, toLrefType!paramType)(lref);
         method.locator = locator;

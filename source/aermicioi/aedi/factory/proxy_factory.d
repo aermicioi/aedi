@@ -35,6 +35,7 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.storage.locator_aware;
 import std.traits;
 import std.typecons;
 import std.range;
@@ -66,7 +67,7 @@ class ProxyFactory(T) : Factory!T
         
         this(string identity, Locator!() original) {
             this.identity = identity;
-            this.source = source;
+            this.source = original;
         }
         
         T factory() {
@@ -87,7 +88,7 @@ class ProxyFactory(T) : Factory!T
             Returns:
             	this
             **/
-            ProxyFactory!T identity(string identity) {
+            ProxyFactory!T identity(string identity) @safe nothrow {
             	this.identity_ = identity;
             
             	return this;
@@ -99,7 +100,7 @@ class ProxyFactory(T) : Factory!T
             Returns:
             	string identity
             **/
-            string identity() {
+            string identity() @safe nothrow {
             	return this.identity_;
             }
             
@@ -112,7 +113,7 @@ class ProxyFactory(T) : Factory!T
             Returns:
             	this
             **/
-            ProxyFactory!T source(Locator!() source) {
+            ProxyFactory!T source(Locator!() source) @safe nothrow {
             	this.source_ = source;
             
             	return this;
@@ -124,9 +125,24 @@ class ProxyFactory(T) : Factory!T
             Returns:
             	Locator!() source
             **/
-            Locator!() source() {
+            Locator!() source() @safe nothrow {
             	return this.source_;
             }
+
+            LocatorAware!(Object, string) locator(Locator!(Object, string) locator) @safe nothrow {
+                this.source = locator;
+
+                return this;
+            }
+
+            Locator!() locator() @safe nothrow {
+                return this.source;
+            }
+
+            TypeInfo type() @safe nothrow {
+                return typeid(Proxy!T);
+            }
+
         }
     }
 }
@@ -164,7 +180,7 @@ template ProxyImpl(T)
         }
         
         @property public {
-            ProxyImpl __locator__(Locator!() locator) @safe nothrow @nogc {
+            ProxyImpl!T __locator__(Locator!() locator) @safe nothrow @nogc {
             	this.__locator_ = locator;
             
             	return this;
@@ -174,7 +190,7 @@ template ProxyImpl(T)
             	return this.__locator_;
             }
             
-            ProxyImpl __id__(string id) @safe nothrow @nogc {
+            ProxyImpl!T __id__(string id) @safe nothrow @nogc {
             	this.__id_ = id;
             
             	return this;
@@ -189,29 +205,38 @@ template ProxyImpl(T)
 
 template how(T) {
     static string how(C, alias fun)() {
-        string stmt = "
-            import aermicioi.aedi.storage.locator;
-            import aermicioi.aedi.exception.di_exception;
-            import aermicioi.aedi.factory.proxy_factory;
-        " ~  identifier!C ~ " original;
-            try {
-                original = this.__locator__.locate!(" ~ fullyQualifiedName!T ~ ")(this.__id__);
-            } catch (AediException e) {
-                assert(false, \"Failed to fetch \" ~ __id__ ~ \" in proxy object.\");
-            }
-        ";
-            
-        static if (!is(ReturnType!fun == void)) {
-            stmt ~= "
-                return original." ~ __traits(identifier, fun) ~ "(args);
-            ";
+        static if (identifier!fun == "__ctor") {
+            pragma(msg, "here");
+            return q{super(args)};
+        } static if (identifier!fun == "__dtor") {
+            return q{};
         } else {
-            stmt ~= "
-                original." ~ __traits(identifier, fun) ~ "(args);
+
+            string stmt = q{
+                import aermicioi.aedi.storage.locator;
+                import aermicioi.aedi.exception.di_exception;
+                import aermicioi.aedi.factory.proxy_factory;
+                } ~ fullyQualifiedName!T ~ " original;
+                try {
+                    original = this.__locator__.locate!(" ~ fullyQualifiedName!T ~ ")(this.__id__);
+                } catch (Exception e) {
+                    assert(false, \"Failed to fetch \" ~ __id__ ~ \" in proxy object.\");
+                }
             ";
+                
+            static if (!is(ReturnType!fun == void)) {
+                stmt ~= "
+                    return original." ~ __traits(identifier, fun) ~ "(args);
+                ";
+            } else {
+                stmt ~= "
+                    original." ~ __traits(identifier, fun) ~ "(args);
+                ";
+            }
+            
+            return stmt;
         }
-        
-        return stmt;
+
     }
 }
     
@@ -244,15 +269,12 @@ interface ProxyObjectFactory : ObjectFactory {
     }
 }
 
-class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Factory!T)
+class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(ProxyFactory!T)
     if (is(T : Object) && !isFinalClass!T) {
     
     private {
         ProxyFactory!T decorated_;
         
-        string identity_;
-        Locator!() source_;
-        Locator!() locator_;
     }
     
     public {
@@ -262,23 +284,23 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Fact
         
         @property {
             ProxyObjectWrappingFactory!T identity(string identity) @safe nothrow {
-            	this.identity_ = identity;
+            	this.decorated.identity = identity;
             
             	return this;
             }
             
             string identity() @safe nothrow {
-            	return this.identity_;
+            	return this.decorated.identity;
             }
             
             ProxyObjectWrappingFactory!T source(Locator!() source) @safe nothrow {
-            	this.source_ = source;
+            	this.decorated.source = source;
             
             	return this;
             }
             
             Locator!() source() @safe nothrow {
-            	return this.source_;
+            	return this.decorated.source;
             }
             
             ProxyObjectWrappingFactory!T decorated(ProxyFactory!T decorated) @safe nothrow {
@@ -292,13 +314,13 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Fact
             }
             
             ProxyObjectWrappingFactory!T locator(Locator!() locator) @safe nothrow {
-            	this.locator_ = locator;
+            	this.decorated.locator = locator;
             
             	return this;
             }
             
             Locator!() locator() @safe nothrow {
-            	return this.locator_;
+            	return this.decorated.locator;
             }
             
             TypeInfo type() {

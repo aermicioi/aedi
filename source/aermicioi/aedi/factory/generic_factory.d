@@ -473,7 +473,9 @@ class ConstructorBasedFactory(T, Args...) : ParameterHolder!Args, InstanceFactor
             
             try {
                 
-                alias ConstructorArgs = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor"))[0]);
+                alias ConstructorArgs = staticMap!(Unqual,
+                    Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor"))[0])
+                );
                 
                 Tuple!ConstructorArgs parameters;
                 

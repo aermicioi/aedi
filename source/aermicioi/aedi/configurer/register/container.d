@@ -47,19 +47,19 @@ auto values() {
 }
 
 auto switchable(T : Container)(auto ref T container) {
-    return (new SwitchableContainer!T).decorated(container);
+    return (new SwitchableContainer!T()).decorated(container);
 }
 
 auto subscribable(T : Container)(auto ref T container) {
-    return (new SubscribableContainer!T).decorated(container);
+    return (new SubscribableContainer!T()).decorated(container);
 }
 
 auto typed(T : Container)(auto ref T container) {
-    return (new TypeBasedContainer).decorated(container);
+    return (new TypeBasedContainer!T()).decorated(container);
 }
 
-auto interfaced(T : Container)(auto ref T container) {
-    return (new InterfaceInjectorContainer!T(container)).decorated(container);
+auto aliasing(T)(auto ref T container) {
+    return (new AliasingContainer!T()).decorated(container);
 }
 
 auto delegator(T...)(auto ref T containers)

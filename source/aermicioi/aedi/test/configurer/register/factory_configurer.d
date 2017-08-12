@@ -173,20 +173,23 @@ unittest {
     assert(container.locate!MockObject("parented") is obj);
 }
 
-//Leaving commented until bug 17177 will be fixed.
-//unittest {
-//    import aermicioi.aedi.container.proxy_container;
-//    
-//    AggregateLocatorImpl!() cont = new AggregateLocatorImpl!();
-//    auto singleton = new SingletonContainer();
-//    auto proxy = new ProxyContainerImpl!SingletonContainer();
-//    auto parameters = new ObjectStorage!();
-//    
-//    cont.set(proxy, "singleton");
-//    cont.set(parameters, "parameters");
-//    
-//    cont.register!(ProxyablePerson)("employee")
-//        .proxy;
-//        
-//    assert(proxy.has("employee"));
-//}
+unittest {
+   import aermicioi.aedi.container.proxy_container;
+   import aermicioi.aedi.factory.proxy_factory;
+   
+   AggregateLocatorImpl!() cont = new AggregateLocatorImpl!();
+   auto singleton = new SingletonContainer();
+   auto proxy = new ProxyContainerImpl!SingletonContainer();
+   proxy.decorated = singleton;
+   auto parameters = new ObjectStorage!();
+   
+   cont.set(proxy, "singleton");
+   cont.set(parameters, "parameters");
+   
+   cont.register!(ProxyablePerson)("employee")
+       .proxy;
+       
+   assert(proxy.has("employee"));
+   
+   assert((cast(Proxy!ProxyablePerson) cont.locate!ProxyablePerson("employee")) !is null);
+}

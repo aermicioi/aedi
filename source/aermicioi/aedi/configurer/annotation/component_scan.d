@@ -733,7 +733,7 @@ template canFactoryPropertyConfigurer(T, Z, string property = "") {
 }
 
 public auto componentScanImpl(T)(Locator!() locator) {
-    debug {
+    debug(compileTimeDebug) {
         pragma(msg, "Scanning ", fullyQualifiedName!T);
     }
     
@@ -748,7 +748,7 @@ public auto componentScanImpl(T)(Locator!() locator) {
     static if (Components.length > 0) {
         auto factory = toValue!(Components[0]).factory!T(locator);
         
-        debug {
+        debug(compileTimeDebug) {
             pragma(msg, "Found component");
         }
         
@@ -769,7 +769,7 @@ public auto componentScanImpl(T)(Locator!() locator) {
         );
         
         foreach (configurer; tuple(staticMap!(toValue, configurerUdas))) {
-            debug {
+            debug(compileTimeDebug) {
                 pragma(msg, "Found configurer ", name!configurer, " on ", name!T, " declaration");
             }
             
@@ -777,7 +777,7 @@ public auto componentScanImpl(T)(Locator!() locator) {
         }
         
         static if (constructorUdas.length > 0) {
-            debug {
+            debug(compileTimeDebug) {
                 pragma(msg, "Found constructor right on ", name!T);
             }
             
@@ -815,7 +815,7 @@ public auto componentScanImpl(T)(Locator!() locator) {
                     );
                     
                     static if (udas.length > 0) {
-                        debug {
+                        debug(compileTimeDebug) {
                             pragma(msg, "Found custom constructor for ", name!T, " on ", instantiatorHolder, " with arguments ", Parameters!overload);
                         }
                         
@@ -853,7 +853,7 @@ public auto componentScanImpl(T)(Locator!() locator) {
                     );
                     
                     foreach (uda; tuple(staticMap!(toValue, udas))) {
-                        debug {
+                        debug(compileTimeDebug) {
                             pragma(msg, "Found configurer ", name!uda, " for ", name!T, "'s method ", member);
                         }
                         
@@ -872,7 +872,7 @@ public auto componentScanImpl(T)(Locator!() locator) {
                 );
                 
                 foreach (uda; tuple(staticMap!(toValue, udas))) {
-                    debug {
+                    debug(compileTimeDebug) {
                         pragma(msg, "Found configurer ", name!uda, " for ", name!T, "'s field ", member);
                     }
                     
@@ -883,7 +883,7 @@ public auto componentScanImpl(T)(Locator!() locator) {
 
         return factory;
     } else {
-        debug {
+        debug(compileTimeDebug) {
             pragma(msg, "Not a component");
         }
         

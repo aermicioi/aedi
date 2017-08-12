@@ -669,7 +669,7 @@ struct StructFixtureFactory {
 A simple model that is to be proxied.
 Note: Currently autoimplement fails, on objects that are implementing interfaces.
 **/
-class ProxyablePerson {
+class ProxyablePerson : Identifiable!ulong {
     private {
         ubyte age_;
         string name_;
