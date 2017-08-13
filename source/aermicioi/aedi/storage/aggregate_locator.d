@@ -30,8 +30,8 @@ Authors:
 **/
 module aermicioi.aedi.storage.aggregate_locator;
 
-import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.exception.not_found_exception;
+import aermicioi.aedi.storage.locator;
 import std.conv : to;
 import std.range.interfaces;
 import std.typecons;
@@ -39,7 +39,8 @@ import std.typecons;
 /**
 An implementation of AggregateLocator.
 **/
-class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = KeyType) : MutableAggregateLocator!(Type, KeyType, LocatorKeyType) {
+class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = KeyType) : 
+    MutableAggregateLocator!(Type, KeyType, LocatorKeyType) {
     
     protected {
         
@@ -95,8 +96,6 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
                     return locator.get(identity);
                 }
             }
-            
-            import std.traits;
             
             if ((identity in this.locators) !is null) {
                 auto result = cast(Type) this.locators[identity];
@@ -159,7 +158,7 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
         	InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
         **/
         InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) getLocators() {
-            import std.algorithm;
+            import std.algorithm : map;
             
             return this.locators.byKeyValue.map!(
                 a => tuple(a.value, a.key)

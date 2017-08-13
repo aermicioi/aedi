@@ -76,8 +76,8 @@ Exposes the list of locators contained in it.
 interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : 
     Locator!(Type, KeyType) {
     
-    import std.range.interfaces;
-    import std.typecons;
+    import std.range.interfaces : InputRange;
+    import std.typecons : Tuple;
     
     public {
         
@@ -110,7 +110,8 @@ interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = Key
 /**
 Exposes, and allows to set a list of containers into it.
 **/
-interface MutableAggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : AggregateLocator!(Type, KeyType, LocatorKeyType), Storage!(Locator!(Type, KeyType), LocatorKeyType) {
+interface MutableAggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) : 
+    AggregateLocator!(Type, KeyType, LocatorKeyType), Storage!(Locator!(Type, KeyType), LocatorKeyType) {
     
 }
 
@@ -134,7 +135,7 @@ Returns:
 	Object casted to desired type.
 **/
 @trusted auto ref locate(T : Object)(Locator!(Object, string) locator, string id) {
-    import aermicioi.aedi.exception.invalid_cast_exception;
+    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
     
     auto result = cast(T) locator.get(id);
     
@@ -145,10 +146,13 @@ Returns:
     return result;
 }
 
+/**
+ditto
+**/
 @trusted auto ref locate(T)(Locator!(Object, string) locator, string id) 
     if (is(T == interface)) {
-    import aermicioi.aedi.exception.invalid_cast_exception;
-    import aermicioi.aedi.storage.wrapper;
+    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
+    import aermicioi.aedi.storage.wrapper : Wrapper;
     
     auto casted = cast(T) locator.get(id);
     
@@ -170,8 +174,8 @@ ditto
 **/
 @trusted auto ref locate(T)(Locator!(Object, string) locator, string id) 
     if(!is(T == interface)) {
-    import aermicioi.aedi.exception.invalid_cast_exception;
-    import aermicioi.aedi.storage.wrapper;
+    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
+    import aermicioi.aedi.storage.wrapper : Wrapper;
     
     auto wrapper = (cast(Wrapper!T) locator.get(id));
     

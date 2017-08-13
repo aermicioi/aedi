@@ -54,7 +54,7 @@ unittest
 
 unittest
 {
-    auto container = delegator(values(), values());
+    auto container = container(values(), values());
 
     assert(typeid(container) is typeid(TupleContainer!(ValueContainer, ValueContainer)));
 }

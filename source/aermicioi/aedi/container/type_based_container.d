@@ -49,6 +49,22 @@ import std.container.rbtree;
 /**
 A decorating container that can provide for requested
 base class or interface, one implementor of those. 
+This decorated will inherit following interfaces if
+and only if T also implements them:
+    $(OL
+        $(LI AliasAware!string)
+        $(LI FactoryLocator!ObjectFactory)
+    )
+Decorated container must implement following interfaces:
+    $(OL
+        $(LI Container)
+        $(LI Storage!(ObjectFactory, string))
+        $(LI MutableDecorator!T)
+        $(LI Decorator!Container)
+    )
+
+Params:
+    T = The decorated that switchable decorated will decorate.
 **/
 template TypeBasedContainer(T) {
     
@@ -122,7 +138,7 @@ template TypeBasedContainer(T) {
     		
     		Params:
     			identity = identity of object factory in TypeBasedContainer.
-    			element = object factory which is to be saved in TypeBasedContainer.
+    			factory = object factory which is to be saved in TypeBasedContainer.
     			
     		Return:
     			TypeBasedContainer

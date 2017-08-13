@@ -32,13 +32,12 @@ Authors:
 **/
 module aermicioi.aedi.configurer.register.configuration_context_factory;
 
-import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.factory.decorating_factory;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.generic_factory;
-import aermicioi.aedi.factory.decorating_factory;
+import aermicioi.aedi.storage.storage;
 
 package {
-    import aermicioi.aedi.factory.decorating_factory;
     
     /**
     A decorator over generic factory, that sole purpose is to contain

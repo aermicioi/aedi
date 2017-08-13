@@ -29,14 +29,14 @@ Authors:
 **/
 module aermicioi.aedi.configurer.register.context;
 
-import aermicioi.aedi.storage.storage;
-import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.configurer.register.configuration_context_factory;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.factory.wrapping_factory;
+import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.storage;
 import std.traits;
 
-import aermicioi.aedi.configurer.register.configuration_context_factory;
 
 /**
 A component registration interface for storage.
@@ -63,6 +63,13 @@ struct RegistrationContext(
         **/
         Locator!(Object, string) locator;
         
+        /**
+        Constructor for RegistrationContext
+        
+        Params: 
+            storage = storage where to put registered components
+            locator = locator used to get registered component's dependencies
+        **/
         this(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator) {
             this.storage = storage;
             this.locator = locator;
@@ -127,11 +134,11 @@ struct RegistrationContext(
         	GenericFactory!T factory for component for further configuration
         **/
         ConfigurationContextFactory!T register(T)(auto ref T value, string identity) {
-            import aermicioi.aedi.configurer.register.factory_configurer;
+            import aermicioi.aedi.configurer.register.factory_configurer : val = value;
             
             ConfigurationContextFactory!T factory = register!T(identity);
             
-            factory.value(value);
+            factory.val(value);
             
             return factory;
         }
@@ -168,14 +175,18 @@ Params:
 Returns:
 	RegistrationContext context with registration interface used to register components.
 **/
-RegistrationContext!ObjectWrappingFactory configure(alias ObjectWrappingFactory = WrappingFactory)(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator) {
+RegistrationContext!ObjectWrappingFactory configure
+        (alias ObjectWrappingFactory = WrappingFactory)
+        (Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator) {
     return RegistrationContext!ObjectWrappingFactory(storage, locator);
 }
 
 /**
 ditto
 **/
-RegistrationContext!ObjectWrappingFactory configure(alias ObjectWrappingFactory = WrappingFactory)(Locator!(Object, string) locator, Storage!(ObjectFactory, string) storage) {
+RegistrationContext!ObjectWrappingFactory configure
+        (alias ObjectWrappingFactory = WrappingFactory)
+        (Locator!(Object, string) locator, Storage!(ObjectFactory, string) storage) {
     return RegistrationContext!ObjectWrappingFactory(storage, locator);
 }
 
@@ -208,7 +219,9 @@ Params:
 Returns:
 	RegistrationContext context with registration interface used to register components.
 **/
-RegistrationContext!ObjectWrappingFactory configure(alias ObjectWrappingFactory = WrappingFactory)(Locator!(Object, string) locator, string storage) {
+RegistrationContext!ObjectWrappingFactory configure
+        (alias ObjectWrappingFactory = WrappingFactory)
+        (Locator!(Object, string) locator, string storage) {
     return configure!ObjectWrappingFactory(locator, locator.locate!(Storage!(ObjectFactory, string))(storage));
 }
 
@@ -225,7 +238,9 @@ Params:
 Returns:
 	RegistrationContext context with registration interface used to register components.
 **/
-Context along(Context : RegistrationContext!T, alias T)(Context registrationContext, Storage!(ObjectFactory, string) storage) {
+Context along
+        (Context : RegistrationContext!T, alias T)
+        (Context registrationContext, Storage!(ObjectFactory, string) storage) {
     registrationContext.storage = storage;
     
     return registrationContext;
@@ -248,7 +263,6 @@ Use locator or storage as basis for registering components.
 Params:
     registrationContext = context for which to set new configured storage, or used locator
 	storage = identity of a storage located in locator that should be used by registrationContext to store components.
-	locator = locator of dependencies for registered components
 
 Returns:
 	RegistrationContext context with registration interface used to register components.
@@ -292,7 +306,7 @@ struct ValueRegistrationContext {
             static if (is(T : Object)) {
                 storage.set(value, identity);
             } else {
-                import aermicioi.aedi.storage.wrapper;
+                import aermicioi.aedi.storage.wrapper : WrapperImpl;
                 
                 storage.set(new WrapperImpl!T(value), identity);
             }
@@ -343,10 +357,19 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
     
     public {
         
+        /**
+        Underlying registration context.
+        **/
         T context;
         
         alias context this;
         
+        /**
+        Constructor for RegistrationInfoTaggedRegistrationContext
+        
+        Params: 
+            context = underlying context used for registration
+        **/
         this(T context) {
             this.context = context;
         }
@@ -384,7 +407,8 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         /**
         ditto
         **/
-        ConfigurationContextFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)()
+        ConfigurationContextFactory!T register
+                (Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)()
             if (!is(T == Interface)) {
             auto factory = this.context.register!(Interface, T)();
             
@@ -406,7 +430,9 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         Returns:
         	GenericFactory!T factory for component for further configuration
         **/
-        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value, string identity) {
+        ConfigurationContextFactory!T register
+                (T, string file = __FILE__, size_t line = __LINE__)
+                (auto ref T value, string identity) {
             auto factory = this.context.register!T(value, identity);
             
             this.inject(factory, file, line);
@@ -416,7 +442,9 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         /**
         ditto
         **/
-        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+        ConfigurationContextFactory!T register
+                (T, string file = __FILE__, size_t line = __LINE__)
+                (auto ref T value)
             if (!is(T == string)) {
             auto factory = this.context.register!T(value);
             
@@ -427,7 +455,9 @@ struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alia
         /**
         ditto
         **/
-        ConfigurationContextFactory!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+        ConfigurationContextFactory!T register
+                (Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)
+                (auto ref T value)
             if (!is(T == Interface)) {
             auto factory = this.context.register!(Interface, T)(value);
             

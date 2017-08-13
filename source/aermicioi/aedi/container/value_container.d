@@ -47,6 +47,9 @@ class ValueContainer : Container, Storage!(Object, string) {
     
     public {
         
+		/**
+			Default constructor for ValueContainer
+		**/
         this() {
             this.values = new ObjectStorage!(Object, string);
         }
@@ -122,6 +125,12 @@ class ValueContainer : Container, Storage!(Object, string) {
             return this.values.has(identity);
         }
         
+		/**
+        Sets up the internal state of container.
+        
+        Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
+		In case of value container it does nothing.
+        **/
         ValueContainer instantiate() {
             
 //            We do nothing since all components is already instantiated.

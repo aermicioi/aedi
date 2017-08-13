@@ -51,6 +51,9 @@ class ApplicationContainer : AggregateContainer {
     
     public {
         
+		/**
+		 * Default constructor for ApplicationContainer
+		**/
         this() {
             this.set(new SingletonContainer, "singleton");
             this.set(new PrototypeContainer, "prototype");

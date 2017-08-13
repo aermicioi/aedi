@@ -103,39 +103,50 @@ template lte(alias first) {
     enum bool eq(alias second) = (first <= second);
 }
 
-/**
-Prefix a template with a set of arguments.
 
-Prefix a template with a set of arguments.
-A prefixed template will have first arguments to be
-Args, and rest of passed arguments afterwards (Sargs).
+static if (__traits(hasMember, std.meta, "ApplyLeft")) {
+    alias partialPrefixed = ApplyLeft;
+} else {
+    /**
+    Prefix a template with a set of arguments.
 
-Params:
-    pred = prefixable template
-    Args = arguments that are prefixed
-    Sargs = arguments that are suffixed
-**/
-template partialPrefixed(alias pred, Args...) {
-    template partialPrefixed(Sargs...) {
-        alias partialPrefixed = pred!(Args, Sargs);
+    Prefix a template with a set of arguments.
+    A prefixed template will have first arguments to be
+    Args, and rest of passed arguments afterwards (Sargs).
+
+    Params:
+        pred = prefixable template
+        Args = arguments that are prefixed
+        Sargs = arguments that are suffixed
+    **/
+    template partialPrefixed(alias pred, Args...) {
+        template partialPrefixed(Sargs...) {
+            alias partialPrefixed = pred!(Args, Sargs);
+        }
     }
 }
 
-/**
-Suffix a template with a set of arguments.
+static if (__traits(hasMember, std.meta, "ApplyLeft")) {
 
-Suffix a template with a set of arguments.
-A suffixed template will have first arguments to be
-Args, and rest of passed arguments afterwards (Sargs).
+    alias partialSuffixed = ApplyRight;
+} else {
 
-Params:
-    pred = prefixable template
-    Args = arguments that are suffixed
-    Sargs = arguments that are prefixed
-**/
-template partialSuffixed(alias pred, Args...) {
-    template partialSuffixed(Sargs...) {
-        alias partialSuffixed = pred!(Sargs, Args);
+    /**
+    Suffix a template with a set of arguments.
+
+    Suffix a template with a set of arguments.
+    A suffixed template will have first arguments to be
+    Args, and rest of passed arguments afterwards (Sargs).
+
+    Params:
+        pred = prefixable template
+        Args = arguments that are suffixed
+        Sargs = arguments that are prefixed
+    **/
+    template partialSuffixed(alias pred, Args...) {
+        template partialSuffixed(Sargs...) {
+            alias partialSuffixed = pred!(Sargs, Args);
+        }
     }
 }
 

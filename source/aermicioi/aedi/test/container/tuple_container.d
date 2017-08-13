@@ -44,7 +44,7 @@ import std.exception;
 unittest {
     ValueContainer first = new ValueContainer;
     ValueContainer second = new ValueContainer;
-    TupleContainer!(ValueContainer, ValueContainer) delegator = new TupleContainer!(ValueContainer, ValueContainer)(first, second);
+    TupleContainer!(ValueContainer, ValueContainer) container = new TupleContainer!(ValueContainer, ValueContainer)(first, second);
     
     first.set(new WrapperImpl!int(10), "mock");
     first.set(new WrapperImpl!int(11), "mock1");
@@ -53,21 +53,21 @@ unittest {
     second.set(new WrapperImpl!int(20), "mock2");
     
     assert(
-        all!((a) => delegator.has(a))
+        all!((a) => container.has(a))
         (
             ["mock", "mock1", "mock2"]
         )
     );
     
-    assert(!delegator.has("unkown"));
+    assert(!container.has("unkown"));
     
-    assert(delegator.locate!int("mock") == 10);
-    assert(delegator.locate!int("mock1") == 11);
-    assert(delegator.locate!int("mock2") == 20);
+    assert(container.locate!int("mock") == 10);
+    assert(container.locate!int("mock1") == 11);
+    assert(container.locate!int("mock2") == 20);
     
-    assert(delegator[0].locate!int("mock1") == 11);
-    assert(delegator[1].locate!int("mock1") == 21);
+    assert(container[0].locate!int("mock1") == 11);
+    assert(container[1].locate!int("mock1") == 21);
     
-    assertNotThrown!AediException(delegator.instantiate());
-    assertThrown!NotFoundException(delegator.get("unknwon"));
+    assertNotThrown!AediException(container.instantiate());
+    assertThrown!NotFoundException(container.get("unknwon"));
 }

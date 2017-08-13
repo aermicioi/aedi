@@ -29,16 +29,16 @@ Authors:
 **/
 module aermicioi.aedi.factory.wrapping_factory;
 
-import aermicioi.aedi.storage.wrapper;
 import aermicioi.aedi.factory.factory;
-import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.wrapper;
 import std.traits;
 
 /**
-Wraps up the result of some factory in Wrapper object if data is not
-subclass of Object.
+Wraps up the result of some factory in Wrapper object if component is not
+derived from Object.
 **/
 class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
     
@@ -47,25 +47,63 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
     }
     
     public {
+
+        /**
+        Constructor for WrappingFactory!(T, Z)
+        
+        Params: 
+            factory = factory that is wrapped
+        **/
         this(T factory) {
             this.decorated = factory;
         }
         
         @property {
+            
+            /**
+            Set the decorated object for decorator.
+            
+            Params:
+                decorated = decorated data
+            
+            Returns:
+            	this
+            **/
         	WrappingFactory!(T, Z) decorated(T decorated) @safe nothrow {
         		this.decorated_ = decorated;
         	
         		return this;
         	}
         	
+            /**
+            Get the decorated object.
+            
+            Returns:
+            	T decorated object
+            **/
         	T decorated() @safe nothrow {
         		return this.decorated_;
         	}
         	
+            /**
+    		Get the type info of T that is created.
+    		
+    		Returns:
+    			TypeInfo object of created component.
+    		**/
         	TypeInfo type() {
         	    return this.decorated.type;
         	}
         	
+            /**
+            Set a locator to object.
+            
+            Params:
+                locator = the locator that is set to oject.
+            
+            Returns:
+                LocatorAware.
+            **/
         	WrappingFactory!T locator(Locator!() locator) {
         		this.decorated.locator = locator;
         	
@@ -74,12 +112,18 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
         	
         }
         
+        /**
+		Instantiates component of type T.
+		
+		Returns:
+			Object instantiated component and probably wrapped if not derived from Object.
+		**/
         Object factory() {
             static if (is(Z : Object)) {
                 
                 return this.decorated.factory;
             } else {
-                import aermicioi.aedi.storage.wrapper;
+                import aermicioi.aedi.storage.wrapper : WrapperImpl;
                 return new WrapperImpl!Z(this.decorated.factory);
             }
         }
@@ -94,10 +138,22 @@ class RuntimeWrappingFactory(T : Factory!Z, Z) : WrappingFactory!(T) {
     
     public {
         
+        /**
+        Constructor for RuntimeWrappingFactory!(T, Z)
+        
+        Params: 
+            factory = factory that is to be wrapped up in
+        **/
         this(T factory) {
             super(factory);
         }
         
+        /**
+		Instantiates component of type T.
+		
+		Returns:
+			Object instantiated component and probably wrapped if not derived from Object.
+		**/
         override Object factory() {
             static if (is(Z == interface) || is(Z == class)) {
                 if (this.decorated.type.isDerived(typeid(Object))) {
@@ -129,6 +185,12 @@ class UnwrappingFactory(T) : Factory!T {
     
     public {
         
+        /**
+        Constructor for UnwrappingFactory
+        
+        Params: 
+            factory = factory from which created components will be coerced to T type if possible
+        **/
         this(ObjectFactory factory) {
             this.decorated = factory;
         }
@@ -149,9 +211,14 @@ class UnwrappingFactory(T) : Factory!T {
         	UnwrappingFactory!T decorated(ObjectFactory decorated)
             in {
                 if (decorated.type != typeid(T)) {
-        	        import aermicioi.aedi.exception.invalid_cast_exception;
+        	        import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
         	        
-        	        throw new InvalidCastException("Cannot unwrap a type " ~ decorated.type.toString() ~ " and cast it to " ~ typeid(T).toString());
+        	        throw new InvalidCastException(
+                        "Cannot unwrap a type " ~
+                         decorated.type.toString() ~ 
+                         " and cast it to " ~ 
+                         typeid(T).toString()
+                    );
         	    }
             }
             body {
@@ -229,9 +296,11 @@ A factory that coerces an object from object factory to
 some T type.
 
 A factory that coerces an object from object factory to
-some T type. If T is not rooted in Object class it is
-assumed by convention that Wrapper!T object is returned
-by object factory.
+some T type. It will attempt as well to safely object to
+type T if it is possible to prove that created object
+is a derivation of type T. If T is not rooted in Object 
+class it is assumed by convention that Wrapper!T object 
+is returned by object factory.
 **/
 class ClassUnwrappingFactory(T) : Factory!T {
     
@@ -241,6 +310,12 @@ class ClassUnwrappingFactory(T) : Factory!T {
     
     public {
 
+        /**
+        Constructor for ClassUnwrappingFactory
+        
+        Params: 
+            factory = factory from which created components will be coerced to T type if possible
+        **/
         this(ObjectFactory factory) {
             this.decorated = factory;
         }

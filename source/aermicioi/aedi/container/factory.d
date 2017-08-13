@@ -46,29 +46,65 @@ class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
     }
     
     public {
+        /**
+         * Default constructor for InProcessObjectFactoryDecorator
+        **/
         this() {
             
         }
         
+        /**
+         * Constructor for InProcessObjectFactoryDecorator
+         * 
+         * Params: 
+         * 	decorated = factory that is decorated with InProcessObjectFactoryDecorator
+        **/
         this(ObjectFactory decorated) {
             this.decorated = decorated;
         }
         
         @property {
+            /**
+            Get the decorated object.
+            
+            Returns:
+            	T decorated object
+            **/
             InProcessObjectFactoryDecorator decorated(ObjectFactory decorated) @safe nothrow {
             	this.decorated_ = decorated;
             
             	return this;
             }
             
+            /**
+             * Get decorated
+             * 
+             * Returns:
+             * 	ObjectFactory
+            **/
             ObjectFactory decorated() @safe nothrow {
             	return this.decorated_;
             }
             
+            /**
+             * Get type of created object
+             * 
+             * Returns:
+             * 	TypeInfo
+            **/
             TypeInfo type() {
             	return this.decorated.type();
             }
             
+            /**
+             * Set locator
+             * 
+             * Params: 
+             * 	locator = ${param-description}
+             * Throws: 
+             * Returns:
+             * 	typeof(this)
+            **/
             InProcessObjectFactoryDecorator locator(Locator!() locator) {
             	this.decorated.locator = locator;
             
@@ -76,6 +112,12 @@ class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
             }
         }
         
+        /**
+		Factory an object.
+		
+		Returns:
+			Object created object.
+		**/
         Object factory() {
             if (inProcess) {
                 throw new InProgressException("ObjectFactory is already instantiating, type: " ~ this.decorated.type.toString());
@@ -108,40 +150,92 @@ class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
     }
     
     public {
+        /**
+         * Default constructor for ExceptionChainingObjectFactory
+        **/
         this() {
             
         }
         
+        /**
+         * Constructor for ExceptionChainingObjectFactory
+         * 
+         * Params: 
+         * 	decorated = factory to be decorated
+         *  id = identity of created object, used for exception message.
+        **/
         this(ObjectFactory decorated, string id) {
             this.decorated = decorated;
             this.id = id;
         }
         
         @property {
+            /**
+             * Set id
+             * 
+             * Params: 
+             * 	id = identity of created object, used for exception message.
+             * Returns:
+             * 	typeof(this)
+            **/
             ExceptionChainingObjectFactory id(string id) @safe nothrow {
             	this.id_ = id;
             
             	return this;
             }
             
+            /**
+             * Get id
+             * 
+             * Returns:
+             * 	string
+            **/
             string id() @safe nothrow {
             	return this.id_;
             }
             
+            /**
+             * Set decorated
+             * 
+             * Params: 
+             * 	decorated = the factory that is to be decorated
+             * Returns:
+             * 	typeof(this)
+            **/
             ExceptionChainingObjectFactory decorated(ObjectFactory decorated) @safe nothrow {
             	this.decorated_ = decorated;
             
             	return this;
             }
             
+            /**
+             * Get decorated
+             * 
+             * Returns:
+             * 	ObjectFactory
+            **/
             ObjectFactory decorated() @safe nothrow {
             	return this.decorated_;
             }
             
+            /**
+             * Get type of created object
+             * 
+             * Returns:
+             * 	TypeInfo
+            **/
             TypeInfo type() {
             	return this.decorated.type();
             }
             
+            /**
+             * Set locator
+             * 
+             * Params: 
+             * 	locator = the locator used to locate dependencies for created object.
+             * Returns:
+             * 	typeof(this)
+            **/
             ExceptionChainingObjectFactory locator(Locator!() locator) {
             	this.decorated.locator = locator;
             
@@ -149,6 +243,12 @@ class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
             }
         }
         
+        /**
+		Factory an object, and catch any exception wrapping it in a library exception to be rethrown further.
+		
+		Returns:
+			Object created object.
+		**/
         Object factory() {
             
             try {

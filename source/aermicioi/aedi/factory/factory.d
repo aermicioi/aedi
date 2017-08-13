@@ -45,10 +45,10 @@ interface Factory(T) : LocatorAware!() {
 	public {
 		
 		/**
-		Instantiates something of type T.
+		Instantiates component of type T.
 		
 		Returns:
-			T instantiated data of type T.
+			T instantiated component.
 		**/
 		T factory();
 		
@@ -58,7 +58,7 @@ interface Factory(T) : LocatorAware!() {
     		Get the type info of T that is created.
     		
     		Returns:
-    			TypeInfo object of created object.
+    			TypeInfo object of created component.
     		**/
     		TypeInfo type();
 		}

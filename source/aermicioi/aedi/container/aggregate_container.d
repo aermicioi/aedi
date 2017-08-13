@@ -50,6 +50,9 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
     
     public {
         
+        /**
+         * Default constructor for AggregateContainer
+        **/
         this() {
             this.containers = new ObjectStorage!(Container, string);
         }

@@ -32,10 +32,10 @@ Authors:
 **/
 module aermicioi.aedi.factory.reference;
 
-import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception.invalid_cast_exception;
-import aermicioi.aedi.storage.wrapper;
+import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.wrapper;
 import std.traits;
 
 /**
@@ -74,6 +74,12 @@ class LocatorReference : RuntimeReference {
     }
     
     public {
+        /**
+        Constructor for LocatorReference
+        
+        Params: 
+            id = identity of component that is referenced
+        **/
         this(string id) {
             this.identity = id;
         }
@@ -111,16 +117,54 @@ class LocatorReference : RuntimeReference {
         	}
         }
         
+        /**
+        Resolve the reference, to referenced data.
+        
+        Resolve the reference, to referenced data.
+        
+        Params:
+            locator = an optional source of data used to resolve reference
+        
+        Returns:
+            Object the actual object, or data that is wrapped in Wrapper object.
+        **/
         Object get(Locator!() locator) {
             return locator.get(this.identity);
         }
     }
 }
 
+/**
+ditto
+**/
+auto lref(string id) {
+    return new LocatorReference(id);
+}
+
+/**
+ditto
+**/
+auto lref(string name)() {
+    return name.lref;
+}
+
+/**
+Reference to a component stored in a locator by it's type.
+**/
 class TypeLocatorReference(T) : RuntimeReference {
     
     public {
+        /**
+        Resolve the reference, to referenced data.
         
+        Resolve the reference, to referenced data.
+        
+        Params:
+            locator = an optional source of data used to resolve reference
+        
+        Returns:
+            Object the actual object, or data that is wrapped in Wrapper object.
+        **/
         Object get(Locator!() locator) {
             auto type = typeid(T);
             
@@ -138,22 +182,8 @@ class TypeLocatorReference(T) : RuntimeReference {
 /**
 ditto
 **/
-auto lref(string id) {
-    return new LocatorReference(id);
-}
-
-/**
-ditto
-**/
 auto lref(T)() {
     return new TypeLocatorReference!T;
-}
-
-/**
-ditto
-**/
-auto lref(string name)() {
-    return name.lref;
 }
 
 /**
@@ -171,17 +201,42 @@ class AnonymousFactoryReference : RuntimeReference {
     
     public {
         @property {
+            /**
+            Set factory
+            
+            Params: 
+                factory = factory used by anonymous reference to create component
+            Returns:
+                typeof(this)
+            **/
         	AnonymousFactoryReference factory(ObjectFactory factory) @safe nothrow {
         		this.factory_ = factory;
         	
         		return this;
         	}
         	
+            /**
+            Get factory
+            
+            Returns:
+                ObjectFactory
+            **/
         	ObjectFactory factory() @safe nothrow {
         		return this.factory_;
         	}
         }
         
+        /**
+        Resolve the reference, to referenced data.
+        
+        Resolve the reference, to referenced data.
+        
+        Params:
+            locator = an optional source of data used to resolve reference
+        
+        Returns:
+            Object the actual object, or data that is wrapped in Wrapper object.
+        **/
         Object get(Locator!() locator) {
             return this.factory.factory;
         }
@@ -192,7 +247,7 @@ class AnonymousFactoryReference : RuntimeReference {
 ditto
 **/
 auto anonymous(T : Factory!X, X)(T factory) {
-    import aermicioi.aedi.factory.wrapping_factory;
+    import aermicioi.aedi.factory.wrapping_factory : WrappingFactory;
     return anonymous(new WrappingFactory!T(factory));
 }
 
@@ -200,8 +255,6 @@ auto anonymous(T : Factory!X, X)(T factory) {
 ditto
 **/
 auto anonymous(ObjectFactory factory) {
-    import aermicioi.aedi.factory.decorating_factory;
-    
     auto anonymous = new AnonymousFactoryReference();
     anonymous.factory = factory;
     
@@ -232,7 +285,12 @@ body {
         return result;
     }
     
-    throw new InvalidCastException("Resolved runtime reference " ~ typeid(reference.get(locator)).toString() ~ " is not of expected type: " ~ fullyQualifiedName!T);
+    throw new InvalidCastException(
+        "Resolved runtime reference " ~ 
+        typeid(reference.get(locator)).toString() ~ 
+        " is not of expected type: " ~ 
+        fullyQualifiedName!T
+    );
 }
 
 /**
@@ -258,7 +316,12 @@ auto resolve(T)(RuntimeReference reference, Locator!() locator)
         }
     }
     
-    throw new InvalidCastException("Resolved runtime reference " ~ typeid(reference.get(locator)).toString() ~ " is not of expected type: " ~ fullyQualifiedName!T);
+    throw new InvalidCastException(
+        "Resolved runtime reference " ~ 
+        typeid(reference.get(locator)).toString() ~ 
+        " is not of expected type: " ~ 
+        fullyQualifiedName!T
+        );
 }
 
 /**
@@ -273,7 +336,12 @@ auto resolve(T)(RuntimeReference reference, Locator!() locator)
         return result;
     }
     
-    throw new InvalidCastException("Resolved runtime reference " ~ typeid(reference.get(locator)).toString() ~ " is not of expected type: " ~ fullyQualifiedName!T);
+    throw new InvalidCastException(
+        "Resolved runtime reference " ~ 
+        typeid(reference.get(locator)).toString() ~ 
+        " is not of expected type: " ~ 
+        fullyQualifiedName!T
+        );
 }
 
 /**

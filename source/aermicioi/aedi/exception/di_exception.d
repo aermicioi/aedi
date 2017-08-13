@@ -33,6 +33,14 @@ import std.exception;
 
 @safe:
 
+/**
+General type of exception thrown by library. 
+
+General type of exception thrown by library. 
+All kind of exceptions should inherit from this base one.
+Used as well for general types of exceptions that do not fit in certain
+category.
+**/
 class AediException : Exception {
     pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {

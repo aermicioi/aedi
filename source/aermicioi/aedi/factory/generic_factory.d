@@ -30,20 +30,20 @@ Authors:
 **/
 module aermicioi.aedi.factory.generic_factory;
 
+
+import aermicioi.aedi.exception;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.reference;
-
+import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.locator_aware;
-import aermicioi.aedi.exception;
 import aermicioi.aedi.storage.wrapper;
 import aermicioi.util.traits;
-import aermicioi.aedi.storage.decorator;
 
-import std.typecons;
-import std.traits;
-import std.meta;
 import std.conv : to;
+import std.meta;
+import std.traits;
+import std.typecons;
 
 /**
 A property configurer, has the purpose to modify data of type T according to some logic encapsulated in it.
@@ -95,7 +95,7 @@ interface InstanceFactoryAware(T) {
             	factory = a factory of objects of type T.
         	
         	Returns:
-    			The GenericFactoryInstance
+    			The InstanceFactoryAware
             **/
             InstanceFactoryAware!T setInstanceFactory(InstanceFactory!T factory);
         }
@@ -109,13 +109,13 @@ and can use them to configure some component.
 interface PropertyConfigurersAware(T) {
     public {
         /**
-        Adds an configurer to the GenericFactory.
+        Adds an configurer to the PropertyConfigurersAware.
         
         Params:
         	configurer = a configurer that will be invoked after factory of an object.
         	
     	Returns:
-    		The GenericFactoryInstance
+    		The PropertyConfigurersAware instance
         **/
         PropertyConfigurersAware!T addPropertyConfigurer(PropertyConfigurer!T configurer);
     }
@@ -160,6 +160,12 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
     
     public {
         
+        /**
+            Constructor for GenericFactoryImpl
+            
+            Params:
+                locator = the locator used by constructor to fetch dependencies of the created object
+        **/
         this(Locator!() locator) {
             this.locator = locator;
             
@@ -171,6 +177,12 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
             }
         }
         
+        /**
+        Create a new instance of object of type T using provided instance factory and property configurers.
+        
+        Returns:
+            T instantiated component
+        **/
         T factory() {
             T instance;
             
@@ -190,17 +202,40 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
         
         @property {
             
+            /**
+            Sets the constructor of new object.
+            
+            Params:
+            	factory = a factory of objects of type T.
+        	
+        	Returns:
+    			The InstanceFactoryAware
+            **/
             GenericFactory!T setInstanceFactory(InstanceFactory!T factory) {
                 this.factory_ = factory;
                 
                 return this;
             }
             
+            /**
+                Set locator
+                
+                Params: 
+                    locator = the locator used to fetch created's object dependencies
+                Returns:
+                    typeof(this)
+            **/
             GenericFactoryImpl!T locator(Locator!() locator) {
                 this.locator_ = locator;
                 return this;
             }
             
+            /**
+                Get locator
+                
+                Returns:
+                    Locator!()
+            **/
             Locator!() locator() {
                 return this.locator_;
             }
@@ -215,7 +250,16 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
     		    return typeid(T);
     		}
         }
-            
+        
+        /**
+        Adds an configurer to the PropertyConfigurersAware.
+        
+        Params:
+        	configurer = a configurer that will be invoked after factory of an object.
+        	
+    	Returns:
+    		The PropertyConfigurersAware instance
+        **/
         GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer) {
             
             this.configurers ~= configurer;
@@ -224,6 +268,13 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
         }
     }
     
+}
+
+/**
+ditto
+**/
+GenericFactory!T genericFactory(T)(Locator!() locator) {
+    return new GenericFactoryImpl!T(locator);
 }
 
 /**
@@ -242,6 +293,15 @@ abstract class ParameterHolder(Args...) : LocatorAware!() {
     public {
         
         static if (Args.length > 0) {
+
+            /**
+                Set args
+                
+                Params: 
+                    args = arguments that parameter holder should hold.
+                Returns:
+                    typeof(this)
+            **/ 
             ParameterHolder args(ref Args args) @safe nothrow {
             	this.args_ = tuple(args);
             
@@ -249,6 +309,12 @@ abstract class ParameterHolder(Args...) : LocatorAware!() {
             }
         }
         
+        /**
+            Get args
+            
+            Returns:
+                Tuple!Args arguments stored by argument holder
+        **/
         Tuple!Args args() @safe nothrow {
         	return this.args_;
         } 
@@ -269,6 +335,12 @@ abstract class ParameterHolder(Args...) : LocatorAware!() {
             	return this;
             }
             
+            /**
+                Get locator
+                
+                Returns:
+                    Locator!()
+            **/
             Locator!() locator() @safe nothrow {
             	return this.locator_;
             }
@@ -296,6 +368,12 @@ class MethodConfigurer(T, string property, Args...) : ParameterHolder!Args, Prop
     
     public {
         
+        /**
+            Constructor for MethodConfigurer!(T, property, Args)
+            
+            Params: 
+                args = list of arguments passed to T's method
+        **/
         this(ref Args args) {
             this.args(args);
         }
@@ -311,7 +389,18 @@ class MethodConfigurer(T, string property, Args...) : ParameterHolder!Args, Prop
             
             try {
                 
-                alias ArgTuple = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(T, property))[0]);
+                alias ArgTuple = Parameters!(
+                    Filter!(
+                        partialSuffixed!(
+                            isArgumentListCompatible, 
+                            Args
+                        ), 
+                        getOverloads!(
+                            T, 
+                            property
+                        )
+                    )[0]
+                );
                 Tuple!ArgTuple parameters;
                 
                 foreach (index, ref parameter; parameters) {
@@ -327,20 +416,7 @@ class MethodConfigurer(T, string property, Args...) : ParameterHolder!Args, Prop
 }
     
 /**
-Invoke aggregate's method with supplied args.
-
-Configures aggregate's factory to call specified method with passed args.
-The function will check if the arguments passed to it are compatible with at 
-least one method from possible overload set.
-The args list can contain references to other objects in locator as well, though
-no type compatibility checks will be performed at compile time.
-
-Params:
-	factory = the factory which will be configured to invoke method.
-	args = the arguments that will be used to invoke method on the new object.
-	
-Returns:
-	GenericFactory!T.
+ditto
 **/
 auto methodConfigurer(string property, T, Args...)(Locator!() locator, auto ref Args args) 
     if (!isField!(T, property)) {
@@ -365,7 +441,12 @@ class FieldConfigurer(T, string property, Arg) : ParameterHolder!Arg, PropertyCo
     ) {
     
     public {
-        
+        /**
+            Constructor for MethodConfigurer!(T, property, Args)
+            
+            Params: 
+                arg = list of arguments passed to T's method
+        **/
         this(ref Arg arg) {
             this.args(arg);
         }
@@ -381,7 +462,11 @@ class FieldConfigurer(T, string property, Arg) : ParameterHolder!Arg, PropertyCo
             
             try {
             
-                __traits(getMember, obj, property) = args[0].resolve!(typeof(__traits(getMember, obj, property)))(this.locator);
+                __traits(getMember, obj, property) = args[0].resolve!(
+                    typeof(__traits(getMember, obj, property))
+                )(
+                    this.locator
+                );
             } catch (Exception e) {
                 
                 throw new PropertyConfigurerException("Error occurred during set of " ~ name!T ~ "." ~ property, e);
@@ -391,19 +476,7 @@ class FieldConfigurer(T, string property, Arg) : ParameterHolder!Arg, PropertyCo
 }
     
 /**
-Set aggregate's public field to passed arg.
-
-Configures aggregate's factory to set specified field to passed arg.
-The function will check if passed argument is type compatible with specified field.
-The argument can be a reference as well. In case of argument being reference to another data
-in container, no type compatiblity checking will be done.
-
-Params
-    factory = the factory which will be configured to set property.
-	arg = the value of property to be set, or reference to data in container.
-
-Returns:
-	GenericFactory!T.
+ditto
 **/
 auto fieldConfigurer(string property, T, Arg)(Locator!() locator, auto ref Arg arg)
     if (isField!(T, property)) {
@@ -424,7 +497,12 @@ class DefaultConstructorBasedFactory(T) : InstanceFactory!T
     ) {
     
     public {
+        /**
+        Create a new instance of object of type T.
         
+        Returns:
+            T instantiated component
+        **/
         T factory() {
             
             try {
@@ -457,7 +535,12 @@ class ConstructorBasedFactory(T, Args...) : ParameterHolder!Args, InstanceFactor
 	) {
     
     public {
-        
+        /**
+            Constructor for ConstructorBasedFactory!(T, Args)
+            
+            Params: 
+                args = arguments used for constructor
+        **/
         this(ref Args args) {
             this.args(args);
         }
@@ -474,7 +557,15 @@ class ConstructorBasedFactory(T, Args...) : ParameterHolder!Args, InstanceFactor
             try {
                 
                 alias ConstructorArgs = staticMap!(Unqual,
-                    Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, "__ctor"))[0])
+                    Parameters!(
+                        Filter!(
+                            partialSuffixed!(
+                                isArgumentListCompatible,
+                                Args
+                            ), 
+                            __traits(getOverloads, T, "__ctor")
+                        )[0]
+                    )
                 );
                 
                 Tuple!ConstructorArgs parameters;
@@ -497,24 +588,8 @@ class ConstructorBasedFactory(T, Args...) : ParameterHolder!Args, InstanceFactor
 }
 	
 /**
-Construct aggregate using args.
-
-Constructs aggregate using args, that are passed to function.
-The function will attempt to find at least one construct that 
-can accept passed argument list. If it fails, compiler will
-produce error, with respective problems.
-The argument list can contain beside simple values, references
-to other data in locator. Arguments that are references to other data
-won't be type checked.
-
-Params:
-	factory = the factory which will call constructor with passed arguments.
-	args = a list of arguments that will be passed to constructor.
-	
-Returns:
-	GenericFactory!T.
+ditto
 **/
-
 auto constructorBasedFactory(T, Args...)(Locator!() locator, auto ref Args args) {
     mixin assertObjectConstructorCompatible!(T, Args);
     auto constructor = new ConstructorBasedFactory!(T, Args)(args);
@@ -540,7 +615,9 @@ Params:
     W = the factory T, or a LocatorReference to the factory.
     Args = type tuple of arguments passed to factory.
 **/
-class FactoryMethodBasedFactory(T, string method, W, Args...) : ParameterHolder!Args, InstanceFactory!(ReturnType!(getCompatibleOverload!(T, method, Args)))
+class FactoryMethodBasedFactory(T, string method, W, Args...) : 
+    ParameterHolder!Args, 
+    InstanceFactory!(ReturnType!(getCompatibleOverload!(T, method, Args)))
     if (
         (is(W : RuntimeReference) || is(W : T)) &&
         isMethodCompatible!(T, method, Args) &&
@@ -554,6 +631,13 @@ class FactoryMethodBasedFactory(T, string method, W, Args...) : ParameterHolder!
         }
         
         public {
+            /**
+                Constructor for FactoryMethodBasedFactory!(T, method, W, Args)
+                
+                Params: 
+                    fact = factory used to create object
+                    args = arguments passed to factory's method
+            **/
             this(ref W fact, ref Args args) {
                 this.args(args);
                 this.fact = fact;
@@ -561,6 +645,12 @@ class FactoryMethodBasedFactory(T, string method, W, Args...) : ParameterHolder!
         }
     } else {
         
+        /**
+            Constructor for FactoryMethodBasedFactory!(T, method, W, Args)
+            
+            Params: 
+                args = arguments passed to factory's static method
+        **/
         this(ref Args args) {
             this.args(args);
         }
@@ -579,12 +669,25 @@ class FactoryMethodBasedFactory(T, string method, W, Args...) : ParameterHolder!
             InvalidCastException when extracted data by reference, is not of type expected by argument
             factory's method, or when factory is referenced, and the object referenced in locator is not
             of factory's type T.
+        Returns:
+            Z created object
         **/
         Z factory() {
             
             try {
                 
-                alias FactoryMethodParameters = Parameters!(Filter!(partialSuffixed!(isArgumentListCompatible, Args), __traits(getOverloads, T, method))[0]);
+                alias FactoryMethodParameters = Parameters!(
+                    Filter!(
+                        partialSuffixed!(
+                            isArgumentListCompatible, 
+                            Args
+                        ), __traits(
+                            getOverloads, 
+                            T, 
+                            method
+                        )
+                    )[0]
+                );
                 
                 Tuple!FactoryMethodParameters parameters;
                 
@@ -601,33 +704,26 @@ class FactoryMethodBasedFactory(T, string method, W, Args...) : ParameterHolder!
                 }
             } catch (Exception e) {
                 
-                throw new InstanceFactoryException("Error occurred during instantiation of " ~ name!T ~ " using factory method of " ~ name!T ~ "." ~ method, e);
+                throw new InstanceFactoryException(
+                    "Error occurred during instantiation of " ~ 
+                    name!T ~ 
+                    " using factory method of " 
+                    ~ name!T ~ 
+                    "." ~ 
+                    method, 
+                    e
+                );
             }
         }
     }
 }
     
 /**
-Invoke T's method to create data of type X.
-
-Configures aggregate's factory to call method of factoryMethod with args,
-in order to create data of type X.
-In case when method is not a static member, the function requires to
-pass a instance of factoryMethod or a reference to it.
-The algorithm will check for args compatiblity with parameters of 
-factory method. No type check is done for arguments that are references
-at compile time.
-
-Params:
-    factory = aggregate's factory that is configured to call factoryMethod methods to spawn aggregate
-    factoryMethod = instance of factory method that will be used to instantiate aggregate
-    args = a list of arguments passed to factory method
-    T = type of factoryMethod
-    method = the method that is called from T to instantiate aggregate
-    W = either LocatorReference or T
-    X = the return type of T.method member
+ditto
 **/
-auto factoryMethodBasedFactory(T, string method, W, Args...)(Locator!() locator, auto ref W factoryMethod, auto ref Args args)
+auto factoryMethodBasedFactory
+        (T, string method, W, Args...)
+        (Locator!() locator, auto ref W factoryMethod, auto ref Args args)
     if (
         isNonStaticMethodCompatible!(T, method, Args) &&
         (is(W : T) || is(W : RuntimeReference))
@@ -674,6 +770,13 @@ class CallbackFactory(T, Dg, Args...) : ParameterHolder!Args, InstanceFactory!T
     }
     
     public {
+        /**
+            Constructor for CallbackFactory!(T, Dg, Args)
+            
+            Params: 
+                dg = delegate used to create object
+                args = arguments passed to delegate
+        **/
         this(Dg dg, ref Args args) {
             this.dg = dg;
             this.args(args);
@@ -688,24 +791,19 @@ class CallbackFactory(T, Dg, Args...) : ParameterHolder!Args, InstanceFactory!T
                 return this.dg(this.locator_, args.expand);
             } catch (Exception e) {
                 
-                throw new InstanceFactoryException("Error occurred during instantiation of " ~ name!T ~ " using callback factory", e);
+                throw new InstanceFactoryException(
+                    "Error occurred during instantiation of " ~ 
+                    name!T ~ 
+                    " using callback factory", 
+                    e
+                );
             }
         }
     }
 }
     
 /**
-Construct aggregate using a delegate.
-
-Constructs aggregate using a delegate, and a list of arguments passed to delegate.
-
-Params:
-	factory = the factory which will use delegate to construct aggregate.
-	dg = the delegate that is responsible for creating aggregate, given a list of arguments.
-	args = the arguments that will be used by delegate to construct aggregate.
-	
-Returns:
-	GenericFactory!T.
+ditto
 **/
 auto callbackFactory(T, Args...)(Locator!() locator, T delegate(Locator!(), Args) dg, auto ref Args args) {
     auto constr = new CallbackFactory!(T, T delegate(Locator!(), Args), Args)(dg, args);
@@ -749,15 +847,25 @@ class CallbackConfigurer(T, Dg, Args...) : ParameterHolder!Args, PropertyConfigu
         Dg dg;
     }
     
-    /**
-    See InstanceFactory interface
-    **/
     public {
+        /**
+            Constructor for CallbackConfigurer!(T, Dg, Args)
+            
+            Params: 
+                dg = delegate used to configure the created object
+                args = arguments passed to delegate
+        **/
         this(Dg dg, ref Args args) {
             this.dg = dg;
             this.args(args);
         }
         
+        /**
+        Accepts a reference to an object that is to be configured by the configurer.
+        
+        Params:
+        	object = An object of type T, that will be configured
+        **/
         void configure(ref T object) {
             
             try {
@@ -771,17 +879,7 @@ class CallbackConfigurer(T, Dg, Args...) : ParameterHolder!Args, PropertyConfigu
 }
     
 /**
-Call dg on an aggregate that is in configuration phase.
-
-Call dg on aggregate to perform some modifications, using args as input.
-
-Params:
-    factory = factory which will call dg with args.
-    dg = delegate that will perform some modifications on aggregate using passed args.
-    args = a list of arguments passed to dg.
-    
-Returns:
-    GenericFactory!T
+ditto
 **/
 auto callbackConfigurer(T, Args...)(Locator!() locator, void delegate(Locator!(), T, Args) dg, auto ref Args args) {
     auto constr = new CallbackConfigurer!(T, void delegate(Locator!(), T, Args), Args)(dg, args);
@@ -831,22 +929,49 @@ class ValueInstanceFactory(T) : InstanceFactory!T {
     }
     
     public {
+        /**
+            Constructor for ValueInstanceFactory!T
+            
+            Params: 
+                initial = argument that is to be passed as created object
+        **/
         this(T initial) {
             this.initial = initial;
         }
         
         @property {
+
+            /**
+                Set initial
+                
+                Params: 
+                    initial = value which will be passed as created component
+                Returns:
+                    typeof(this)
+            **/
         	ValueInstanceFactory!T initial(T initial) @safe nothrow {
         		this.initial_ = initial;
         	
         		return this;
         	}
         	
+            /**
+                Get initial
+                
+                Returns:
+                    T
+            **/
         	T initial() @safe nothrow {
         		return this.initial_;
         	}
         }
         
+        /**
+        Create a new instance of object of type T.
+        
+        Returns:
+            T instantiated component
+        **/
         T factory() {
             return this.initial();
         }
@@ -865,10 +990,19 @@ class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!
     
     public {
         
+        /**
+            Default constructor for DelegatingInstanceFactory!(T, X)
+        **/
         this() {
             
         }
         
+        /**
+            Constructor for DelegatingInstanceFactory!(T, X)
+            
+            Params: 
+                factory = the factory to which this instance will delegate the task of creating a component
+        **/
         this(Factory!X factory) {
             this.decorated = factory;
         }
@@ -910,10 +1044,6 @@ class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!
             return this.decorated.factory();
         }
     }
-}
-
-GenericFactory!T genericFactory(T)(Locator!() locator) {
-    return new GenericFactoryImpl!T(locator);
 }
 
 /**

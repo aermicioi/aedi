@@ -53,22 +53,50 @@ class PrototypeContainer : ConfigurableContainer {
     
     public {
         
+        /**
+         * Default constructor for PrototypeContainer
+        **/
         this() {
             this.factories = new ObjectStorage!(ObjectFactory, string);
         }
         
+        /**
+         * Set object factory
+         * 
+         * Params: 
+         * 	object = factory for a object that is to be managed by prototype container.
+         *  key = identity of factory
+         * Returns:
+         * 	typeof(this)
+        **/
         PrototypeContainer set(ObjectFactory object, string key) {
             this.factories.set(new ExceptionChainingObjectFactory(new InProcessObjectFactoryDecorator(object), key), key);
             
             return this;
         }
         
+        /**
+         * Remove an object factory from container.
+         * 
+         * Params: 
+         * 	key = identity of factory to be removed
+         * Returns:
+         * 	typeof(this)
+        **/
         PrototypeContainer remove(string key) {
             this.factories.remove(key);
             
             return this;
         }
         
+        /**
+         * Get object created by a factory identified by key
+         * 
+         * Params:
+         *  key = identity of factory
+         * Returns:
+         * 	Object
+        **/
         Object get(string key) {
             if (this.factories.has(key)) {
                 
@@ -78,35 +106,98 @@ class PrototypeContainer : ConfigurableContainer {
             throw new NotFoundException("Object by id " ~ key ~ " not found");
         }
         
+        /**
+         * Check if an object factory for it exists in container.
+         * 
+         * Params: 
+         * 	key = identity of factory
+         * Returns:
+         * 	bool
+        **/
         bool has(in string key) inout {
             return this.factories.has(key);
         }
         
+        /**
+        Sets up the internal state of container.
+        
+        Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
+        **/
         PrototypeContainer instantiate() {
             
             return this;
         }
-        
+        /**
+        Alias a key to an alias_.
+                
+        Params:
+        	key = the originial identity which is to be aliased.
+        	alias_ = the alias of identity.
+        	
+		Returns:
+			this
+        **/
         PrototypeContainer link(string key, string alias_) {
             this.factories.link(key, alias_);
             
             return this;
         }
         
+        /**
+        Removes alias.
+        
+        Params:
+        	alias_ = alias to remove.
+
+        Returns:
+            this
+        	
+        **/
         PrototypeContainer unlink(string alias_) {
             this.factories.unlink(alias_);
             
             return this;
         }
         
+        /**
+        Resolve an alias to original identity, if possible.
+        
+        Params:
+        	key = alias of original identity
+        
+        Returns:
+        	Type the last identity in alias chain.
+        
+        **/
         const(string) resolve(in string key) const {
             return this.factories.resolve(key);
         }
         
+        /**
+        Get factory for constructed data identified by identity.
+        
+        Get factory for constructed data identified by identity.
+        Params:
+        	identity = the identity of data that factory constructs.
+        
+        Throws:
+        	NotFoundException when factory for it is not found.
+        
+        Returns:
+        	ObjectFactory the factory for constructed data.
+        **/
         ObjectFactory getFactory(string identity) {
             return this.factories.get(identity);
         }
         
+        /**
+        Get all factories available in container.
+        
+        Get all factories available in container.
+        
+        Returns:
+        	InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
+        **/
         InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
             import std.algorithm;
             

@@ -33,16 +33,18 @@ module aermicioi.aedi.factory.proxy_factory;
 
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.generic_factory;
-import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.locator_aware;
-import std.traits;
-import std.typecons;
-import std.range;
-import std.algorithm;
-import std.meta;
 
 import aermicioi.util.traits;
+
+import std.algorithm;
+import std.meta;
+import std.range;
+import std.traits;
+import std.typecons;
+
 
 /**
 Creates a proxy to an object or interface of type T,
@@ -64,12 +66,24 @@ class ProxyFactory(T) : Factory!T
     }
     
     public {
-        
+        /**
+            Constructor for ProxyFactory!(T)
+            
+            Params: 
+                identity = identity of original object stored in a locator
+                original = locator that contains original object that a proxy should proxy.
+        **/
         this(string identity, Locator!() original) {
             this.identity = identity;
             this.source = original;
         }
         
+        /**
+		Instantiates component of type T.
+		
+		Returns:
+			T instantiated data of type T.
+		**/
         T factory() {
             auto proxy = new Proxy!T;
             proxy.__id__ = this.identity;
@@ -128,17 +142,37 @@ class ProxyFactory(T) : Factory!T
             Locator!() source() @safe nothrow {
             	return this.source_;
             }
-
+            
+            /**
+            Set locator
+            
+            Params: 
+                locator = locator or source of original component proxied by proxy
+            Returns:
+                typeof(this)
+            **/
             LocatorAware!(Object, string) locator(Locator!(Object, string) locator) @safe nothrow {
                 this.source = locator;
 
                 return this;
             }
 
+            /**
+            Get locator
+            
+            Returns:
+                Locator!()
+            **/
             Locator!() locator() @safe nothrow {
                 return this.source;
             }
 
+            /**
+    		Get the type info of T that is created.
+    		
+    		Returns:
+    			TypeInfo object of created component.
+    		**/
             TypeInfo type() @safe nothrow {
                 return typeid(Proxy!T);
             }
@@ -269,6 +303,10 @@ interface ProxyObjectFactory : ObjectFactory {
     }
 }
 
+/**
+Proxy factory decorator, that conforms to requirements of a container, exposing as well the ability
+to set proxied object's identity and locator.
+**/
 class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(ProxyFactory!T)
     if (is(T : Object) && !isFinalClass!T) {
     
@@ -278,56 +316,128 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Prox
     }
     
     public {
+
+        /**
+        Constructor for ProxyObjectWrappingFactory!T
+        
+        Params: 
+            factory = proxy factory that is decorated
+        **/
         this(ProxyFactory!T factory) {
             this.decorated = factory;
         }
         
         @property {
+            /**
+            Get the identity of original object that proxy factory will intantiate proxy object.
+            
+            Returns:
+                string the original object identity
+            **/
             ProxyObjectWrappingFactory!T identity(string identity) @safe nothrow {
             	this.decorated.identity = identity;
             
             	return this;
             }
             
+            /**
+            Get identity
+            
+            Returns:
+                string
+            **/
             string identity() @safe nothrow {
             	return this.decorated.identity;
             }
             
+            /**
+            Get the original locator that is used by proxy to fetch the proxied object.
+            
+            Returns:
+                Locator!() original locator containing the proxied object.
+            **/
             ProxyObjectWrappingFactory!T source(Locator!() source) @safe nothrow {
             	this.decorated.source = source;
             
             	return this;
             }
             
+            /**
+            Get source
+            
+            Returns:
+                Locator!()
+            **/
             Locator!() source() @safe nothrow {
             	return this.decorated.source;
             }
             
+            /**
+            Set the decorated object for decorator.
+            
+            Params:
+                decorated = decorated data
+            
+            Returns:
+            	this
+            **/
             ProxyObjectWrappingFactory!T decorated(ProxyFactory!T decorated) @safe nothrow {
             	this.decorated_ = decorated;
             
             	return this;
             }
             
+            /**
+            Get the decorated object.
+            
+            Returns:
+            	T decorated object
+            **/
             ProxyFactory!T decorated() @safe nothrow {
             	return this.decorated_;
             }
             
+            /**
+            Set a locator to object.
+            
+            Params:
+                locator = the locator that is set to oject.
+            
+            Returns:
+                LocatorAware.
+            **/
             ProxyObjectWrappingFactory!T locator(Locator!() locator) @safe nothrow {
             	this.decorated.locator = locator;
             
             	return this;
             }
             
+            /**
+            Get locator
+            
+            Returns:
+                Locator!()
+            **/
             Locator!() locator() @safe nothrow {
             	return this.decorated.locator;
             }
             
+            /**
+    		Get the type info of T that is created.
+    		
+    		Returns:
+    			TypeInfo object of created component.
+    		**/
             TypeInfo type() {
                 return this.decorated.type;
             }
         }
-        
+        /**
+		Instantiates component of type Object.
+		
+		Returns:
+			Object instantiated component.
+		**/
         Object factory() {
             return this.decorated.factory();
         }

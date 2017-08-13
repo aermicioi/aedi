@@ -54,26 +54,64 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
     public {
         @property {
         	
+			/**
+				Set locator
+				
+				Params: 
+					locator = locator used to search for created object dependencies
+				Returns:
+					typeof(this)
+			**/
         	DecoratableGenericFactory!T locator(Locator!() locator) @safe nothrow {
         		this.locator_ = locator;
         	
         		return this;
         	}
         	
+			/**
+				Get locator
+				
+				Returns:
+					Locator!()
+			**/
         	Locator!() locator() {
         		return this.locator_;
         	}
         	
+			/**
+            Set the decorated object for decorator.
+            
+            Params:
+                decorated = decorated data
+            
+            Returns:
+            	this
+            **/
         	DecoratableGenericFactory!T decorated(GenericFactory!T decorated) @safe nothrow {
         		this.decorated_ = decorated;
         	
         		return this;
         	}
         	
+			/**
+            Get the decorated object.
+            
+            Returns:
+            	GenericFactory!T decorated object
+            **/
         	GenericFactory!T decorated() @safe nothrow {
         		return this.decorated_;
         	}
         	
+			/**
+            Sets the constructor of new object.
+            
+            Params:
+            	factory = a factory of objects of type T.
+        	
+        	Returns:
+    			The GenericFactoryInstance
+            **/
         	GenericFactory!T setInstanceFactory(InstanceFactory!T factory) {
         	    this.decorated.setInstanceFactory(factory);
         	    
@@ -81,14 +119,35 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
         	}
         }
         
+		/**
+		Instantiates something of type T.
+		
+		Returns:
+			T instantiated data of type T.
+		**/
         T factory() {
             return this.decorated.factory();
         }
         
+		/**
+		Get the type info of T that is created.
+		
+		Returns:
+			TypeInfo object of created object.
+		**/
         TypeInfo type() {
             return this.decorated.type();
         }
         
+		/**
+        Adds an configurer to the GenericFactory.
+        
+        Params:
+        	configurer = a configurer that will be invoked after factory of an object.
+        	
+    	Returns:
+    		The GenericFactoryInstance
+        **/
         GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer) {
             this.decorated.addPropertyConfigurer(configurer);
             
@@ -149,43 +208,105 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
     
     public {
         @property {
+
+			/**
+            Set the decorated object for decorator.
+            
+            Params:
+                decorated = decorated data
+            
+            Returns:
+            	this
+            **/
         	TaggableFactoryDecorator!(T, Z) decorated(Factory!T decorated) @safe nothrow {
             	this.decorated_ = decorated;
             
             	return this;
             }
             
+			/**
+            Get the decorated object.
+            
+            Returns:
+            	GenericFactory!T decorated object
+            **/
             Factory!T decorated() @safe nothrow {
             	return this.decorated_;
             }
             
+			/**
+				Set tags
+				
+				Params: 
+					tags = set all tags for this factory
+				Returns:
+					typeof(this)
+			**/
             TaggableFactoryDecorator tags(Z[] tags) @safe nothrow {
             	this.tags_ = tags;
             
             	return this;
             }
             
+			/**
+			Get all tagged information from this object.
+			
+			Returns:
+				T[] a list of tags.
+			**/
             Z[] tags() @safe nothrow {
             	return this.tags_;
             }
             
+			/**
+				Set locator
+				
+				Params: 
+					locator = locator used to search for created object dependencies
+				Returns:
+					typeof(this)
+			**/
             TaggableFactoryDecorator locator(Locator!() locator) {
             	this.decorated.locator = locator;
             
             	return this;
             }
             
+			/**
+			Get the type info of T that is created.
+			
+			Returns:
+				TypeInfo object of created object.
+			**/
             TypeInfo type() {
                 return this.decorated.type;
             }
         }
         
+		/**
+        Tag object with some information
+        
+        Params:
+        	tag = information that object should be tagged with.
+        
+        Returns:
+        	this
+        **/
         TaggableFactoryDecorator tag(Z tag) {
             this.tags_ ~= tag;
             
             return this;
         }
         
+		/**
+        Remove tagged information from object.
+        
+        Params:
+        	tag = tagged information that should be removed
+        
+        Returns:
+        	this
+        **/
         TaggableFactoryDecorator untag(Z tag) {
             import std.algorithm : filter;
             import std.array : array;
@@ -195,6 +316,12 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
             return this;
         }
         
+		/**
+		Instantiates something of type T.
+		
+		Returns:
+			T instantiated data of type T.
+		**/
         T factory() {
             return this.decorated.factory;
         }

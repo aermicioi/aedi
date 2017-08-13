@@ -79,10 +79,29 @@ template ProxyContainerImpl(T)
     Set which the switchable container will decorate for T. By default
     Locator!() and Switchable is included.
     **/
-    alias InheritanceSet = NoDuplicates!(Filter!(templateOr!(partialSuffixed!(isDerived, Storage!(ObjectFactory,
-            string)), partialSuffixed!(isDerived, AliasAware!string),
-            partialSuffixed!(isDerived, FactoryLocator!ObjectFactory)), InterfacesTuple!T),
-            ProxyContainer, MutableDecorator!T);
+    alias InheritanceSet = 
+        NoDuplicates!(
+            Filter!(
+                templateOr!(
+                    partialSuffixed!(
+                        isDerived,
+                        Storage!(ObjectFactory,
+                        string)
+                    ), 
+                    partialSuffixed!(
+                        isDerived, 
+                        AliasAware!string
+                    ),
+                    partialSuffixed!(
+                        isDerived, 
+                        FactoryLocator!ObjectFactory
+                    )
+                ),
+                InterfacesTuple!T
+            ),
+            ProxyContainer, 
+            MutableDecorator!T
+        );
 
     /**
     Templated proxy container.
@@ -99,6 +118,9 @@ template ProxyContainerImpl(T)
         public
         {
 
+            /**
+             * Default constructor for ProxyContainerImpl
+            **/
             this() {
 
                 this.proxyFactories = new ObjectStorage!(ProxyObjectFactory, string);
@@ -106,6 +128,15 @@ template ProxyContainerImpl(T)
 
             @property
             {
+                /**
+                Set the decorated object for decorator.
+                
+                Params:
+                    decorated = decorated data
+                
+                Returns:
+                    typeof(this)
+                **/
                 ProxyContainerImpl decorated(T decorated) @safe nothrow
                 {
                     this.decorated_ = decorated;
@@ -113,12 +144,27 @@ template ProxyContainerImpl(T)
                     return this;
                 }
 
+                /**
+                Get the decorated object.
+                
+                Returns:
+                    T decorated object
+                **/
                 T decorated() @safe nothrow
                 {
                     return this.decorated_;
                 }
             }
 
+            /**
+            * Set object factory
+            * 
+            * Params: 
+            * 	factory = factory for a object that is to be managed by prototype container.
+            *   identity = identity by which a factory is identified
+            * Returns:
+            * 	typeof(this)
+            **/
             ProxyContainerImpl set(ProxyObjectFactory factory, string identity)
             {
                 this.proxyFactories.set(factory, identity);
@@ -185,7 +231,17 @@ template ProxyContainerImpl(T)
             }
             else
             {
-
+                /**
+                Remove factory from container with identity.
+                
+                Remove factory from container with identity. 
+                
+                Params:
+                	identity = the identity of factory to be removed.
+                	
+            	Return:
+            		ProxyContainer decorating container
+                **/
                 ProxyContainerImpl remove(string identity)
                 {
                     this.proxyFactories.remove(identity);
@@ -250,11 +306,32 @@ template ProxyContainerImpl(T)
             static if (is(T : FactoryLocator!ObjectFactory))
             {
 
+                /**
+                Get factory for constructed data identified by identity.
+                
+                Get factory for constructed data identified by identity.
+                Params:
+                    identity = the identity of data that factory constructs.
+                
+                Throws:
+                    NotFoundException when factory for it is not found.
+                
+                Returns:
+                    ObjectFactory the factory for constructed data.
+                **/
                 ObjectFactory getFactory(string identity)
                 {
                     return this.decorated.getFactory(identity);
                 }
 
+                /**
+                Get all factories available in container.
+                
+                Get all factories available in container.
+                
+                Returns:
+                    InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
+                **/
                 InputRange!(Tuple!(ObjectFactory, string)) getFactories()
                 {
                     return this.decorated.getFactories();

@@ -84,6 +84,12 @@ T also implements them:
         $(LI Container)
         $(LI AliasAware!string)
     )
+Decorated container must implement following interfaces:
+    $(OL
+        $(LI Locator!())
+        $(LI MutableDecorator!T)
+        $(LI Switchable)
+    )
 
 Params:
     T = The decorated that switchable decorated will decorate.
@@ -141,7 +147,7 @@ template SwitchableContainer(T) {
         	Set the state of decorated. Whether is enabled or disabled.
         	
         	Params:
-            	enable = true to enable, false to disable.
+            	enabled = true to enable, false to disable.
         	**/
             SwitchableContainer!T enabled(bool enabled) @safe nothrow {
             	this.enabled_ = enabled;
@@ -295,11 +301,31 @@ template SwitchableContainer(T) {
             }
             
             static if (is(T : FactoryLocator!ObjectFactory)) {
+                /**
+                Get factory for constructed data identified by identity.
                 
+                Get factory for constructed data identified by identity.
+                Params:
+                    identity = the identity of data that factory constructs.
+                
+                Throws:
+                    NotFoundException when factory for it is not found.
+                
+                Returns:
+                    ObjectFactory the factory for constructed data.
+                **/
                 ObjectFactory getFactory(string identity) {
                     return this.decorated.getFactory(identity);
                 }
                 
+                /**
+                Get all factories available in container.
+                
+                Get all factories available in container.
+                
+                Returns:
+                    InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
+                **/
                 InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
                     return this.decorated.getFactories();
                 }

@@ -43,24 +43,69 @@ import std.traits;
 import std.range.interfaces;
 import std.typecons;
 
-interface Subscribable(T) {
-    
-    public {
+/**
+Interface for objects that can be subscribed to specific events emmited by them.
+**/
+interface Subscribable(T)
+{
+
+    public
+    {
+
+        /**
+        Subscriber a delegate to a particular event emmited by object
         
-        Subscribable subscribe(
-            T type,
-            void delegate() subscriber
-        );
+        Params: 
+        	type = type of event emmited by object
+         subscriber = the callback to be called on event emmited
+        Returns:
+        	typeof(this)
+        **/
+        Subscribable subscribe(T type, void delegate() subscriber);
     }
 }
 
-enum ContainerInstantiationEventType {
+/**
+Enumeration of events supported by SubscribableContainer for instantiation functionality.
+**/
+enum ContainerInstantiationEventType
+{
+
+    /**
+    Event run before beggining of instantiation process
+    **/
     pre,
+
+    /**
+    Event run after end of instantiation process
+    **/
     post,
 }
 
-template SubscribableContainer(T) {
-    
+/**
+Decorating container that adds a set of events at different actions during lifetime of a container
+to which subscribers can subscribe to. This decorated will
+inherit following interfaces only and only if the 
+T also implements them:
+  $(OL
+      $(LI Storage!(ObjectFactory, string))
+      $(LI Container)
+      $(LI AliasAware!string)
+  )
+Decorated container must implement following interfaces:
+    $(OL
+        $(LI Container)
+        $(LI MutableDecorator!T)
+        $(LI Subscribable!ContainerInstantiationEventType)
+        $(LI Decorator!Container)
+    )
+
+Params:
+    T = The decorated that switchable decorated will decorate.
+**/
+template SubscribableContainer(T)
+{
+
     /**
     Set which the switchable container will decorate for T. By default
     Locator!() and Subscribable!ContainerInstantiationEventType is included.
@@ -86,107 +131,244 @@ template SubscribableContainer(T) {
         MutableDecorator!T,
         Decorator!Container
     );
-    
-    class SubscribableContainer : InheritanceSet {
-        private {
+
+    class SubscribableContainer : InheritanceSet
+    {
+        private
+        {
             void delegate()[][ContainerInstantiationEventType] subscribers;
             T decorated_;
         }
-        
-        public {
-            
-            this() {
+
+        public
+        {
+
+            /**
+            Default constructor for SubscribableContainer
+            **/
+            this()
+            {
                 subscribers[ContainerInstantiationEventType.pre] = null;
                 subscribers[ContainerInstantiationEventType.post] = null;
             }
-            
-            @property {
-            	SubscribableContainer decorated(T container) @safe nothrow {
-            		this.decorated_ = container;
-            	
-            		return this;
-            	}
-            	
-            	T decorated() @safe nothrow {
-            		return this.decorated_;
-            	}
+
+            @property
+            {
+                /**
+                Set the decorated object for decorator.
+                
+                Params:
+                    container = decorated data
+                
+                Returns:
+                    typeof(this)
+                **/
+                SubscribableContainer decorated(T container) @safe nothrow
+                {
+                    this.decorated_ = container;
+
+                    return this;
+                }
+
+                /**
+                Get the decorated object.
+                
+                Returns:
+                    T decorated object
+                **/
+                T decorated() @safe nothrow
+                {
+                    return this.decorated_;
+                }
             }
-            
-            Object get(string key) {
+
+            /**
+            Get object created by a factory identified by key
+           
+            Params:
+                key = identity of factory
+            Returns:
+           	Object
+            **/
+            Object get(string key)
+            {
                 return this.decorated.get(key);
             }
-            
-            bool has(in string key) inout {
+
+            /**
+            Check if an object factory for it exists in container.
+           
+            Params: 
+                key = identity of factory
+            Returns:
+                bool
+            **/
+            bool has(in string key) inout
+            {
                 return this.decorated_.has(key);
             }
+
+            /**
+            Subscriber a delegate to a particular event emmited by object
             
-            SubscribableContainer subscribe(
-                ContainerInstantiationEventType event,
-                void delegate() subscriber
-            ) {
+            Params: 
+                event = type of event emmited by object
+                subscriber = the callback to be called on event emmited
+            Returns:
+           	    typeof(this)
+            **/
+            SubscribableContainer subscribe(ContainerInstantiationEventType event,
+                    void delegate() subscriber)
+            {
                 this.subscribers[event] ~= subscriber;
-                
+
                 return this;
             }
+
+            /**
+            Sets up the internal state of container.
             
-            SubscribableContainer instantiate() {
-                foreach (preProcessor; this.subscribers[ContainerInstantiationEventType.pre]) {
+            Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
+            **/
+            SubscribableContainer instantiate()
+            {
+                foreach (preProcessor; this.subscribers[ContainerInstantiationEventType.pre])
+                {
                     preProcessor();
                 }
-                
+
                 this.decorated.instantiate();
-                
-                foreach (postProcessor; this.subscribers[ContainerInstantiationEventType.post]) {
+
+                foreach (postProcessor; this.subscribers[ContainerInstantiationEventType.post])
+                {
                     postProcessor();
                 }
-                
+
                 return this;
             }
-            
-            static if (is(T : Storage!(ObjectFactory, string))) {
 
-                SubscribableContainer!T set(ObjectFactory element, string identity) {
+            static if (is(T : Storage!(ObjectFactory, string)))
+            {
+
+                /**
+                Set object factory
+                
+                Params: 
+                    element = factory for a object that is to be managed by prototype container.
+                    identity = identity of factory
+                Returns:
+                    typeof(this)
+                **/
+                SubscribableContainer!T set(ObjectFactory element, string identity)
+                {
                     decorated.set(element, identity);
-                    
+
                     return this;
                 }
+
+                /**
+                Remove an object factory from container.
                 
-                SubscribableContainer!T remove(string identity) {
+                Params: 
+                    identity = identity of factory to be removed
+                Returns:
+                    typeof(this)
+                **/
+                SubscribableContainer!T remove(string identity)
+                {
                     decorated.remove(identity);
-                    
+
                     return this;
                 }
             }
-            
-            static if (is(T : AliasAware!string)) {
-                SubscribableContainer!T link(string identity, string alias_) {
+
+            static if (is(T : AliasAware!string))
+            {
+
+                /**
+                Alias a identity to an alias_.
+                        
+                Params:
+                    identity = the originial identity which is to be aliased.
+                    alias_ = the alias of identity.
+                    
+                Returns:
+                    this
+                **/
+                SubscribableContainer!T link(string identity, string alias_)
+                {
                     decorated.link(identity, alias_);
-                    
+
                     return this;
                 }
+
+                /**
+                Removes alias.
                 
-                SubscribableContainer!T unlink(string alias_) {
+                Params:
+                    alias_ = alias to remove.
+
+                Returns:
+                    this
+                    
+                **/
+                SubscribableContainer!T unlink(string alias_)
+                {
                     decorated.unlink(alias_);
-                    
+
                     return this;
                 }
+
+                /**
+                Resolve an alias to original identity, if possible.
                 
-                const(string) resolve(in string alias_) const {
+                Params:
+                    alias_ = alias of original identity
+                
+                Returns:
+                    Type the last identity in alias chain.
+                
+                **/
+                const(string) resolve(in string alias_) const
+                {
                     return decorated_.resolve(alias_);
                 }
             }
-            
-            static if (is(T : FactoryLocator!ObjectFactory)) {
+
+            static if (is(T : FactoryLocator!ObjectFactory))
+            {
+
+                /**
+                Get factory for constructed data identified by identity.
                 
-                ObjectFactory getFactory(string identity) {
+                Get factory for constructed data identified by identity.
+                Params:
+                    identity = the identity of data that factory constructs.
+                
+                Throws:
+                    NotFoundException when factory for it is not found.
+                
+                Returns:
+                    ObjectFactory the factory for constructed data.
+                **/
+                ObjectFactory getFactory(string identity)
+                {
                     return this.decorated.getFactory(identity);
                 }
+
+                /**
+                Get all factories available in container.
                 
-                InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+                Get all factories available in container.
+                
+                Returns:
+                    InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
+                **/
+                InputRange!(Tuple!(ObjectFactory, string)) getFactories()
+                {
                     return this.decorated.getFactories();
                 }
             }
         }
     }
 }
-

@@ -34,35 +34,97 @@ import std.traits;
 import std.meta;
 import aermicioi.util.traits;
 
+/**
+Create a singleton container
+
+Returns:
+	SingletonContainer
+**/
 auto singleton() {
     return new SingletonContainer();
 }
 
+/**
+Create a prototype container
+
+Returns:
+	PrototypeContainer
+**/
 auto prototype() {
     return new PrototypeContainer();
 }
 
+/**
+Create a container for values
+
+Returns:
+	ValueContainer
+**/
 auto values() {
     return new ValueContainer();
 }
 
+/**
+Wrap up a container into switchable container.
+
+Wraps up a container to provide switching capabilites to it.
+
+Returns:
+	SwitchableContainer!T
+**/
 auto switchable(T : Container)(auto ref T container) {
     return (new SwitchableContainer!T()).decorated(container);
 }
 
+/**
+Wrap up a container into subscribable container.
+
+Wraps up a container to provide events to subscribe to.
+
+Returns:
+	SubscribableContainer!T
+**/
 auto subscribable(T : Container)(auto ref T container) {
     return (new SubscribableContainer!T()).decorated(container);
 }
 
+/**
+Wrap up a container into a type based container.
+
+Wraps up container into a container that adds capability to
+search for a component based on it's type, or implemented
+hierarchy of classes and interfaces.
+
+Returns:
+	TypeBasedContainer!T
+**/
 auto typed(T : Container)(auto ref T container) {
     return (new TypeBasedContainer!T()).decorated(container);
 }
 
+/**
+Wrap up a container into aliasing container.
+
+Wraps up container into aliasing container which provides
+capabilities to alias identity of components in original container.
+
+Returns:
+	AliasingContainer!T
+**/
 auto aliasing(T)(auto ref T container) {
     return (new AliasingContainer!T()).decorated(container);
 }
 
-auto delegator(T...)(auto ref T containers)
+/**
+Wraps up several containers into one.
+
+Params: 
+	containers = a list of containers to be used together
+
+Returns:
+	Container
+**/
+auto container(T...)(auto ref T containers)
     if (allSatisfy!(partialSuffixed!(isDerived, Container), T)) {
     return new TupleContainer!T(containers);
 }
