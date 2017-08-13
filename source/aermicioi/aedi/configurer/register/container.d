@@ -122,9 +122,38 @@ Params:
 	containers = a list of containers to be used together
 
 Returns:
-	Container
+	TupleContainer!T
 **/
-auto container(T...)(auto ref T containers)
+auto container(T...)(T containers)
     if (allSatisfy!(partialSuffixed!(isDerived, Container), T)) {
     return new TupleContainer!T(containers);
+}
+
+/**
+Wraps up several containers into one.
+
+Params: 
+	managed = first container managed by aggregate one
+	identity = identity of container by which it is possible to identify it
+	manageds = a set of containers in pairs of (managed, identity)
+
+Returns:
+	TupleContainer!T
+**/
+auto aggregate(T...)(Container managed, string identity, T manageds) {
+	AggregateContainer container = new AggregateContainer;
+
+	return container.aggregate(managed, identity, manageds);
+}
+
+private {
+
+	auto aggregate(T...)(AggregateContainer container, Container managed, string identity, T manageds) {
+		container.set(managed, identity);
+
+		static if (T.length > 1) {
+			container.aggregate(manageds);
+		}
+		return container;
+	}
 }

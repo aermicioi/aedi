@@ -58,3 +58,10 @@ unittest
 
     assert(typeid(container) is typeid(TupleContainer!(ValueContainer, ValueContainer)));
 }
+
+unittest
+{
+    auto container = aggregate(values(), "first.one", values(), "second.one");
+
+    assert(typeid(container) is typeid(AggregateContainer));
+}

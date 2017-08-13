@@ -46,13 +46,14 @@ Authors:
 **/
 module aermicioi.aedi.container;
 
+public import aermicioi.aedi.container.aggregate_container;
+public import aermicioi.aedi.container.aliasing_container;
+public import aermicioi.aedi.container.application_container;
 public import aermicioi.aedi.container.container;
 public import aermicioi.aedi.container.prototype_container;
 public import aermicioi.aedi.container.singleton_container;
-public import aermicioi.aedi.container.type_based_container;
-public import aermicioi.aedi.container.switchable_container;
-public import aermicioi.aedi.container.application_container;
 public import aermicioi.aedi.container.subscribable_container;
-public import aermicioi.aedi.container.value_container;
+public import aermicioi.aedi.container.switchable_container;
 public import aermicioi.aedi.container.tuple_container;
-public import aermicioi.aedi.container.aliasing_container;
+public import aermicioi.aedi.container.type_based_container;
+public import aermicioi.aedi.container.value_container;
