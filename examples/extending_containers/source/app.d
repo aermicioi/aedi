@@ -9,38 +9,45 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Usage:
+Extending factories tutorial explained that library can be extended in two ways, 
+factory direction and container direction. In AEDI framework containers have at least 
+two responsibilities. The first one is to serve components, and the second one is to 
+manage life time of served components.
 
-For an end consumer of Aedi library, it is rarely needed to extend it's logic
-with something new. But for a developer that wants to integrate Aedi library
-with his/her framework, sometimes it is required to extend library to integrate it
-with rest of framework. Aedi was designed with purpose of extending it in two 
-directions:
+Due to the first responsibility, AEDI has two basic containers, singleton and prototype. The
+behavior of those two containers can be refound in other implementations of DIF like Spring frame-
+work. Singleton container will serve same component no matter how many times a caller asks
+it for a component associated with desired identity. Prototype container will serve new instance of
+component each time it is asked by caller. Switchable decorating container presented decorated containers tutorial
+limits in some sense the lifetime of it’s components only to the period when it is enabled.
 
-$(OL
-    $(LI Containers -> responsible for created components. )
-    $(LI Component factories -> responsible for creating components )
-    )
-    
-This tutorial will show how to create your own container that can be easily 
-integrated with rest of library and serve components using your own devised logic.
+A custom container should be implemented, only when existing ones are not providing features
+required by the third party code (code that uses the framework). As stated, the purpose of a container
+is to serve and manage components, and therefore a new implementation of a container should be
+concerned with those tasks.
 
-Containers in Aedi have two purposes:
-$(OL
-    $(LI Instantiate and serve components )
-    $(LI Manage how long they live )
-    )
+Compared to implementing a factory component, implementing a new container, requires it
+to implement several interfaces. Each interface provides some functionality that can be used by
+framework to enable some additional features related to container functionality. Implementation of
+those interfaces is not imposed. The only requirement is to implement the basic Container interface
+that exposes component serving abilities, along with option to instantiate them before their actual
+usage. The following interfaces are allowed to be implemented by custom container:
 
-From those two properties, it becomes clear why there are two basic containers in
-Aedi, singleton and prototype one. First one serves same instance over it's entire
-life (components lifetime is equal to containers lifetime), and
-for second one it does serve new component version each time it is requested
-(components in prototype container live as long as container lives as well).
-Therefore, when custom lifetime management is needed or, custom logic on serving
-and construction is needed, implement a brand new container for this.
+$(UL
+    $(LI Container – exposes serving component features.)
+    $(LI Storage – exposes component factory storing capabilities.)
+    $(LI FactoryLocator – exposes component factory locating capabilities)
+    $(LI AliasAware – exposes aliasing of component’s identity to another identity)
+    $(LI ConfigurableContainer – exposes component factory storing capabilities along FactoryLocator and AliasAware)
+)
 
-Minimal requirements on a container in order to be used, is to implement 
-Container interface:
+Container:
+
+Container interface is the minimal requirement for a custom container to implement, since it
+offers component serving capabilities. Listing below presents the interface that is to be implemented
+by custom containers. It is meaningful to implement only this interface when, container will not
+integrate with any standard features that framework provides.
+
 ------------------
 interface Container : Locator!(Object, string) {
 
@@ -51,43 +58,17 @@ interface Container : Locator!(Object, string) {
 }
 ------------------
 
-It consists of:
-$(OL
-    $(LI instantiate -> used to finish component instantiation/loading. Note container
-    MUST be able to serve objects even before instantiate is called. )
-    $(LI Locator!(Object, string) -> an interface for object providers which consists of following methods:
-        $(OL
-            $(LI get -> get an object. )
-            $(LI has -> check if it has an object)
-        ) 
-    )
-    )
+Storage:
 
-By implementing it, your container can be used for serving components to the client, or
-to other components that require dependencies stored in your container.
-Yet, it does not provide a way to store component factories in it, or provide
-additional capabilities that can be used to integrate even further with library
-(and with .register api).
-
-To allow your container to store component factories (which should be used to instantiate
-components and not just store) in it, implement following interface:
-
-------------------
-interface ConfigurableContainer : Container, Storage!(ObjectFactory, string), AliasAware!(string), FactoryLocator!ObjectFactory {
-	
-}
-------------------
-
-Besides extending basic Container interface, it implements as well following interfaces:
-
-$(OL
-    $(LI Storage!(ObjectFactory, string) allows component factories to be stored in container )
-    $(LI AliasAware!(string) allows identity aliasing )
-    $(LI FactoryLocator!ObjectFactory provides methods to get component factories )
-    )
-
-The most important one for ability to store component factories is the first interface from
-list:
+By implementing Storage interface, a container declares it’s ability to store component
+factories in it. Listing below displays abilities required to be implemented by container. Once a
+container implements the interface, the component registration system can use the container to store
+factories in it. In other words it is possible to use $(D_INLINECODE register) method on custom container. The
+interface does not enforce, how stored components are used internally by container. They can never
+be used, or used for other purposes, rather than serving created components to caller. Though,
+by convention it is assumed that stored factory components are used for right purpose of creating
+components served by container, and deviating from this convention, will lead in ambiguity in code
+api that must be documented exhaustive.
 
 ------------------
 interface Storage(Type, KeyType) {
@@ -101,27 +82,16 @@ interface Storage(Type, KeyType) {
 }
 ------------------
 
-The second interface allows user code to alias a component:
+FactoryLocator:
 
-------------------
-interface AliasAware(Type) {
-    
-    public {
-        
-        AliasAware link(Type identity, Type alias_);
-        
-        AliasAware unlink(Type alias_);
-        
-        const(Type) resolve(in Type alias_) const;
-    }
-}
-------------------
+FactoryLocator interface, implemented by a container, exposes ability for exterior code to
+access stored factory components in a container. Listing below shows the abilities that a container must implement.
 
-A container implementing alias aware interface during serving,
-should resolve identity of requested component, since the identity
-can actually be an alias.
-
-The third interface is used to provide access to stored factories:
+Such functionality is useful for postprocessing of component factories after they are registered
+into container, for various purposes. One of them, is dynamically register tagged components as a
+dependency to an event emmiter component. The FactoryLocator functionality allows for third party
+library developers, to implement more complicated and useful features based on postprocessing of
+factory components.
 
 ------------------
 interface FactoryLocator(T : Factory!Z, Z) {
@@ -137,279 +107,42 @@ interface FactoryLocator(T : Factory!Z, Z) {
 }
 ------------------
 
-Such capability can be useful in cases when some preproessors over containers
-are run. A preprocessor knowing that container implements FactoryLocator!ObjectFactory
-can navigate through entire set of factories, and perform some modifications
-over them, or other stuff, like enabling another container if a component is
-present etc.
+AliasAware:
 
-For example purposes we'll implement our own singleton container that does
-logging of get and instantiate actions. The container will implement ConfigurableContainer
-interface since it provides all capabilities that can be used by rest of 
-library and it's for example purposes to show how all four interface
-implementations.
+AliasAware implemented by a containers, exposes an interface to exterior by which aliasing
+of identities becomes possible. Listing below shows the methods that a container should implement.
+The aliasing of component identities can become handy, when a library provides a container with
+components, and another third party code is reliant on a component from this container, yet the
+dependency is referenced with another identity. Aliasing will allow the referenced identity to be
+aliased to right identity of component. Such cases can occur when a component from a library is
+deprecated and removed, and it’s functionality is provided by another one identified differently. In
+the end the aliasing mechanism allows a component from container to be associated with multiple
+identities.
 
-First of all we have to define our container:
 ------------------
-class MySingletonContainer : ConfigurableContainer {
+interface AliasAware(Type) {
+    
+    public {
+        
+        AliasAware link(Type identity, Type alias_);
+        
+        AliasAware unlink(Type alias_);
+        
+        const(Type) resolve(in Type alias_) const;
+    }
 }
 ------------------
 
-Second, it's important to define container fields that store
-factories, aliasings and ofcourse instantiated components:
-------------------
-    private {
-        
-        Object[string] singletons;
-        ObjectFactory[string] factories;
-        
-        string[string] aliasings;
-        size_t levels;
-    }
-------------------
-For aesthetic purposes levels variable was defined that will store identation
-level used to print activity logs.
+ConfigurableContainer:
 
-Once we have defined container's fields it's time for implementing methods from
-ConfigurableContainer interface. Let's start with easiest ones which are set, and
-remove:
+ConfigurableContainer interface is amalgation of previosly defined interfaces. Instead of
+declaring entire list of interfaces a container should implement, it is easier to replace it with ConfigurableCo
+interface. Listing below shows the abilities that a container must implement
 
 ------------------
-    MySingletonContainer set(ObjectFactory object, string key) {
-        
-        write("Registering component by ", key, " of type ", object.type.toString(), ": ");
-        this.factories[key] = object;
-        writeln("[..OK..]");
-        
-        return this;
-    }
-    
-    MySingletonContainer remove(string key) {
-        this.factories.remove(key);
-        this.singletons.remove(key);
-        
-        return this;
-    }
-------------------
-
-You can encapsulate component factory in ExceptionChainingObjectFactory and 
-InProcessObjectFactoryDecorator in order to print a stack of dependency 
-errors, and detect circular reference errors. They are used by default in
-all containers from Aedi.
-
-Next we should implement has and get methods:
-------------------
-    Object get(string key) {
-        writeln('\t'.repeat(levels), "Serving ", key, " component.");
-    
-        if ((this.resolve(key) in this.singletons) is null) {
-            writeln('\t'.repeat(levels), key, " component not found.");
-    
-            if ((this.resolve(key) in this.factories) is null) {
-                throw new NotFoundException("Object with id " ~ key ~ " not found.");
-            }
-            
-            writeln('\t'.repeat(levels), "Instantiating ", key, " component {");
-            levels++;
-    
-            this.singletons[this.resolve(key)] = this.factories[this.resolve(key)].factory();
-            levels--;
-            writeln('\t'.repeat(levels), "}");
-        }
-        
-        return this.singletons[key];
-    }
-    
-    bool has(in string key) inout {
-        return (key in this.factories) !is null;
-    }
-------------------
-
-The get method checks first if component was already instantiated,
-and if not, checks if a factory for it is present. If not it will
-throw NotFoundException. If yes a component is created using respective
-factory, and saved into singletons associative array from which it is returned.
-Notice that at each step, the key is resolved to original identity, since
-it can be actually an alias and not original identity by which component was
-registered.
-
-Once most important methods are implemented it's time to implement
-instantiate method, which has the purpose of finishing component
-instantiaton and well, other finishing stuff like freezing container
-if needed:
-
-------------------
-    MySingletonContainer instantiate() {
-        import std.algorithm : filter;
-        
-        writeln("Booting container");
-        foreach (pair; this.factories.byKeyValue.filter!((pair) => (pair.key in this.singletons) is null)) {
-            
-            writeln("Instantiating component ", pair.key, " {");
-            levels++;
-            this.singletons[pair.key] = pair.value.factory;
-            levels--;
-            writeln("}");
-        }
-        
-        return this;
-    }
-------------------
-
-It will simply instantiate all components that haven't been instantiated already.
-The finishing touch is to add alias related functionality, and factory locator one:
-
-------------------
-    MySingletonContainer link(string key, string alias_) {
-        this.aliasings[alias_] = key;
-        
-        return this;
-    }
-    
-    MySingletonContainer unlink(string alias_) {
-        this.remove(alias_);
-        
-        return this;
-    }
-    
-    const(string) resolve(in string alias_) const {
-        import std.typecons : Rebindable;
-        Rebindable!(const(string)) aliased = alias_;
-        
-        while ((aliased in this.aliasings) !is null) {
-            writeln("Resolving alias ", aliased, " to ", this.aliasings[aliased]);
-            aliased = this.aliasings[aliased];
-        }
-        
-        return aliased;
-    }
-    
-    
-    ObjectFactory getFactory(string identity) {
-        return this.factories[identity];
-    }
-    
-    InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
-        import std.algorithm;
-        
-        return this.factories.byKeyValue.map!(
-            a => tuple(a.value, a.key)
-        ).inputRangeObject;
-    }
-------------------
-
-Now we have a fully functional container. Let's store some components in it:
-------------------
-    MySingletonContainer container = new MySingletonContainer;
-    
-    container.register!Color("color.green") // Register "green" color into container.
-        .set!"r"(cast(ubyte) 0) 
-        .set!"g"(cast(ubyte) 255)
-        .set!"b"(cast(ubyte) 0);
-    
-    container.register!Size("size.sedan") // Register a size of a generic "sedan" into container
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(500UL);
-    
-    container.register!(Engine, GasolineEngine)
-        .set!"vendor"("Mundane motors"); // Register a gasoline engine as default implementation of an engine
-    container.register!GasolineEngine
-        .set!"vendor"("Elite motors"); // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
-    container.register!DieselEngine
-        .set!"vendor"("Hardcore motors"); // Register a diesel engine
-    
-    container.register!Car("sedan.engine.default") // Register a car with a default engine
-        .construct("size.sedan".lref, lref!Engine)
-        .set!"color"("color.green".lref);
-        
-    container.register!Car("sedan.engine.gasoline") // Register a car with gasoline engine
-        .construct("size.sedan".lref, lref!GasolineEngine)
-        .set!"color"("color.green".lref);
-    
-    container.register!Car("sedan.engine.diesel") // Register a car with diesel engine
-        .construct("size.sedan".lref, lref!DieselEngine)
-        .set!"color"("color.green".lref);
-    
-    container.instantiate(); // Boot container (or prepare managed code/data).
-    
-    container.locate!Car("sedan.engine.default").drive("Default car");
-    container.locate!Car("sedan.engine.gasoline").drive("Gasoline car");
-    container.locate!Car("sedan.engine.diesel").drive("Diesel car");
-------------------
-
-Running example will yield following output:
-
-------------------
-Registering component by color.green of type app.Color: [..OK..]
-Registering component by size.sedan of type app.Size: [..OK..]
-Registering component by app.Engine of type app.GasolineEngine: [..OK..]
-Registering component by app.GasolineEngine of type app.GasolineEngine: [..OK..]
-Registering component by app.DieselEngine of type app.DieselEngine: [..OK..]
-Registering component by sedan.engine.default of type app.Car: [..OK..]
-Registering component by sedan.engine.gasoline of type app.Car: [..OK..]
-Registering component by sedan.engine.diesel of type app.Car: [..OK..]
-Booting container
-Instantiating component size.sedan {
+interface ConfigurableContainer : Container, Storage!(ObjectFactory, string), AliasAware!(string), FactoryLocator!ObjectFactory {
+	
 }
-Instantiating component sedan.engine.default {
-	Serving size.sedan component.
-	Serving app.Engine component.
-	app.Engine component not found.
-	Instantiating app.Engine component {
-	}
-	Serving color.green component.
-	color.green component not found.
-	Instantiating color.green component {
-	}
-}
-Instantiating component app.GasolineEngine {
-}
-Instantiating component app.DieselEngine {
-}
-Instantiating component sedan.engine.diesel {
-	Serving size.sedan component.
-	Serving app.DieselEngine component.
-	Serving color.green component.
-}
-Instantiating component sedan.engine.gasoline {
-	Serving size.sedan component.
-	Serving app.GasolineEngine component.
-	Serving color.green component.
-}
-Serving sedan.engine.default component.
-Uuh, what a nice car, Default car with following specs:
-Size:Size(200, 150, 500)
-Color:Color(0, 255, 0)
-Let's turn it on
-pururukVrooomVrrr
-What a nice sound! We should make a test drive!
-vrooom
-Umm the test drive was awesome, let's get home and turn it off.
-vrooom
-vrrrPrrft
-Serving sedan.engine.gasoline component.
-Uuh, what a nice car, Gasoline car with following specs:
-Size:Size(200, 150, 500)
-Color:Color(0, 255, 0)
-Let's turn it on
-pururukVrooomVrrr
-What a nice sound! We should make a test drive!
-vrooom
-Umm the test drive was awesome, let's get home and turn it off.
-vrooom
-vrrrPrrft
-Serving sedan.engine.diesel component.
-Uuh, what a nice car, Diesel car with following specs:
-Size:Size(200, 150, 500)
-Color:Color(0, 255, 0)
-Let's turn it on
-pururukVruumVrrr
-What a nice sound! We should make a test drive!
-vruum
-Umm the test drive was awesome, let's get home and turn it off.
-vruum
-vrrrPft
 ------------------
 
 Try to run example. Modify it, run it again to understand how to implement
@@ -777,34 +510,38 @@ void main() {
     
     MySingletonContainer container = new MySingletonContainer;
     
-    container.register!Color("color.green") // Register "green" color into container.
-        .set!"r"(cast(ubyte) 0) 
-        .set!"g"(cast(ubyte) 255)
-        .set!"b"(cast(ubyte) 0);
-    
-    container.register!Size("size.sedan") // Register a size of a generic "sedan" into container
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(500UL);
-    
-    container.register!(Engine, GasolineEngine)
-        .set!"vendor"("Mundane motors"); // Register a gasoline engine as default implementation of an engine
-    container.register!GasolineEngine
-        .set!"vendor"("Elite motors"); // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
-    container.register!DieselEngine
-        .set!"vendor"("Hardcore motors"); // Register a diesel engine
-    
-    container.register!Car("sedan.engine.default") // Register a car with a default engine
-        .construct("size.sedan".lref, lref!Engine)
-        .set!"color"("color.green".lref);
+    with (container.configure) {
+
+        register!Color("color.green") // Register "green" color into container.
+            .set!"r"(cast(ubyte) 0) 
+            .set!"g"(cast(ubyte) 255)
+            .set!"b"(cast(ubyte) 0);
         
-    container.register!Car("sedan.engine.gasoline") // Register a car with gasoline engine
-        .construct("size.sedan".lref, lref!GasolineEngine)
-        .set!"color"("color.green".lref);
-    
-    container.register!Car("sedan.engine.diesel") // Register a car with diesel engine
-        .construct("size.sedan".lref, lref!DieselEngine)
-        .set!"color"("color.green".lref);
+        register!Size("size.sedan") // Register a size of a generic "sedan" into container
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+        
+        register!(Engine, GasolineEngine)
+            .set!"vendor"("Mundane motors"); // Register a gasoline engine as default implementation of an engine
+        register!GasolineEngine
+            .set!"vendor"("Elite motors"); // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
+        register!DieselEngine
+            .set!"vendor"("Hardcore motors"); // Register a diesel engine
+        
+        register!Car("sedan.engine.default") // Register a car with a default engine
+            .construct("size.sedan".lref, lref!Engine)
+            .set!"color"("color.green".lref);
+            
+        register!Car("sedan.engine.gasoline") // Register a car with gasoline engine
+            .construct("size.sedan".lref, lref!GasolineEngine)
+            .set!"color"("color.green".lref);
+        
+        register!Car("sedan.engine.diesel") // Register a car with diesel engine
+            .construct("size.sedan".lref, lref!DieselEngine)
+            .set!"color"("color.green".lref);
+        
+    }
     
     container.instantiate(); // Boot container (or prepare managed code/data).
     

@@ -9,11 +9,9 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Usage:
-
-Examples up to this point used only `.constructor` and `.set` methods to configure
-a component from container. Beside those two methods Aedi does provide other ways
-to configure your component. Those are present in following list:
+Besides .set , .construct , methods used in all above examples, framework offers several
+other configuration methods, that allow greater manipulation, or less verbosity. Additional configu-
+ration primitives are listed below:
 
 $(OL
     $(LI .autowire )
@@ -30,46 +28,57 @@ But how does it do this? Let's register a car using old .set and .construct meth
         .set!"color"(lref!Color);
 ----------------
 
-In this example, we construct car using references to default implementations in 
-container. Having to write such configurations can become quite tedious, so why 
-not automate it, since the information about accepted types in constructors and 
-methods is already present there? That's what .autowire does. It takes type 
-information from constructor's arguments, or from method's arguments, and searches 
-default implementations based on them. Just like in this example:
+Autowire:
+
+Even with more structured instantiation code present using framework, sometimes, even this
+code is too verbose. Some components for example have a set of dependencies defined by some
+interface, and having for each dependency to reference it using lref!Type is quite cumbersome,
+and painfull.
+
+And here comes into play $(D_INLINECODE autowire) configuration method, which handles referencing of
+component by type on behalf of developer that creates the configuration, like in example below:
+
 -----------------
-    container.register!Car("sedan.engine.default") // Register a car with a default engine.
-        .autowire() // Construct Car using default implementation of a size, and engine.
-        .autowire!"color"(); // Inject default implementation of a Color.
+register!Car("sedan.engine.default") // Register a car with a default engine.
+    .autowire() // Construct Car using default implementation of a size, and engine.
+    .autowire!"color"(); // Inject default implementation of a Color.
 -----------------
 
-Just be warned, autowire is not working quite good with overloaded constructors
-or methods. When autowire will be applied on such overloaded constructor or method, 
-it will just select first constructor/method from overload set and use it to 
-construct/configure component.
+In current implementation of autowired due to limitations of current compiler’s compile time
+introspection, .autowire cannot work well with overloaded methods or constructors. In such cases,
+.autowire cannot know which version of method/constructor to overload, and will default to the
+first one from the list of overloads.
 
-Next configuration primitive is factoryMethod. This primitive implements factory 
-method pattern. In other words it tells container to use a method from some third 
-party component to construct our component, instead of using component's constructor 
-for example. Usage of it is quite simple:
-------------------
-    container.register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
-        .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref);
-------------------
+factoryMethod:
 
-Take a look at factoryMethod call. We pass the type of third party component, and method
-that is used to construct our component. Though you'll ask yourself: Then why we pass a reference
-to CarManufacturer, if we already identified it in template arguments? Taking a peek in
-CarManufacturer implementation, we'd see that `manufacture` method is not static
-therefore we should run this method on some instance of CarManufacturer. That's why
-we pass as first argument a reference in container to CarManufacturer. The CarManufacturer referenced
-in first argument will be used to construct our new car. It is possible as well to pass
-an implementation directly. For static methods that are used to construct our component
-no instance of third party component is required.
+Frequently in applications that use third party code, components from that third party code,
+are instantiated using factories or other entities from that third party code, and the client code of
+those libraries simply are not allowed to manually create those types. To aleviate this problem, when
+such a component is registered in a container, framework allows such components to be instantiated
+by using third party code responsible for this task.
 
-The last configuration primitive is `.callback` primitive. It uses a callback for
-construction of component or for it's configuration. Let's look at following example:
+Supposedly, the car simulation application introduced previously, is upgraded with a car man-
+ufacturing simulation, and new cars that are needed to be registered as components into container
+are required to be instantiated using car manufacturing component. $(D_INLINECODE factoryMethod) method
+instructs framework to use a third party component to instantiate registered component, using static
+method of a factory, or by using an instance of a factory. In example usage of $(D_INLINECODE factoryMethod)
+is shown:
+
+-----------------
+register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
+    .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref);
+-----------------
+
+Callback:
+While just by configuring a component with simple values or references, in some cases during
+construction of a component some custom logic must be run, that is or not related to instantiation
+process. $(D_INLINECODE callback) configuration method can be used to pass a function or a delegate that
+constructs or configures the component, according to some custom logic, not expressable by already
+available configuration primitives. Example below shows how a callback can be used as a constructor or
+as a configuration primitive.
+
 ------------------
-    container.register!Car("sedan.engine.electric") // Register a car with electric engine
+    register!Car("sedan.engine.electric") // Register a car with electric engine
         .callback(
             delegate (Locator!() loc) { // Let's construct our car using some custom logic that isn't possible to express with a simple construct method call.
                 Car car = new Car(loc.locate!Size, new ElectricEngine());
@@ -85,7 +94,10 @@ construction of component or for it's configuration. Let's look at following exa
 Though it's quite a simple primitive, it is as well powerful one. It is possible to define your own
 custom configuration primitives just by using under the hood the .callback primitive.
 
-Putting all primitives in one example, booting the container, we will see following output:
+Those additional primitives are quite handy to use, with libraries that are usign factories,
+dependencies by interface, or when some custom behavior has to be run during construction of a
+component. Output below is the result of using those primitives, to run.
+
 -------------------
 Uuh, what a nice car, Gasoline car with following specs:
 Size:	Size(200, 150, 300)
@@ -378,50 +390,52 @@ void drive(Car car, string name) {
 }
 
 void main() {
-    SingletonContainer container = new SingletonContainer; // Creating container that will manage a color
+    SingletonContainer container = singleton(); // Creating container that will manage a color
     
-    container.register!Color; // Let's register a default implementation of Color
-    
-    container.register!Color("color.green") // Register "green" color into container.
-        .set!"r"(cast(ubyte) 0) 
-        .set!"g"(cast(ubyte) 255)
-        .set!"b"(cast(ubyte) 0);
-    
-    container.register!Size // Let's register default implementation of a Size
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(300UL);
-    
-    container.register!Size("size.sedan") // Register a size of a generic "sedan" into container
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(500UL);
-    
-    container.register!(Engine, GasolineEngine); // Register a gasoline engine as default implementation of an engine
-    container.register!GasolineEngine; // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
-    container.register!DieselEngine; // Register a diesel engine
-    
-    container.register!CarManufacturer; // Let's register a car manufacturer in our container.
-    
-    container.register!Car("sedan.engine.default") // Register a car with a default engine.
-        .autowire() // Construct Car using default implementation of a size, and engine.
-        .autowire!"color"(); // Inject default implementation of a Color.
+    with (container.configure) {
+        register!Color; // Let's register a default implementation of Color
         
-    container.register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
-        .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref);
-    
-    container.register!Car("sedan.engine.electric") // Register a car with electric engine
-        .callback(
-            delegate (Locator!() loc) { // Let's construct our car using some custom logic that isn't possible to express with a simple construct method call.
-                Car car = new Car(loc.locate!Size, new ElectricEngine());
-                
-                return car; 
-            }
-        ).callback( // Let's configure newly built car with a custom color.
-            delegate (Locator!() loc, Car car) {
-                car.color = loc.locate!Color;
-            }
-        );
+        register!Color("color.green") // Register "green" color into container.
+            .set!"r"(cast(ubyte) 0) 
+            .set!"g"(cast(ubyte) 255)
+            .set!"b"(cast(ubyte) 0);
+        
+        register!Size // Let's register default implementation of a Size
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(300UL);
+        
+        register!Size("size.sedan") // Register a size of a generic "sedan" into container
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+        
+        register!(Engine, GasolineEngine); // Register a gasoline engine as default implementation of an engine
+        register!GasolineEngine; // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
+        register!DieselEngine; // Register a diesel engine
+        
+        register!CarManufacturer; // Let's register a car manufacturer in our container.
+        
+        register!Car("sedan.engine.default") // Register a car with a default engine.
+            .autowire() // Construct Car using default implementation of a size, and engine.
+            .autowire!"color"(); // Inject default implementation of a Color.
+            
+        register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
+            .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref);
+        
+        register!Car("sedan.engine.electric") // Register a car with electric engine
+            .callback(
+                delegate (Locator!() loc) { // Let's construct our car using some custom logic that isn't possible to express with a simple construct method call.
+                    Car car = new Car(loc.locate!Size, new ElectricEngine());
+                    
+                    return car; 
+                }
+            ).callback( // Let's configure newly built car with a custom color.
+                delegate (Locator!() loc, Car car) {
+                    car.color = loc.locate!Color;
+                }
+            );
+    }
     
     container.instantiate(); // Boot container (or prepare managed code/data).
     

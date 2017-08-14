@@ -22,19 +22,17 @@ $(OL
     $(LI Component factories -> responsible for creating components )
     )
     
-This tutorial will show the most basic (yet not easiest) version
-of extending library's factories with new custom ones. 
+A component factory, as name states is responsible for creation and assembly of components
+registered in container. Containers are using them to instantiate components, that are requested.
+In all tutorials up to this registering a component, was equivalent to creating a factory for
+it, and registering it in container. Afterwards factory was returned to the client code, were it was
+further configured, with construction and setter injections by code.
 
-A component factory, as name states is responsible for creation and
-assembly of components registered in container. Containers are using
-them to instantiate components, that are requested. In all examples
-up to this point, when we registered components in container, we actually
-registered factories for those components (this is not true for value container and
-registered data in it). So, when default implementations of factories present in
-library are not enough, extend it with new factory implementing desired
-behavior. 
+When the default features of framework is not enough, it is possible to extend it, in several
+directions mentioned above. For defining a new way of creating components, a factory interface
+in listing below is shown, which is minimal requirement for having the custom factories useable by
+containers.
 
-All factories present in Aedi library are extending Factory(T) interface:
 ------------------
 interface Factory(T) : LocatorAware!() {
 	public {
@@ -46,12 +44,11 @@ interface Factory(T) : LocatorAware!() {
 }
 ------------------
 
-Therefore if there is need for example to create some component, and configure it using
-information from external source (db, config file, etc.) define a factory that implements
-Factory!(YourComponent) interface which will do all dirty job for you.
+For example purposes, during development of car simulation app, logging of car assembly
+should be done. Example below shows a simple logging component factory that creates components
+using zero argument constructor, and logs the construction using default logging facilities present in
+D programming language.
 
-For example purposes, we'll design custom factory which logs start of component's creation
-and end of it. The creation logic is simple, just new it or allocate on stack:
 ------------------
 class LoggingFactory(T) : Factory!T {
     private {
@@ -86,10 +83,25 @@ class LoggingFactory(T) : Factory!T {
 }
 ------------------
 
-Notice, that a factory can accept optionally a locator of components. You can
-use it to locate required components if needed. If not just ignore it.
+A design decision in framework was made, that all containers must store only objects rooted
+in Object class. Since the language in which framework is developed supports not only object, but
+structs, unions and a multitude of value based types, those types should be wrapped into an object
+to be stored into containers. By convention, it is assumed that value based data is wrapped in an
+implementation of $(D_INLINECODE Wrapper) interface which roots into Object class. Knowing this, factories that
+attempt to supply value based dependencies to components, fetch the wrapped components from
+container, extracts the component from wrapper and passes it to the component.
 
-For aesthetic purposes, we'll wrap the newing the factory in a wrapper:
+From the constraint that containers apply on accepted types, the same requirements are prop-
+agated to component factories which are stored in containers. To leverage this problem, framework
+provides a decorating factory, that wraps up another factory, and exposes an compatible interface
+for containers. It will automatically wrap any component that is not rooted in Object class into a
+$(D_INLINECODE Wrapper) implementation and give it further to container.
+
+For aesthetic purposes it is recommended any creation of a factory to be wrapped in a function,
+which itself can serve as a facade to implementation, and be integrated seamlessly in code api.
+Example below shows an example of such a wrapper, that handles creation of a component factory and 
+wrapping it in a compatible interface for containers.
+
 ------------------
 auto registerLogged(Type)(Storage!(ObjectFactory, string) container, string identity) {
     auto factory = new LoggingFactory!Type;
@@ -99,20 +111,9 @@ auto registerLogged(Type)(Storage!(ObjectFactory, string) container, string iden
 }
 ------------------
 
-Inspecting the code, you'll notice that LoggingFactory isn't passed directly to container,
-yet it is wrapped in some WrappingFactory, and after that saved in container.
-This is due to the fact that containers can accept only Factory!Object implementaions,
-which WrappingFactory is implementing. It is designed so with the purpose of erasing 
-the type of component while it is stored in container. WrappingFactory wraps up the 
-real factory, and when container asks it to create component it will use wrapped
-factory to do the job. It will wrap in a `Wrapper` object results that do not inherit
-Object class. The type of component is restored during locate!(Type) phase which
-uses RTTI to cast erased component to desired type or to Wrapper!Type if the component type
-does not inherit Object class. If type of component mismatches type passed in locate
-method, an exception is thrown denoting a bug in program logic.
+To test custom component factory example below shows how it can be used seamlessly and un-
+kowngly from the point of view of a user of library.
 
-Let's create a container, pass to it LoggingFactory and print the result of LoggingFactory
-creation:
 ------------------
 void main() {
     

@@ -8,19 +8,19 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Usage:
-
 This tutorial will show how to register several components, and reference them
 as dependencies.
 
-Minimal example, showed us the simplest case of usage. A Color struct that is
-registered in container and printed afterwards. Clearly the example didn't show
-true purpose of a dependency injection pattern, which is to wire your application's
-components between themselves.
+Just registering a component with predefined data, is not enough even in smallest applications,
+since an application is an amalgamation of interconnected components. Therefore the framework does
+allow client code to register components that have dependencies, and reference them in configuration
+of those components.
 
-Imagine that we have a car, and we want to construct it. Suppose it has three sizes, 
-and a color. The most easies way to construct such a car is to instantiate it's
-sizes and color right in car's constructor, just like in following example:
+For example, in application that simulates cars, a car clearly is not a single god object. It is a
+set of interconnected components, represented by objects in application. Though as seen in listing,
+the car has it’s color and size hard-coded to specific values, and modifications to them aren’t 
+possible to do. Having a car simulator such code is not desired, since a simulator should be able 
+to simulate multiple types of cars with different sizes and colors.
 
 ------------------
 class Car {
@@ -34,9 +34,8 @@ class Car {
 }
 ------------------
 
-Though such solution is working, we will encounter a big problem, when say we will
-want to have a car with different color. The solution to the problem is to allow color
-and size to be passed from outside into car through constructor or setters.
+In improvement to the defined car in application (above), could be done by exposing color and size of
+car to configuration from exterior environment
 
 ------------------
 class Car {
@@ -58,54 +57,47 @@ void main() {
 }
 ------------------
 
-It is possible now to configure car to our needs, yet we'd have tons of such
-code when number of components will grow, and at some point it will become clunky and hard
-to maintain construction and configuration of components. A DI library will eliminate such
-problems, since it will do construction and configuration of components instead of us.
-Let's proceed with car construction using Aedi library, by creating the container that will
-hold all required components:
+Having the ability to change color and size of a car it is possible to have now multiple instances
+of a car, with different sizes and colors, though with increase of different types cars, the amount
+of code required to instantiate and configure them with right sizes increases tremendously, and in
+the end can become complex, and cumbersome to understand. Not to mention, the importance of
+micromanaging the order of how cars component instantiate. A car cannot be instantiated before, her
+components. Clearly the solution is more flexible, yet at a cost of increased amount of code.
+
+A DI framework aims to lessen the burden of writing wiring code, and will eliminate the need
+of micromanaging the order component creation. It will do instead of developers, just like in following
+example:
 
 ------------------
-SingletonContainer container = new SingletonContainer;
-------------------
+SingletonContainer container = singleton(); // Creating container that will manage a color
+    
+with (container.configure) {
 
-Now, let's register components needed by car, and the car itself:
-
-------------------
-    container.register!Color
-        .set!"r"(cast(ubyte) 0)
-        .set!"g"(cast(ubyte) 255)
-        .set!"b"(cast(ubyte) 0);
+    register!Color // Register color into container.
+        .set!"r"(cast(ubyte) 0) // Set red color to 0
+        .set!"g"(cast(ubyte) 255) // Set green color to 255
+        .set!"b"(cast(ubyte) 0); // Set blue color to 0
         
-    container.register!Size
-        .set!"width"(200UL)
+    register!Size // Register a size into container
+        .set!"width"(200UL) // As for color set width to 150.
         .set!"height"(150UL)
         .set!"length"(500UL);
+        
+    register!Car // Register a car in container
+        .construct(lref!Size) // Construct car using size present in container
+        .set!"color"(lref!Color); // Set car color to color present in container.
+}
+    
+container.instantiate(); // Boot container (or prepare managed code/data).    
 
-    container.register!Car
-        .construct(lref!Size)
-        .set!"color"(lref!Color);
-------------------
-
-Take a notice at how car was configured:
-$(UL
-    $(LI Note first line in car configuration, tells container to register it. )
-    $(LI The second line, configures car to be constructed using Size component 
-        present in container. To denote a dependency present in container
-        `lref!Type` was used, which references a component identified by
-        it's type in container. ) 
-     $(LI Thirld line injects Color component into car. )
-
-Once all components are registered in container, it itself should be booted:
-
-------------------
-    container.instantiate();
-------------------
-
-To be sure that everything was configured correctly let's print the result:
-------------------
 container.locate!Car.print;
 ------------------
+
+Referencing a dependency in a Car can be done using $(D_INLINECODE lref!Type) notation, that allows
+framework to detect that a dependency is actually required to pass, and not a simple value. Therefore
+the framework will search for a value of a type $(D_INLINECODE Type) and pass it as a dependency to Car.
+The result of a container can be seen by fetching a car from container and printing it to the
+stdout:
 
 At end we should see the car:
 ------------------
@@ -232,21 +224,24 @@ void print(Car car) {
 }
 
 void main() {
-    SingletonContainer container = new SingletonContainer; // Creating container that will manage a color
+    SingletonContainer container = singleton(); // Creating container that will manage a color
     
-    container.register!Color // Register color into container.
-        .set!"r"(cast(ubyte) 0) // Set red color to 0
-        .set!"g"(cast(ubyte) 255) // Set green color to 255
-        .set!"b"(cast(ubyte) 0); // Set blue color to 0
-        
-    container.register!Size // Register a size into container
-        .set!"width"(200UL) // As for color set width to 150.
-        .set!"height"(150UL)
-        .set!"length"(500UL);
-        
-    container.register!Car // Register a car in container
-        .construct(lref!Size) // Construct car using size present in container
-        .set!"color"(lref!Color); // Set car color to color present in container.
+    with (container.configure) {
+
+        register!Color // Register color into container.
+            .set!"r"(cast(ubyte) 0) // Set red color to 0
+            .set!"g"(cast(ubyte) 255) // Set green color to 255
+            .set!"b"(cast(ubyte) 0); // Set blue color to 0
+            
+        register!Size // Register a size into container
+            .set!"width"(200UL) // As for color set width to 150.
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+            
+        register!Car // Register a car in container
+            .construct(lref!Size) // Construct car using size present in container
+            .set!"color"(lref!Color); // Set car color to color present in container.
+    }
         
     container.instantiate(); // Boot container (or prepare managed code/data).
     

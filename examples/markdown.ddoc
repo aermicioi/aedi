@@ -1,0 +1,98 @@
+LPAREN = (
+RPAREN = )
+BACKTICK = `
+DOLLAR = $
+LF =
+$(LF)
+H1 = #$0
+H2 = #$(H1 $0)
+H3 = #$(H2 $0)
+H4 = #$(H3 $0)
+H5 = #$(H4 $0)
+ESCAPES =
+  /</&lt;/
+  />/&gt;/
+  /&/&amp;/
+
+B = *$0*
+I = _$0_
+U = $(B $0)
+P = $(LF)$0
+DL = $0
+DT = $0
+DD = 
+TABLE = 
+TR = | $0
+----------
+TH = $(TR $0)
+TD = $0 |
+OL = $0
+UL = $0
+LI = - $0
+BIG = $(B $(B $0))
+SMALL = $(I $(I $0))
+BR = 
+LINK = [$0]($0)
+LINK2 = [$1]($+)
+DEPRECATED = $(I $0)
+D_CODE = ```d
+$0
+```
+D_INLINECODE = `$0`
+DDOC_BACKQUOTED = $(D_INLINECODE $0)
+D_COMMENT = $0
+D_STRING = "$0"
+D_KEYWORD = $0
+D_PSYMBOL = $0
+D_PARAM = $0
+DDOC_BLANKLINE = $(LF)$(LF)
+DDOC_COMMENT = # $0
+DDOC = $(TITLE)
+========
+$(BODY)
+DDOC_MODULE_MEMBERS = $(H2 Members)
+$(DDOC_MEMBERS $0)
+DDOC_CLASS_MEMBERS = $(DDOC_MEMBERS $0)
+DDOC_STRUCT_MEMBERS = $(DDOC_MEMBERS $0)
+DDOC_ENUM_MEMBERS = $(DDOC_MEMBERS $0)
+DDOC_TEMPLATE_MEMBERS = $(DDOC_MEMBERS $0)
+DDOC_MEMBERS = $0$(LF)=====$(LF)
+DDOC_MEMBER = -----$(LF)$0
+DDOC_MEMBER_HEADER = 
+DDOC_HEADER_ANCHOR = $1 $(D_INLINECODE $2)
+DDOC_DECL = $(D_INLINECODE $0)$(LF)
+DDOC_ANCHOR = 
+DDOC_DECL_DD = $0
+DDOC_SECTIONS = $(P $0)
+DDOC_SUMMARY = $0
+DDOC_DESCRIPTION = $0
+DDOC_EXAMPLES = $(D_CODE $0)
+DDOC_RETURNS = Return Value: $(D_INLINECODE $0)
+DDOC_PARAMS = $(H3 Parameters)$(LF)$(LF)$0
+DDOC_PARAM_ROW = $(TR $0)
+DDOC_PARAM_ID = $(TD $0)
+DDOC_PARAM_DESC = $(TD $0)
+DDOC_LICENSE = $(H2 License)$(P $0)
+DDOC_AUTHORS = $(H2 Authors)$(P $0)
+DDOC_BUGS = $(H2 Bugs)$(P $0)
+DDOC_COPYRIGHT = $(H2 Copyright)$(P $0)
+DDOC_DATE = $(H2 Date)$(P $0)
+DDOC_DEPRECATED = $(H2 Deprecated)$(P $0)
+DDOC_HISTORY = $(H2 History)$(P $0)
+DDOC_SEE_ALSO = $(H2 See also)$(P $0)
+DDOC_STANDARDS = $(H2 Standards)$(P $0)
+DDOC_THROWS = $(H2 Throws)$(P $0)
+DDOC_VERSION = $(H2 Version)$(P $0)
+DDOC_SECTION = $(P $0)
+DDOC_SECTION_H = $(H3 $0)
+DDOC_DITTO = 
+$0
+DDOC_PSYMBOL = $0
+DDOC_ENUM_BASETYPE = $0
+DDOC_PSUPER_SYMBOL = $0
+DDOC_KEYWORD = $0
+DDOC_PARAM = $0
+DDOC_CONSTRAINT = $(DDOC_CONSTRAINT) if ($0)
+DDOC_OVERLOAD_SEPARATOR = $0
+DDOC_TEMPLATE_PARAM_LIST = $0
+DDOC_TEMPLATE_PARAM = $0

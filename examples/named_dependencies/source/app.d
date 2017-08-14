@@ -15,15 +15,15 @@ This tutorial will show how to register a component with custom identity in cont
 how to reference components with custom identities. The tutorial is based on car 
 simulation presented in previous example, and will continue to improve it.
 
-Sometimes except of a single implementation of a component, some variations of it
-are desired. In context of car simulation example, imagine that besides
-a car with default parameters, several other are desired with different colors
-or sizes. For example two cars of sedan size with green/blue color, and one car of smart
-sizes of green color. Previous example, explained how to register components
-in container by their type, yet it didn't show how to add multiple instances of same
-component with various dependencies (or how to register a component by custom identity). 
-Trying to register a variation of component by it's type will just overwrite previous one,
-just like in example below: 
+Except of a single implementation of a component, in some occurrences of an application,
+multiple instances of same type of component, but with varying dependencies, are required. In case
+of car simulation application, the simulator should not be limited to only a single car, it should be
+able to have multiple cars with varying parameters, like cars of sedan or smart sizes with blue and
+green colors.
+
+Previous section showed how to register only one version for each component including the car
+itself. Attempting to add another car to container like in example below, will fail due to simple problem:
+Both cars are identified in container by their type.
 
 -----------------
     container.register!Car
@@ -35,76 +35,70 @@ just like in example below:
         .set!"color"(Color(0, 0, 0));
 -----------------
 
-Trying to run previous example with another car added, will print only the last one:
+Running in modified container configuration in context of previous tutorial's example will end
+in output from below, were last registered instance of Car component overrides the previously
+defined.
+
 -----------------
 You bought a new car with following specs:
 Size:	Size(200, 150, 500)
 Color:	Color(0, 0, 0)
 -----------------
 
-Components registered in containers of are identified by a string 
-identifier, which is implicitly assigned to the fully qualified name of a component,
-when no explicit identity is provided. To register a component by custom identity,
-pass the identity as an argument to .register method. Check example 
-below to see how to register a component with custom identity:
+Each registered component in a container is associated with an identity in it. In case with
+car for previous examples, the Car component is associated with identity representing it’s Type. To
+avoid associating a component by it’s type during registration, pass it’s identity as an argument to
+.register method, like in example below. A component can also be associated with an interface it
+implements by inserting desired interface before the type of registered component.
 
 -----------------
-    container.register!Color("color.green") // Register "green" color into container.
+with (container.configure) {
+    register!Color("color.green") // Register "green" color into container.
         .set!"r"(cast(ubyte) 0) 
         .set!"g"(cast(ubyte) 255)
         .set!"b"(cast(ubyte) 0);
     
-    container.register!Color("color.blue") // Register "blue" color into container.
+    register!Color("color.blue") // Register "blue" color into container.
         .set!"r"(cast(ubyte) 0)
         .set!"g"(cast(ubyte) 0)
         .set!"b"(cast(ubyte) 255);
------------------
-
-As with green and blue color, same procedure is done with size component:
------------------
-    container.register!Size("size.sedan") // Register a size of a generic "sedan" into container
+        
+    register!Size("size.sedan") // Register a size of a generic "sedan" into container
         .set!"width"(200UL) 
         .set!"height"(150UL)
         .set!"length"(500UL);
         
-    container.register!Size("size.smart_car") // Register a size of a generic smart car into container
+    register!Size("size.smart_car") // Register a size of a generic smart car into container
         .set!"width"(200UL) 
         .set!"height"(150UL)
         .set!"length"(300UL);
------------------
-
-Once components used by cars are present in container, it is time to register car's variations
-in container:
------------------
-    container.register!Car("sedan.green") // Register a car with sedan sizes and of green color.
+    
+    register!Car("sedan.green") // Register a car with sedan sizes and of green color.
         .construct("size.sedan".lref)
         .set!"color"("color.green".lref);
     
-    container.register!Car("smarty.blue") // Register a car with smart car sizes and of a blue color.
+    register!Car("smarty.blue") // Register a car with smart car sizes and of a blue color.
         .construct("size.smart_car".lref) 
         .set!"color"("color.blue".lref);
     
-    container.register!Car("sedan.blue") // Register a car with sedan car sizes and of a blue color.
+    register!Car("sedan.blue") // Register a car with sedan car sizes and of a blue color.
         .construct("size.sedan".lref) 
         .set!"color"("color.blue".lref);
+}
 -----------------
 
-Take a look at the configuration of those three cars. In previous example to reference
-a dependcy present in container `lref!(Type)` was used to do it. `lref!(Type)`
-denotes a reference to a component present in container which is identified by fully qualified name (FQN)
-of Type. To reference a component which has other identity from type's FQN, 
-use `lref("<identity>")` or `"<identity>".lref` which is in UFCS (unified function call syntax) notation. 
-Container during build will understand that it is a reference, and pass referenced component instead 
-of actual reference to constructor or method.
+To reference a component that has custom identity, in a configuration or reliant component,
+use $(D_INLINECODE lref("custom-associated-identity")) notation. Seeing this type of reference, framework
+will attempt to search component by this identity, and serve it to component that is in con-
+struction. Thanks to unified function call syntax (UFCS) available in D programming language,
+lref("custom-associated-identity") can be rewritten into a more pleasant view $(D_INLINECODE "custom-
+-associated-identity".lref). To extract manually a component with custom identity pass the
+identity to $(D_INLINECODE locate) method as first argument, along with type of component.
 
-To get a component that has custom identity, pass the identity as an argument to locate method:
+Running fixed version of configuration, will yield in printing all three cars from code above into
+stdout in output below. To be sure that all modifications done in this tutorial are working, run the
+application to see following output:
 
------------------
-container.locate!Car("sedan.green").print("sedan green");
------------------
-
-To be sure that all modifications done in this tutorial are working, run the application to see
-following output:
 -----------------
 You bough a new car sedan green with following specs:
 Size:	Size(200, 150, 500)
@@ -234,39 +228,42 @@ void print(Car car, string name) {
 }
 
 void main() {
-    SingletonContainer container = new SingletonContainer; // Creating container that will manage a color
+    SingletonContainer container = singleton(); // Creating container that will manage a color
     
-    container.register!Color("color.green") // Register "green" color into container.
-        .set!"r"(cast(ubyte) 0) 
-        .set!"g"(cast(ubyte) 255)
-        .set!"b"(cast(ubyte) 0);
-    
-    container.register!Color("color.blue") // Register "blue" color into container.
-        .set!"r"(cast(ubyte) 0)
-        .set!"g"(cast(ubyte) 0)
-        .set!"b"(cast(ubyte) 255);
+    with (container.configure) {
+        register!Color("color.green") // Register "green" color into container.
+            .set!"r"(cast(ubyte) 0) 
+            .set!"g"(cast(ubyte) 255)
+            .set!"b"(cast(ubyte) 0);
         
-    container.register!Size("size.sedan") // Register a size of a generic "sedan" into container
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(500UL);
+        register!Color("color.blue") // Register "blue" color into container.
+            .set!"r"(cast(ubyte) 0)
+            .set!"g"(cast(ubyte) 0)
+            .set!"b"(cast(ubyte) 255);
+            
+        register!Size("size.sedan") // Register a size of a generic "sedan" into container
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+            
+        register!Size("size.smart_car") // Register a size of a generic smart car into container
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(300UL);
         
-    container.register!Size("size.smart_car") // Register a size of a generic smart car into container
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(300UL);
+        register!Car("sedan.green") // Register a car with sedan sizes and of green color.
+            .construct("size.sedan".lref)
+            .set!"color"("color.green".lref);
+        
+        register!Car("smarty.blue") // Register a car with smart car sizes and of a blue color.
+            .construct("size.smart_car".lref) 
+            .set!"color"("color.blue".lref);
+        
+        register!Car("sedan.blue") // Register a car with sedan car sizes and of a blue color.
+            .construct("size.sedan".lref) 
+            .set!"color"("color.blue".lref);
+    }
     
-    container.register!Car("sedan.green") // Register a car with sedan sizes and of green color.
-        .construct("size.sedan".lref)
-        .set!"color"("color.green".lref);
-    
-    container.register!Car("smarty.blue") // Register a car with smart car sizes and of a blue color.
-        .construct("size.smart_car".lref) 
-        .set!"color"("color.blue".lref);
-    
-    container.register!Car("sedan.blue") // Register a car with sedan car sizes and of a blue color.
-        .construct("size.sedan".lref) 
-        .set!"color"("color.blue".lref);
     
     container.instantiate(); // Boot container (or prepare managed code/data).
     

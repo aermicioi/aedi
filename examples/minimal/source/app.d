@@ -1,8 +1,8 @@
 /**
-Aedi, a dependency injection library.
+Aedi, a dependency injection framework.
 
-Aedi is a dependency injection library. It does provide a set of containers that do
-IoC, and an interface to configure application components (structs, objects, etc.) 
+Aedi is a dependency injection framework. It does provide a set of containers that do
+IoC, and an interface to configure application components (structs, objects, etc.) managed by framework.
 
 Aim:
 The aim of library is to provide a dependency injection solution that is
@@ -21,35 +21,34 @@ $(UL
 
 First of all a container should be created:
 ---------------
-    SingletonContainer container = new SingletonContainer;
+SingletonContainer container = singleton();
 ---------------
 
 Container is responsible for storing, and managing application's components.
 
-Next, register component into container:
+Next, register and configure component into container:
 ---------------
-    container.register!Color
----------------
-
-Component is registered by calling .register method on container with type of component.
-Note, that in example we do not end the statement. That's because component should be 
-configured next:
----------------
-        .set!"r"(cast(ubyte) 250)
-        .set!"g"(cast(ubyte) 210)
-        .set!"b"(cast(ubyte) 255);
+with (container.configure) {
+    
+    register!Color // Register color into container.
+        .set!"r"(cast(ubyte) 250) // Set red color to 250
+        .set!"g"(cast(ubyte) 210) // Set green color to 210
+        .set!"b"(cast(ubyte) 255); // Set blue color to 255
+}
 ---------------
 
-.set method configures component properties to specific values (setter injection in other words).
+Configuration process begins with .configure in a with statement and afterwards 
+component is registered by calling .register method on container with type of component.
+.set method sets component properties to specific values (setter injection in other words).
 Note the example ends in `;` which means that it's end of statement and Color registration/configuration.
 Once components are registered and configured, container needs to be booted (instantiated):
 ---------------
-    container.instantiate();
+container.instantiate();
 ---------------
 
 Container during boot operation, will do various stuff, including creation and wiring of components
-between them. It's important to call `container.instantiate()` after all application's components 
-have been registered into container, otherwise it is not guaranteed that application will work correctly.
+between them. It is desired to call container.instantiate() after all application's components 
+have been registered into container, though a container can work even without calling it.
 
 Once container is booted, components in it are available for use. 
 To fetch it use locate method like in following example:
@@ -109,12 +108,15 @@ void print(Color color) {
 }
 
 void main() {
-    SingletonContainer container = new SingletonContainer; // Creating container that will manage a color
+    SingletonContainer container = singleton(); // Creating container that will manage a color
     
-    container.register!Color // Register color into container.
-        .set!"r"(cast(ubyte) 250) // Set red color to 250
-        .set!"g"(cast(ubyte) 210) // Set green color to 210
-        .set!"b"(cast(ubyte) 255); // Set blue color to 255
+    with (container.configure) {
+        
+        register!Color // Register color into container.
+            .set!"r"(cast(ubyte) 250) // Set red color to 250
+            .set!"g"(cast(ubyte) 210) // Set green color to 210
+            .set!"b"(cast(ubyte) 255); // Set blue color to 255
+    }
         
     container.instantiate(); // Boot container (or prepare managed code/data).
     

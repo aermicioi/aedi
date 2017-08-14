@@ -9,30 +9,25 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Usage:
+Aedi does provide basic containers singleton and prototype, which can be combined into some-
+thing more complex. Yet, in some cases the features they provide is not enough. An example of
+such feature is containers that are enabled only when a specific profile is present. For example, car
+simulation app at start should allow user to select from 3 different cars to simulate. Each of those
+cars have a specific engine:
 
-This tutorial will show how it is possible to implement profiled containers
-which are enabled based on some condition (ex: command line argument).
-It will introduce decorating containers available in Aedi.
-
-Aedi does provide basic containers singleton and prototype, which can be
-combined into something more complex. Yet, in some cases the features they
-provide is not enough. An example of such feature is containers that are
-enabled only when a specific profile is present. For example, car simulator
-(tutorial's example) should have 3 profiles:
 $(OL
     $(LI electric )
     $(LI gasoline ) 
     $(LI diesel )
 )
 
-The simplest and easiest way to enable application to serve 3 different profiles
-is to:
+The workflow needed to implement in application in order to allow 3 different configurations is
+shown below and consists of following steps:
 $(OL
     $(LI read profile argument from command line or environment )
-    $(LI switch on it, and register diesel/gasoline/electric engine by Engine interface depending on argument value )
+    $(LI switch on it, and register diesel/gasoline/electric engine by Engine interface depending on selected profile )
 )
-Just like in this snippet:
+
 ------------------
 //    ..............car example code..............
 
@@ -67,25 +62,27 @@ Just like in this snippet:
 //    ..............car example code..............    
 ------------------
 
-Easy, simple, no problems. Yet as, car example grows, the each profile can include
-additional components that are specific to it. With more components, switch used
-in example will become quite big, and hard to maintain, and will become quite problematic
-to hot plug for example additional containers with their components.
-
-Another solution using Aedi library, is to create a container for each profile, configure
-it, and enable it when certain profile is passed as argument:
+Quite straitforward implementation is shown here. The application takes argument from com-
+mand line, switches on it, and registers different set of components for car, based on argument of
+command line. Though for simplistic usage, the approach is quite useful, yet in cases when the
+control over container instantiation is not handled by the client code, but by a third party container,
+such a straightforward approach becomes quite complicated. For such cases the framework does pro-
+vide a solution by the ability of decorating existing containers, and third party ones with additional
+logic. In case of car simulation app, with 3 different car profiles for startup, the framework provides
+two types of containers, through which profiling feature is implemented. Example below shows the
+powerfullness of framework in adding additional behavior to existing container, thereby extending it.
 ------------------
 auto containerWithProfiles() {
     auto container = new ApplicationContainer; // A composite container with singleton, prototype built in.
     
-    auto electricProfileContainer = (new SwitchableContainer!SingletonContainer).decorated(new SingletonContainer);
-    auto gasolineProfileContainer = (new SwitchableContainer!SingletonContainer).decorated(new SingletonContainer);
-    auto dieselProfileContainer = (new SwitchableContainer!SingletonContainer).decorated(new SingletonContainer);
-    auto subscribableContainer = (new SubscribableContainer!ApplicationContainer).decorated(container);
+    auto electricProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
+    auto gasolineProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
+    auto dieselProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
+    auto subscribableContainer = container.subscribable(); // decorating joint container with subscribable container
     
-    container.set(electricProfileContainer, "electricProfile"); // Added container for green technology
-    container.set(gasolineProfileContainer, "gasolineProfile"); // Added container for pollution technology
-    container.set(dieselProfileContainer, "dieselProfile"); // Added container for pollution technology
+    container.set(electricProfileContainer, "electric");
+    container.set(gasolineProfileContainer, "gasoline");
+    container.set(dieselProfileContainer, "diesel");
     
     subscribableContainer.subscribe(
         ContainerInstantiationEventType.pre,
@@ -105,47 +102,21 @@ auto containerWithProfiles() {
     
     return subscribableContainer;
 }
-
-void main(string[] args) {
-    auto container = containerWithProfiles();
-    
-    import std.getopt;
-    string[] profiles;
-    
-    auto help = getopt(args,
-        "p|profile", &profiles
-    );
-    container.register(profiles, "profile");
-//    ..............car example code..............
-
-    container.register!(Engine, ElectricEngine)("electricProfile");
-    container.register!(Engine, GasolineEngine)("gasolineProfile");
-    container.register!(Engine, DieselEngine)("dieselProfile");
-    
-//    ..............car example code..............
-}
 ------------------
 
-Now, the configuration for each profile can be separated in it's own config file.
-No worries should occurr with components identity collisions, etc. since all
-components particular to a profile are contained in one container.
+The profile based container is assembled from 3 switchable containers, and a subscribable
+composite container. When the application is booted up, the code from main loads into container
+"profile" argument. Afterwards components are registered into container, and for each profile,
+the profiled components are registered in respective gasoline, electric, diesel containers. Once this
+is finished, the container is instantiated using $(D_INLINECODE intantiate) method. During instantiation phase,
+subscribable composite container fires an pre-instantiation event on which, a delegate is attached, that
+checks for "profile" argument, and enables the container identified by value in profile container.
+In such a way most of conditional chains such as switch or if are avoided, furthermore the approach
+could be scaled indefinitely without hindering the expressivity of implementation.
 
-"Profiled containers" in code snippet above, are implemented using 2 decorating containers:
-$(OL
-    $(LI SwitchableContainer - Adds switching capability. This container will boot, and serve objects only
-        if it has been enabled. Note, storing and removing components from it is possible even when it is
-        disabled. )
-    $(LI SubscribableContainer - Adds subscribing capability to container. This container will fire two events:
-        $(OL
-            $(LI ContainerInstantiationEventType.pre - runs all subscribers prior to container boot ) 
-            $(LI ContainerInstantiationEventType.post - runs all subscribers after container booted )
-        )
-    )
-)
-
-With help of them it is possible to customize behavior of container (and not only). It is possible
-for example to scan all components in a container, select some of them, and add them to other component,
-and so on.
+Both subscribable and switchable containers, are decorators over more basic ones, and can be
+used with all containers present from framework. They can be nested in any order desired, by the
+implementor.
 
 Try running this example. Experiment with it, to understand decorating containers.
 
@@ -486,10 +457,10 @@ void drive(Car car, string name) {
 auto containerWithProfiles() {
     auto container = new ApplicationContainer; // A composite container with singleton, prototype built in.
     
-    auto electricProfileContainer = (new SwitchableContainer!SingletonContainer).decorated(new SingletonContainer);
-    auto gasolineProfileContainer = (new SwitchableContainer!SingletonContainer).decorated(new SingletonContainer);
-    auto dieselProfileContainer = (new SwitchableContainer!SingletonContainer).decorated(new SingletonContainer);
-    auto subscribableContainer = (new SubscribableContainer!ApplicationContainer).decorated(container);
+    auto electricProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
+    auto gasolineProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
+    auto dieselProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
+    auto subscribableContainer = container.subscribable(); // decorating joint container with subscribable container
     
     container.set(electricProfileContainer, "electric");
     container.set(gasolineProfileContainer, "gasoline");
@@ -524,31 +495,49 @@ void main(string[] args) {
     auto help = getopt(args,
         "p|profile", &profiles
     );
-    container.register(profiles, "profile");
-    
-    container.register!(Engine, ElectricEngine)("electric");
-    container.register!(Engine, GasolineEngine)("gasoline");
-    container.register!(Engine, DieselEngine)("diesel");
-    
-    container.registerInto!Color; // Let's register a default implementation of Color
-    
-    container.registerInto!Size // Let's register default implementation of a Size
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(300UL);
-    
-    container.registerInto!Tire("prototype")
-        .set!"size"(17)
-        .set!"pressure"(3.0)
-        .set!"vendor"("divine tire");
+
+    with (container.locate!ValueContainer("parameters").configure()) {
+
+        register(profiles, "profile");
+    }
+
+    with (container.configure("singleton")) {
+        register!Color; // Let's register a default implementation of Color
         
-    container.registerInto!Car
-        .autowire
-        .autowire!"color"
-        .set!"frontLeft"(lref!Tire)
-        .set!"frontRight"(lref!Tire)
-        .set!"backLeft"(lref!Tire)
-        .set!"backRight"(lref!Tire);
+        register!Size // Let's register default implementation of a Size
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(300UL);
+        
+        
+            
+        register!Car
+            .autowire
+            .autowire!"color"
+            .set!"frontLeft"(lref!Tire)
+            .set!"frontRight"(lref!Tire)
+            .set!"backLeft"(lref!Tire)
+            .set!"backRight"(lref!Tire);
+    }
+
+    with (container.configure("prototype")) {
+        register!Tire
+            .set!"size"(17)
+            .set!"pressure"(3.0)
+            .set!"vendor"("divine tire");
+    }
+
+    with (container.configure("diesel")) {
+        register!(Engine, DieselEngine);
+    }
+
+    with (container.configure("gasoline")) {
+        register!(Engine, GasolineEngine);
+    }
+
+    with (container.configure("electric")) {
+        register!(Engine, ElectricEngine);
+    }
     
     container.instantiate();
     

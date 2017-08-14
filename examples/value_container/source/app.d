@@ -9,45 +9,44 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Usage:
-
-This tutorial will explain how to store values, into container, and how
-they can be used.
-
-During construction, of components managed by a container, some of them could
-require things like user password, or uri of some resource. There is no point in "constructing
-and configuring" such data as rest of the components that are more complex.
-Therefore Aedi allows such data to be used during construction, by use of a 
-container that holds it. The container it's not usable alone. Instead,
-it is better to attach it to a composite container, to make data from container
-available to rest of components:
+Having a framework that creates and wire components is quite good. In previous tutorials,
+was explained how to inject compile time known data, and how to reference dependent components,
+but while designing a framework, or a library in conjunction with AEDI framework, exposing a set
+of parameters might be desired.
+To expose a set of configuration parameters, framework provides a special version of container,
+that stores in those parameters, and serves them to the requestor. To use this container it
+should be attached to a composite container along the rest of containers, as in previous tutorial and used
+along them. The process of adding parameters into container is easy as with rest of shown containers,
+the only difference is, that $(D_INLINECODE register) method doesn’t require an explicit component type, since it
+is inferred from passed value. Example below shows basic usage of value container:
 
 --------------------
-AggregateLocatorImpl!() container = new AggregateLocatorImpl!(); // An aggregate container that will fetch components from it's containers.
-    SingletonContainer singleton = new SingletonContainer; 
-    PrototypeContainer prototype = new PrototypeContainer;
-    ObjectStorage!() values = new ObjectStorage!();
+auto container = aggregate( // Create a joint container hosting other two containers
+    singleton(), "singleton", // Create singleton container, and store it in joint container by "singleton" identity
+    prototype(), "prototype", // Create prototype container, and store it in joint container by "prototype" identity
+    values(), "parameters"  // Create value container, and store it in joint container by "prototype" identity
+);
+
+with (container.configure("singleton")) {
+
+    // ...
+
+}
+
+with (container.configure("prototype")) {
     
-    
-    container.set(singleton, "singleton"); // Let's add singleton container as a source for aggregate container
-    container.set(prototype, "prototype"); // Let's add prototype container as a source for aggregate container
-    container.set(values, "parameters");
---------------------
+    // ...
+}
 
-To register already available data in container use .register method:
---------------------
-    container.register(Color(0, 255, 0), "color.green");
-    container.register("divine tire", "tire.vendor");
---------------------
+with (container.locate!ValueContainer("parameters").configure) {
 
-As with multiple containers example, by not specifying the identity of container
-responsible for storing available data, .register method will search for
-container identified by "parameters" and store the data in it.
-
-Note, .register method can be used directly on value container:
---------------------
     values.register(Size(200, 150, 300), "size.smarty");
+}
 --------------------
+
+As seen the configuration for value containers differs from other containers.
+In case of value containers $(D_INLINECODE configure) method should know exactly 
+what kind of configuration context to create.
 
 Try running example. Add, modify it to understand usage of containers for already 
 available values.
@@ -398,44 +397,49 @@ void drive(Car car, string name) {
 }
 
 void main() {
-    AggregateLocatorImpl!() container = new AggregateLocatorImpl!(); // An aggregate container that will fetch components from it's containers.
-    SingletonContainer singleton = new SingletonContainer; 
-    PrototypeContainer prototype = new PrototypeContainer;
-    ObjectStorage!() values = new ObjectStorage!();
+    auto container = aggregate( // Create a joint container hosting other two containers
+        singleton(), "singleton", // Create singleton container, and store it in joint container by "singleton" identity
+        prototype(), "prototype", // Create prototype container, and store it in joint container by "prototype" identity
+        values(), "parameters"  // Create value container, and store it in joint container by "prototype" identity
+    );
     
-    container.set(singleton, "singleton"); // Let's add singleton container as a source for aggregate container
-    container.set(prototype, "prototype"); // Let's add prototype container as a source for aggregate container
-    container.set(values, "parameters");
-    
-    container.registerInto!Color; // Let's register a default implementation of Color
-    
-    values.register(Size(200, 150, 300), "size.smarty");
-    
-    container.register(Color(0, 255, 0), "color.green");
-    container.register("divine tire", "tire.vendor");
-    
-    container.registerInto!Size // Register a size of a generic "sedan" into container
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(500UL);
+    with (container.configure("singleton")) {
+
+        register!Color; // Let's register a default implementation of Color
         
-    container.register!(Engine, ElectricEngine);
-    
-    container.registerInto!Tire("prototype") // Registering Tire into "prototype" container used by aggregate container
-        .set!"size"(17)
-        .set!"pressure"(3.0)
-        .set!"vendor"("tire.vendor".lref);
         
-    container.registerInto!Car
-        .autowire
-        .set!"color"("color.green".lref)
-        .set!"frontLeft"(lref!Tire)
-        .set!"frontRight"(lref!Tire)
-        .set!"backLeft"(lref!Tire)
-        .set!"backRight"(lref!Tire);
+        register(Color(0, 255, 0), "color.green");
+        register("divine tire", "tire.vendor");
+        
+        register!Size // Register a size of a generic "sedan" into container
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+            
+        register!(Engine, ElectricEngine);
+        
+        register!Car
+            .autowire
+            .set!"color"("color.green".lref)
+            .set!"frontLeft"(lref!Tire)
+            .set!"frontRight"(lref!Tire)
+            .set!"backLeft"(lref!Tire)
+            .set!"backRight"(lref!Tire);
+    }
+
+    with (container.configure("prototype")) {
+        register!Tire // Registering Tire into "prototype" container used by aggregate container
+            .set!"size"(17)
+            .set!"pressure"(3.0)
+            .set!"vendor"("tire.vendor".lref);
+    }
+
+    with (container.locate!ValueContainer("parameters").configure) {
+
+        values.register(Size(200, 150, 300), "size.smarty");
+    }
     
-    prototype.instantiate(); // Boot container (or prepare managed code/data).
-    singleton.instantiate(); // Boot container (or prepare managed code/data).
+    container.instantiate(); // Boot container (or prepare managed code/data).
     
     container.locate!Car.drive("Electric car");
 }

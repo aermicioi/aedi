@@ -9,261 +9,68 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Usage:
+In most simple applications, a single container, like singleton or prototype one might be enough,
+for using. Having a set of singletons constructed on behalf of a developer is convenient, yet there
+are occurences a single container is not enough. For example when, a set of components rely on a
+particular dependency, and more specifically, the dependency they rely upon, should not be shared
+across reliant components. In another case, a set of components are stored in a database, in serialized
+form, and they are used as dependencies for other components from application.
 
-In this tutorial, we're going to learn more about containers, and how we
-can use them together to build a more sophisticated construction/wiring logic.
+In such cases use of a single container like singleton or prototype is not enough, since one set
+of components should be created by using normal frameworks means, and another set needs to be
+fetched from a database, or should not be shared to all dependent components. To solve this problem,
+AEDI framework, allows container to be joined and used together, for creation of components. A
+component in such a joint container, having a dependency on a prototype component, will have it’s
+requirement fullfilled without a problem.
 
-Let's start by improving previous example. If we think a little, a car that
-has wheels without tires, won't work at full capacity. It's possible to break
-wheel's rim if used without a tire. Then let's add tires to our car. 
-To improve our example, we'll have to add a Tire class that represents a tire,
-and patch our car to allow it to install tires for each wheel it does have:
+Using as an example car simulation app, the company decided to add a set ”tires” to simulated
+cars. For a particular car, each tire installed in it has same properties as other installed in same car.
+Registering 4 times same tire is not cost effective. Instead of it, it is better to register component
+into a prototype container and use component to supply 4 instances of a tire to a particular car.
+Example below shows how two or more containers can be joined together, configured with components,
+and used to instantiate required components.
 ----------------
-class Tire {
-    private {
-        int size_;
-        float pressure_;
-        string vendor_;
-    }
-    
-    public @property {
-        Tire size(int size) @safe nothrow {
-        	this.size_ = size;
-        	return this;
-        }
-        
-        int size() @safe nothrow {
-        	return this.size_;
-        }
-        
-        Tire pressure(float pressure) @safe nothrow {
-        	this.pressure_ = pressure;
-        	return this;
-        }
-        
-        float pressure() @safe nothrow {
-        	return this.pressure_;
-        }
-        
-        Tire vendor(string vendor) @safe nothrow {
-        	this.vendor_ = vendor;
-        	return this;
-        }
-        
-        string vendor() @safe nothrow {
-        	return this.vendor_;
-        }
-    }
-    
-    public override string toString() {
-        import std.algorithm;
-        import std.range;
-        import std.conv;
-        import std.utf;
-        
-        return only("Tire(", this.size.to!string, " inch, ", this.pressure.to!string, " atm, ", this.vendor, ")")
-            .joiner
-            .byChar
-            .array;
-    }
-}
+auto container = aggregate( // Create a joint container hosting other two containers
+        singleton(), "singleton", // Create singleton container, and store it in joint container by "singleton" identity
+        prototype(), "prototype" // Create prototype container, and store it in joint container by "prototype" identity
+    );
 
-class Car {
+with (container.configure("singleton")) { // Configure singleton container
     
-    private {
-//        ..........check full example..........
-        Tire frontLeft_;
-        Tire frontRight_;
-        Tire backLeft_;
-        Tire backRight_;
-    }
+    // ...
     
-    public {
-        
-        this(Size size, Engine engine) {
-            this.size_ = size;
-            this.engine = engine;
-        }
-        
-        @property {
-            
-//            ..........check full example..........
-            
-            Car frontLeft(Tire frontLeft) @safe nothrow {
-            	this.frontLeft_ = frontLeft;
-            
-            	return this;
-            }
-            
-            Tire frontLeft() @safe nothrow {
-            	return this.frontLeft_;
-            }
-            
-            Car frontRight(Tire frontRight) @safe nothrow {
-            	this.frontRight_ = frontRight;
-            
-            	return this;
-            }
-            
-            Tire frontRight() @safe nothrow {
-            	return this.frontRight_;
-            }
-            
-            Car backLeft(Tire backLeft) @safe nothrow {
-            	this.backLeft_ = backLeft;
-            
-            	return this;
-            }
-            
-            Tire backLeft() @safe nothrow {
-            	return this.backLeft_;
-            }
-            
-            Car backRight(Tire backRight) @safe nothrow {
-            	this.backRight_ = backRight;
-            
-            	return this;
-            }
-            
-            Tire backRight() @safe nothrow {
-            	return this.backRight_;
-            }
-            
-        }
-        
-//        ..........check full example..........
-    }
-}
-----------------
-
-Nice now we're able to install tires onto our car. Let's do it using Aedi library:
-----------------
-//	..........code from example..........
-    container.registerInto!Tire
-        .set!"size"(17)
-        .set!"pressure"(3.0)
-        .set!"vendor"("divine tire");
-        
-    container.registerInto!Car
+    register!Car
         .autowire
         .autowire!"color"
         .set!"frontLeft"(lref!Tire)
         .set!"frontRight"(lref!Tire)
         .set!"backLeft"(lref!Tire)
         .set!"backRight"(lref!Tire);
-//	..........code from example..........
-----------------
+}
 
-Now we can instantiate our container and run our car! But wait, won't we try to
-install same tire on all wheels of our car, if we configured Aedi like in example
-above? Try to run example, and to be sure assert that wheels are different
-after container has booted. Just like this:
-----------------
-    assert(
-        container.locate!Car.frontLeft !is
-        container.locate!Car.frontRight
-    );
-----------------
+with (container.configure("prototype")) { // Configure prototype container
 
-We will fail, since Aedi will install same tire for all wheels, which is not
-a desired result in our case. Each tire in our car, can have it's own pressure,
-size, and vendor, it's not possible for all four to have same parameters. Yet
-we are doing so, using above configuration. Then, how we should solve this problem?
-A bright idea could come to your mind: "Let's just create for each wheel a new tire, and
-that's all. But how we can do it using Aedi?". First of all let's take a look at 
-type of our container:
-----------------
-    SingletonContainer container = new SingletonContainer;
----------------- 
-
-Notice that type, contains `Singleton` in it's name. If your familiar with Singleton pattern
-(please familiarize yourself with Singleton pattern before proceeding with example) you'll 
-understand that `SingletonContainer` will create your component only once, and give that component
-each time it is asked to do this. Now we know what to do. We should build another container
-that will give new Tire each time it we ask to! And here jumps in PrototypeContainer
-which will give you a new instance of a component each time you ask it (see Prototype pattern).
-Let's try to create a prototype container, and put in our tire:
-----------------
-    PrototypeContainer prototype = new PrototypeContainer;
-    container.registerInto!Tire("prototype") // Registering Tire into "prototype" container used by aggregate container
+    register!Tire // Registering Tire into "prototype" container used by aggregate container
         .set!"size"(17)
         .set!"pressure"(3.0)
         .set!"vendor"("divine tire");
-----------------
+}
 
-Now, let's boot prototype container, and to be sure that container will give
-us new tire each time is asked, let's assert this:
+//...
 ----------------
-    prototype.isntantiate();
-    assert(
-        prototype.locate!Tire !is
-        prototype.locate!Tire
-    );
-----------------
+To join one or more containers together, an aggregate container must be created that will host
+both of them under the hood. Once aggregate container has all of joint containers registered in it,
+the process of registering components takes place. 
+To register components in joint container, pass the identity of subcontainer (container in joint container)
+to $(D_INLINECODE configure) as an argument, and register components for selected subcontainer.
+The $(D_INLINECODE configure) function applied to joint container in $(D_INLINECODE with ()) statement
+creates a configuration context, that stores the container where components are stored, and
+container from which dependencies for those components should be fetched.
+In case of joint container, and singleton subcontainer, singleton subcontainer acts as storage while
+joint container is used as source for dependencies of registered components.
 
-Cool new we can create new Tire each time we ask it for our car's construction!
-Though other problem arises: How can we tell our car configuration that resides 
-in singleton container, to use our tire that resides in a prototype container?
-The answer, is that up to this point we can't tell car's configuration to look up
-tires in prototype container. Instead will do something else. We'll join our singleton
-and prototype container into one! Just like here:
-----------------
-    AggregateLocatorImpl!() container = new AggregateLocatorImpl!(); // An aggregate container that will fetch components from it's containers.
-    SingletonContainer singleton = new SingletonContainer; 
-    PrototypeContainer prototype = new PrototypeContainer;
-    
-    container.set(singleton, "singleton"); // Let's add singleton container as a source for aggregate container
-    container.set(prototype, "prototype"); // Let's add prototype container as a source for aggregate container
-----------------
-
-Here we can see that we have an aggregate container, that uses singleton 
-and prototype containers to construct/wire our compontents. Now we should proceed to component
-registration and configuration. Yet, we'd ask ourselves another question: since our container
-is a composite one, how we can register into singleton or into prototype container?
-The answer is simple. Register method, in case for composite containers, accepts
-additional parameter, which is a string that identifies our container, in composite
-one. So in order to register our car into singleton, or register our tires
-into prototype container, we'd pass name of sub-container into register method.
-Let's do this:
-----------------
-    container.registerInto!Tire("prototype") // Registering Tire into "prototype" container used by aggregate container
-        .set!"size"(17)
-        .set!"pressure"(3.0)
-        .set!"vendor"("divine tire");
-        
-    container.registerInto!Car
-        .autowire
-        .autowire!"color"
-        .set!"frontLeft"(lref!Tire)
-        .set!"frontRight"(lref!Tire)
-        .set!"backLeft"(lref!Tire)
-        .set!"backRight"(lref!Tire);
-----------------
-
-Cool, we have registered our Tire in prototype container, yet you'd see that
-for Car configuration we didn't pass identity of singleton container. That is
-because Aedi will default to a contaiener named "singleton" when no  
-identity is passed with register method, and use it to register our component. 
-Another thing, you might've noticed, is that we use registerInto instead of register.
-That's because, if we'd only use register method there would be ambiguity in register
-overload set present in library between overloads with component name, 
-and with container name as arguments. Just think like that: If I want to register a component 
-by name into a container or by interface use register, and when you'd like to register by
-type into a container use registerInto.
-
-Note : the current situation is scheduled for a resolution in future versions of library.
-
-Enough talk! Let's boot both of containers (for now each container should be booted
-separately), and see the specs of our cars:
------------------
-    prototype.instantiate(); // Boot container (or prepare managed code/data).
-    singleton.instantiate(); // Boot container (or prepare managed code/data).
-    
-    container.locate!Car.drive("Electric car");
------------------ 
-
-We'd see following output:
+In the result, the car simulator will be able to use a car, that has 4 different instances of a tire.
+Output below shows the constructed car by joint containers.
 -----------------
 Uuh, what a nice car, Electric car with following specs:
 Size:	Size(200, 150, 300)
@@ -627,47 +434,49 @@ void drive(Car car, string name) {
 }
 
 void main() {
-    AggregateLocatorImpl!() container = new AggregateLocatorImpl!(); // An aggregate container that will fetch components from it's containers.
-    SingletonContainer singleton = new SingletonContainer; 
-    PrototypeContainer prototype = new PrototypeContainer;
+    auto container = aggregate( // Create a joint container hosting other two containers
+        singleton(), "singleton", // Create singleton container, and store it in joint container by "singleton" identity
+        prototype(), "prototype" // Create prototype container, and store it in joint container by "prototype" identity
+    );
+
+    with (container.configure("singleton")) { // Configure singleton container
+        register!Color; // Let's register a default implementation of Color
     
-    container.set(singleton, "singleton"); // Let's add singleton container as a source for aggregate container
-    container.set(prototype, "prototype"); // Let's add prototype container as a source for aggregate container
-    
-    container.registerInto!Color; // Let's register a default implementation of Color
-    
-    container.register!Color("color.green") // Register "green" color into container.
-        .set!"r"(cast(ubyte) 0) 
-        .set!"g"(cast(ubyte) 255)
-        .set!"b"(cast(ubyte) 0);
-    
-    container.registerInto!Size // Let's register default implementation of a Size
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(300UL);
-    
-    container.register!Size("size.sedan") // Register a size of a generic "sedan" into container
-        .set!"width"(200UL) 
-        .set!"height"(150UL)
-        .set!"length"(500UL);
+        register!Color("color.green") // Register "green" color into container.
+            .set!"r"(cast(ubyte) 0) 
+            .set!"g"(cast(ubyte) 255)
+            .set!"b"(cast(ubyte) 0);
         
-    container.register!(Engine, ElectricEngine);
-    
-    container.registerInto!Tire("prototype") // Registering Tire into "prototype" container used by aggregate container
-        .set!"size"(17)
-        .set!"pressure"(3.0)
-        .set!"vendor"("divine tire");
+        register!Size // Let's register default implementation of a Size
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(300UL);
         
-    container.registerInto!Car
-        .autowire
-        .autowire!"color"
-        .set!"frontLeft"(lref!Tire)
-        .set!"frontRight"(lref!Tire)
-        .set!"backLeft"(lref!Tire)
-        .set!"backRight"(lref!Tire);
+        register!Size("size.sedan") // Register a size of a generic "sedan" into container
+            .set!"width"(200UL) 
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+            
+        register!(Engine, ElectricEngine);
+
+        register!Car
+            .autowire
+            .autowire!"color"
+            .set!"frontLeft"(lref!Tire)
+            .set!"frontRight"(lref!Tire)
+            .set!"backLeft"(lref!Tire)
+            .set!"backRight"(lref!Tire);
+    }
     
-    prototype.instantiate(); // Boot container (or prepare managed code/data).
-    singleton.instantiate(); // Boot container (or prepare managed code/data).
+    with (container.configure("prototype")) { // Configure prototype container
+
+        register!Tire // Registering Tire into "prototype" container used by aggregate container
+            .set!"size"(17)
+            .set!"pressure"(3.0)
+            .set!"vendor"("divine tire");
+    }
+    
+    container.instantiate(); // Boot container (or prepare managed code/data).
     
     container.locate!Car.drive("Electric car");
 }

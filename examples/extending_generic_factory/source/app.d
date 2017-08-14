@@ -9,10 +9,12 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Usage:
+The interface presented in previous tutorial is a minimalistic interface, and does not provide any ability to
+customize the component that is created. It is practically a black box, that is convenient to use by
+containers, and not by client code that needs to configure components registered in container.
 
-This tutorial, will explain how to separate component construction in two
-distinct steps with builtin primitives:
+To support better configuration, without loosing black boxiness of presented $(D_INLINECODE Factory) interface,
+the process of creating and configuring a component was split into two distinct steps below:
 $(OL
     $(LI Allocation and construction of component )
     $(LI Configuration of component )
@@ -20,37 +22,18 @@ $(OL
 It will explain how to integrate those steps in fluent manner to be used
 along with Aedi api for configuring components.
 
-Tutorial on extending component factory, did show the ground on which
-component construction is built in Aedi. On top of it, in order to allow
-more modular and easier configuration, the process of constructing a component
-was split in two steps shown above. It was done so by defining an interface
-(and implementation) for factories that allows to configure those steps:
+The following steps are formalized into a set of interfaces shown below, where each step
+itself is encapsulated into objects implementing presented interfaces.
+
 --------------------
-interface GenericFactory(T) : Factory!T {
+interface PropertyConfigurer(T) {
     
     public {
         
-        @property {
-            
-            GenericFactory!T setInstanceFactory(InstanceFactory!T factory);
-            
-            Locator!() locator();
-        }
-        
-        GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer);
+        void configure(ref T object);
     }
 }
--------------------- 
 
-GenericFactory interface provides two methods for configuring those steps:
-$(OL
-    $(LI setInstanceFactory -> set instance factory which encapsulates allocation and construction logic. )
-    $(LI addPropertyConfigurer -> adds a configurer that performs some operations on created component. )
-    )
-
-From method definition we can see that, each step is encapsulated in an object implementing
-following interfaces:
---------------------
 interface InstanceFactory(T) {
     
     public {
@@ -59,22 +42,62 @@ interface InstanceFactory(T) {
     }
 }
 
-interface PropertyConfigurer(T) {
+interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigurersAware!T {
     
     public {
         
-        void configure(ref T object);
+        @property {
+            
+            alias locator = Factory!T.locator;
+            
+            Locator!() locator();
+        }
+    }
+}
+
+interface InstanceFactoryAware(T) {
+    public {
+        
+        @property {
+   
+            InstanceFactoryAware!T setInstanceFactory(InstanceFactory!T factory);
+        }
+    }
+}
+
+interface PropertyConfigurersAware(T) {
+    public {
+   
+        PropertyConfigurersAware!T addPropertyConfigurer(PropertyConfigurer!T configurer);
     }
 }
 --------------------
 
-The first interface is used to implement objects that encapsulate allocation and construction
-logic. The second one is used to implement objects that encapsulate configuration logic on components.
+The methods used to configure components in examples up to this point are actually wrappers
+over building blocks that implement interfaces presented above. $(D_INLINECODE register) method is a
+wrapper over an implementation of GenericFactory interface.
 
-For tutorial purposes, we will implement two objects (one for instantiation, and other for configuration)
-which will create and inflate a tire for us. It will log performed actions as well.
-Let's define those implementations:
+When instantiation or configuration of a component is not possible to implement in terms of
+existing tools and interfaces provided by the framework, it is recommended to implement one of
+building block interface, depending on what stage the problem resides. For car simulation app, with-
+out reason the company decided that tires, should be instantiated using their own implementation of
+instance building block. Same with inflating a tire. They decided to use their own implementation.
+
+Next example shows a custom implementation of tire manufacturing process. By implementing
+InstanceFactory interface, the building block can be used along the rest of components already
+present in framework, such as GenericFactory. The only hinder is that what remains is the ugliness, and
+verbosity, due to need to manually instantiate the building block, and pass to generic factory. In-
+stead of manually doing it, wrapping instantiator into a function will lessen the verbosity (check makeTire
+definition and usage), and increase the readability of configuration code, thanks to UFCS feature of 
+D programming language.
+
 --------------------
+auto makeTire(T : GenericFactory!Z, Z : Tire)(auto ref T factory, int size) {
+    factory.setInstanceFactory(new TireConstructorInstanceFactory(size));
+    
+    return factory;
+}
+
 class TireConstructorInstanceFactory : InstanceFactory!Tire {
     
     private {
@@ -100,98 +123,31 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
         }
     }
 }
+--------------------
 
-class TireInflatorConfigurer : PropertyConfigurer!Tire {
+The code for tire inflator configurer can be seen in examples from source code. The difference
+from TireConstructorInstanceFactory is that implementation should extend PropertyConfigurer.
+
+Once the custom implementation and their wrapper are implemented, it is possible to use them
+as any other built-in building blocks from framework. Next example shows how implemented building
+blocks can be used along with other configuration primitives.
+--------------------
+void main() {
     
-    private {
-        float atmospheres;
-    }
-    
-    public {
-        
-        this(float atmospheres = 3.0) {
-            this.atmospheres = atmospheres;
-        }
-        
-        void configure(ref Tire tire) {
-            
-            import std.stdio;
-            
-            write("Inflating tire to ", atmospheres, " atm: ");
-            tire.pressure = atmospheres;
-            writeln("\t[..OK..]");
-        }
-    }
-}
---------------------
-
-The implementation of those interfaces for Tire is straightforward, yet
-inserting them into generic factory would look something like:
---------------------
-genericFactory.setInstanceFactory(new TireConstructorInstanceFactory(17));
-genericFactory.addPropertyConfigurer(new TireInflatorConfigurer(3.0));
---------------------
-which is not quite readable.
-D language has a nice feature which is called UFCS (unified function call syntax)
-which allows us to call functions as like they are methods of their first argument.
-Let's implement wrapper functions that do this:
---------------------
-auto makeTire(T : GenericFactory!Z, Z : Tire)(auto ref T factory, int size) {
-    factory.setInstanceFactory(new TireConstructorInstanceFactory(size));
-    
-    return factory;
-}
-
-auto inflateTire(T : GenericFactory!Z, Z : Tire)(auto ref T factory, float pressure) {
-    factory.addPropertyConfigurer(new TireInflatorConfigurer(pressure));
-    
-    return factory;
-}
---------------------
-
-Now it is possible to set our implented objects in generic factory like that:
---------------------
-genericFactory
-    .makeTire(17)
-    .infateTire(3.0);
---------------------
-
-Wrapper version is more readable, comparing to setting them directly. We can chain configuration commands,
-and it is possible to use autodetection of types based on arguments passed in 
-function, which leverages us from writing them manually when creating instance 
-factory or property configurer in case when they have template arguments.
-Notice that we do interact directly with implementation of GenericFactory (T type argument),
-and not through interface. It is done so, because some parts of
-configuration api can work only with concrete implementation, and we should
-return original implementation in order to use that api in command chaining.
-Returning only the interface can disable some configuration features present in Aedi.
-
-The configuration api used in all tutorials up to this point, actually use generic 
-factory to build a factory consisting of constructor, and configuration steps.
-The .register method actually creates an implementation of generic factory, that
-is set in container, and returned afterwards for configuration. Methods used like
-.constructor or .set on registered component, are actually wrapper functions just like
-examples shown above, that set in generic factory, instance factories or 
-configurers. They are used for chaining commands (which is why wrappers should
-return concrete implementation of generic factory, since some parts of configuration api
-works only with implementation returned from .register method), as well as autodetecting argument's
-type, when needed. Template arguments are not deduced from templated class constructor, that's why
-using wrappers over instance factories or property configurers is desired.
-
-Now knowing that a .register method actually returns a generic factory implementation
-and having wrapper functions over TireConstructorInstanceFactory and TireInflatorConfigurer,
-it is possible to write following nice configuration:
---------------------
     SingletonContainer container = new SingletonContainer;
     
-    container.register!Tire("logging.tire")
-        .makeTire(17)
-        .inflateTire(3.0)
-        .set!"vendor"("hell tire");
+    with (container.configure) {
+
+        register!Tire("logging.tire")
+            .makeTire(17)
+            .inflateTire(3.0)
+            .set!"vendor"("hell tire");
+    }
     
     container.instantiate();
     
     container.locate!Tire("logging.tire").writeln;
+}
 --------------------
 
 Running it, produces following result:
@@ -356,11 +312,14 @@ void main() {
     
     SingletonContainer container = new SingletonContainer;
     
-    container.register!Tire("logging.tire")
-        .makeTire(17)
-        .inflateTire(3.0)
-        .set!"vendor"("hell tire");
-    
+    with (container.configure) {
+
+        register!Tire("logging.tire")
+            .makeTire(17)
+            .inflateTire(3.0)
+            .set!"vendor"("hell tire");
+    }
+
     container.instantiate();
     
     container.locate!Tire("logging.tire").writeln;
