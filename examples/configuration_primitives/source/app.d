@@ -9,21 +9,21 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Besides .set , .construct , methods used in all above examples, framework offers several
+Besides $(D_INLINECODE set) , $(D_INLINECODE construct) , methods used in all above examples, framework offers several
 other configuration methods, that allow greater manipulation, or less verbosity. Additional configu-
 ration primitives are listed below:
 
 $(OL
-    $(LI .autowire )
-    $(LI .factoryMethod )
-    $(LI .callback )
-    )
+    $(LI $(D_INLINECODE autowire) )
+    $(LI $(D_INLINECODE factoryMethod) )
+    $(LI $(D_INLINECODE callback) )
+)
     
-Lets start with first one from list, which is `.autowire` method.
+Lets start with first one from list, which is $(D_INLINECODE autowire) method.
 From it's name we can deduce that it automates wiring of components somehow.
-But how does it do this? Let's register a car using old .set and .construct methods:
+But how does it do this? Let's register a car using old $(D_INLINECODE set) and $(D_INLINECODE construct) methods:
 ----------------
-    container.register!Car("sedan.engine.default")
+    register!Car("sedan.engine.default")
         .construct(lref!Size, lref!Engine)
         .set!"color"(lref!Color);
 ----------------
@@ -32,7 +32,7 @@ Autowire:
 
 Even with more structured instantiation code present using framework, sometimes, even this
 code is too verbose. Some components for example have a set of dependencies defined by some
-interface, and having for each dependency to reference it using lref!Type is quite cumbersome,
+interface, and having for each dependency to reference it using $(D_INLINECODE lref!Type) is quite cumbersome,
 and painfull.
 
 And here comes into play $(D_INLINECODE autowire) configuration method, which handles referencing of
@@ -45,8 +45,8 @@ register!Car("sedan.engine.default") // Register a car with a default engine.
 -----------------
 
 In current implementation of autowired due to limitations of current compiler’s compile time
-introspection, .autowire cannot work well with overloaded methods or constructors. In such cases,
-.autowire cannot know which version of method/constructor to overload, and will default to the
+introspection, $(D_INLINECODE autowire) cannot work well with overloaded methods or constructors. In such cases,
+$(D_INLINECODE autowire) cannot know which version of method/constructor to overload, and will default to the
 first one from the list of overloads.
 
 factoryMethod:
@@ -92,7 +92,7 @@ as a configuration primitive.
         );
 -------------------
 Though it's quite a simple primitive, it is as well powerful one. It is possible to define your own
-custom configuration primitives just by using under the hood the .callback primitive.
+custom configuration primitives just by using under the hood the $(D_INLINECODE callback) primitive.
 
 Those additional primitives are quite handy to use, with libraries that are usign factories,
 dependencies by interface, or when some custom behavior has to be run during construction of a
@@ -103,11 +103,11 @@ Uuh, what a nice car, Gasoline car with following specs:
 Size:	Size(200, 150, 300)
 Color:	Color(0, 0, 0)
 Engine:	app.GasolineEngine
-Let's turn it on
+Let`s turn it on
 pururukVrooomVrrr
 What a nice sound! We should make a test drive!
 vrooom
-Umm the test drive was awesome, let's get home and turn it off.
+Umm the test drive was awesome, let`s get home and turn it off.
 vrooom
 vrrrPrrft
 
@@ -115,11 +115,11 @@ Uuh, what a nice car, Manufactured car with following specs:
 Size:	Size(200, 150, 500)
 Color:	Color(0, 0, 0)
 Engine:	app.DieselEngine
-Let's turn it on
+Let`s turn it on
 pururukVruumVrrr
 What a nice sound! We should make a test drive!
 vruum
-Umm the test drive was awesome, let's get home and turn it off.
+Umm the test drive was awesome, let`s get home and turn it off.
 vruum
 vrrrPft
 
@@ -127,11 +127,11 @@ Uuh, what a nice car, Electric car with following specs:
 Size:	Size(200, 150, 300)
 Color:	Color(0, 0, 0)
 Engine:	app.ElectricEngine
-Let's turn it on
+Let`s turn it on
 pzt
 What a nice sound! We should make a test drive!
 vvvvvvvvv
-Umm the test drive was awesome, let's get home and turn it off.
+Umm the test drive was awesome, let`s get home and turn it off.
 vvvvvvvvv
 tzp
 -------------------

@@ -560,6 +560,14 @@ template canFactoryGenericFactory(alias T, Z)
     alias canFactoryGenericFactory = canFactoryGenericFactory!(typeof(T), Z);
 }
 
+// /**
+// ditto
+// **/
+// template canFactoryGenericFactory(T, Z)
+//     if (!isAggregateType!T) {
+//     enum bool canFactoryGenericFactory = false;
+// }
+
 /**
 ditto
 **/

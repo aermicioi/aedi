@@ -62,8 +62,8 @@ $(OL
 //    ..............car example code..............    
 ------------------
 
-Quite straitforward implementation is shown here. The application takes argument from com-
-mand line, switches on it, and registers different set of components for car, based on argument of
+Quite straitforward implementation is shown here. The application takes argument from command line,
+switches on it, and registers different set of components for car, based on argument of
 command line. Though for simplistic usage, the approach is quite useful, yet in cases when the
 control over container instantiation is not handled by the client code, but by a third party container,
 such a straightforward approach becomes quite complicated. For such cases the framework does pro-
@@ -105,20 +105,22 @@ auto containerWithProfiles() {
 ------------------
 
 The profile based container is assembled from 3 switchable containers, and a subscribable
-composite container. When the application is booted up, the code from main loads into container
+composite container. When the application is booted up, the code from $(D_INLINECODE main(string[] args)) loads into container
 "profile" argument. Afterwards components are registered into container, and for each profile,
 the profiled components are registered in respective gasoline, electric, diesel containers. Once this
 is finished, the container is instantiated using $(D_INLINECODE intantiate) method. During instantiation phase,
 subscribable composite container fires an pre-instantiation event on which, a delegate is attached, that
 checks for "profile" argument, and enables the container identified by value in profile container.
 In such a way most of conditional chains such as switch or if are avoided, furthermore the approach
-could be scaled indefinitely without hindering the expressivity of implementation.
+could be scaled indefinitely without hindering the expressibility of implementation.
 
 Both subscribable and switchable containers, are decorators over more basic ones, and can be
 used with all containers present from framework. They can be nested in any order desired, by the
 implementor.
 
-Try running this example. Experiment with it, to understand decorating containers.
+Try running this example, pass as argument $(D_INLINECODE --profile) with value of 
+$(D_INLINECODE gasoline), $(D_INLINECODE electric), $(D_INLINECODE diesel).
+Experiment with it, to understand decorating containers.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003

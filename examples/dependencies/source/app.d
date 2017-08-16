@@ -66,7 +66,7 @@ components. Clearly the solution is more flexible, yet at a cost of increased am
 
 A DI framework aims to lessen the burden of writing wiring code, and will eliminate the need
 of micromanaging the order component creation. It will do instead of developers, just like in following
-example:
+example
 
 ------------------
 SingletonContainer container = singleton(); // Creating container that will manage a color
@@ -97,7 +97,7 @@ Referencing a dependency in a Car can be done using $(D_INLINECODE lref!Type) no
 framework to detect that a dependency is actually required to pass, and not a simple value. Therefore
 the framework will search for a value of a type $(D_INLINECODE Type) and pass it as a dependency to Car.
 The result of a container can be seen by fetching a car from container and printing it to the
-stdout:
+stdout
 
 At end we should see the car:
 ------------------

@@ -1,0 +1,15 @@
+{
+	"name" : "annotation_configuration",
+	"description" : "Introduction example, to aedi library. Configuration by annotation.",
+	"authors" : [ "Alexandru Ermicioi" ],
+	"license" : "BSL-1.0",
+	"targetType" : "executable",
+	"importPaths" : [
+		"./source"
+	],
+	"dependencies" : {
+		"aedi" : {
+			"path" : "../../"
+		}
+	}
+}

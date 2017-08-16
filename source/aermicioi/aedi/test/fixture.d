@@ -665,6 +665,12 @@ struct StructFixtureFactory {
     }
 }
 
+@component
+@qualifier!Person() // Be warned, without parantheses, compiler will return instantiated function and not it's return type.
+class QualifiedPerson : Person {
+
+}
+
 /**
 A simple model that is to be proxied.
 Note: Currently autoimplement fails, on objects that are implementing interfaces.

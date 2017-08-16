@@ -34,11 +34,11 @@ that exposes component serving abilities, along with option to instantiate them 
 usage. The following interfaces are allowed to be implemented by custom container:
 
 $(UL
-    $(LI Container – exposes serving component features.)
-    $(LI Storage – exposes component factory storing capabilities.)
-    $(LI FactoryLocator – exposes component factory locating capabilities)
-    $(LI AliasAware – exposes aliasing of component’s identity to another identity)
-    $(LI ConfigurableContainer – exposes component factory storing capabilities along FactoryLocator and AliasAware)
+    $(LI $(D_INLINECODE Container) – exposes serving component features.)
+    $(LI $(D_INLINECODE Storage) – exposes component factory storing capabilities.)
+    $(LI $(D_INLINECODE FactoryLocator) – exposes component factory locating capabilities)
+    $(LI $(D_INLINECODE AliasAware) – exposes aliasing of component’s identity to another identity)
+    $(LI $(D_INLINECODE ConfigurableContainer) – exposes component factory storing capabilities along FactoryLocator and AliasAware)
 )
 
 Container:

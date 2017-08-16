@@ -26,11 +26,11 @@ itself. Attempting to add another car to container like in example below, will f
 Both cars are identified in container by their type.
 
 -----------------
-    container.register!Car
+    register!Car
         .construct(lref!Size)
         .set!"color"(lref!Color);
         
-    container.register!Car
+    register!Car
         .construct(lref!Size)
         .set!"color"(Color(0, 0, 0));
 -----------------
@@ -48,7 +48,7 @@ Color:	Color(0, 0, 0)
 Each registered component in a container is associated with an identity in it. In case with
 car for previous examples, the Car component is associated with identity representing it’s Type. To
 avoid associating a component by it’s type during registration, pass it’s identity as an argument to
-.register method, like in example below. A component can also be associated with an interface it
+$(D_INLINECODE register) method, like in example below. A component can also be associated with an interface it
 implements by inserting desired interface before the type of registered component.
 
 -----------------
@@ -91,9 +91,9 @@ To reference a component that has custom identity, in a configuration or reliant
 use $(D_INLINECODE lref("custom-associated-identity")) notation. Seeing this type of reference, framework
 will attempt to search component by this identity, and serve it to component that is in con-
 struction. Thanks to unified function call syntax (UFCS) available in D programming language,
-lref("custom-associated-identity") can be rewritten into a more pleasant view $(D_INLINECODE "custom-
--associated-identity".lref). To extract manually a component with custom identity pass the
-identity to $(D_INLINECODE locate) method as first argument, along with type of component.
+lref("custom-associated-identity") can be rewritten into a more pleasant view $(D_INLINECODE "custom-associated-identity".lref).
+To extract manually a component with custom identity pass the identity to $(D_INLINECODE locate)
+method as first argument, along with type of component.
 
 Running fixed version of configuration, will yield in printing all three cars from code above into
 stdout in output below. To be sure that all modifications done in this tutorial are working, run the

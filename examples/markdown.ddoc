@@ -4,16 +4,12 @@ BACKTICK = `
 DOLLAR = $
 LF =
 $(LF)
-H1 = #$0
-H2 = #$(H1 $0)
-H3 = #$(H2 $0)
-H4 = #$(H3 $0)
-H5 = #$(H4 $0)
+H1 = # $0
+H2 = ## $0 
+H3 = ### $0
+H4 = #### $0
+H5 = ##### $0
 ESCAPES =
-  /</&lt;/
-  />/&gt;/
-  /&/&amp;/
-
 B = *$0*
 I = _$0_
 U = $(B $0)
@@ -41,7 +37,7 @@ $0
 D_INLINECODE = `$0`
 DDOC_BACKQUOTED = $(D_INLINECODE $0)
 D_COMMENT = $0
-D_STRING = "$0"
+D_STRING = $0
 D_KEYWORD = $0
 D_PSYMBOL = $0
 D_PARAM = $0
@@ -84,7 +80,7 @@ DDOC_STANDARDS = $(H2 Standards)$(P $0)
 DDOC_THROWS = $(H2 Throws)$(P $0)
 DDOC_VERSION = $(H2 Version)$(P $0)
 DDOC_SECTION = $(P $0)
-DDOC_SECTION_H = $(H3 $0)
+DDOC_SECTION_H = $(H2 $0)
 DDOC_DITTO = 
 $0
 DDOC_PSYMBOL = $0

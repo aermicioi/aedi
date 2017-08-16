@@ -407,6 +407,13 @@ auto qualifier(string id) {
 }
 
 /**
+ditto
+**/
+QualifierAnnotation qualifier(string id)() {
+    return QualifierAnnotation(id);
+}
+
+/**
 An annotation used to provide custom identity for an object in container by some interface.
 
 This function is a convenince function to automatically infer required types for underlying annotation.
@@ -414,7 +421,7 @@ This function is a convenince function to automatically infer required types for
 Params:
     I = identity of object in container
 **/
-auto qualifier(I)() {
+QualifierAnnotation qualifier(I)() {
     return QualifierAnnotation(name!I);
 }
 

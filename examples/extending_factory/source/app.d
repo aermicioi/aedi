@@ -14,8 +14,7 @@ Usage:
 For an end consumer of Aedi library, it is rarely needed to extend it's logic
 with something new. But for a developer that wants to integrate Aedi library
 with his/her framework, sometimes it is required to extend library to integrate it
-with rest of framework. Aedi was designed with purpose of extending it in two 
-directions:
+with rest of framework. Aedi was designed with purpose of extending it in two directions:
 
 $(OL
     $(LI Containers -> responsible for created components. )
@@ -91,8 +90,8 @@ implementation of $(D_INLINECODE Wrapper) interface which roots into Object clas
 attempt to supply value based dependencies to components, fetch the wrapped components from
 container, extracts the component from wrapper and passes it to the component.
 
-From the constraint that containers apply on accepted types, the same requirements are prop-
-agated to component factories which are stored in containers. To leverage this problem, framework
+From the constraint that containers apply on accepted types, the same requirements are propagated
+to component factories which are stored in containers. To leverage this problem, framework
 provides a decorating factory, that wraps up another factory, and exposes an compatible interface
 for containers. It will automatically wrap any component that is not rooted in Object class into a
 $(D_INLINECODE Wrapper) implementation and give it further to container.
@@ -111,13 +110,13 @@ auto registerLogged(Type)(Storage!(ObjectFactory, string) container, string iden
 }
 ------------------
 
-To test custom component factory example below shows how it can be used seamlessly and un-
-kowngly from the point of view of a user of library.
+To test custom component factory example below shows how it can be used seamlessly and 
+unknowingly from the point of view of a user of library.
 
 ------------------
 void main() {
     
-    SingletonContainer container = new SingletonContainer;
+    SingletonContainer container = singleton();
     
     container.registerLogged!Tire("logging.tire");
     container.registerLogged!int("logging.int");
@@ -269,7 +268,7 @@ auto registerLogged(Type)(Storage!(ObjectFactory, string) container, string iden
 
 void main() {
     
-    SingletonContainer container = new SingletonContainer;
+    SingletonContainer container = singleton();
     
     container.registerLogged!Tire("logging.tire");
     container.registerLogged!int("logging.int");

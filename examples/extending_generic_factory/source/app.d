@@ -75,7 +75,7 @@ interface PropertyConfigurersAware(T) {
 
 The methods used to configure components in examples up to this point are actually wrappers
 over building blocks that implement interfaces presented above. $(D_INLINECODE register) method is a
-wrapper over an implementation of GenericFactory interface.
+wrapper over an implementation of $(D_INLINECODE GenericFactory) interface.
 
 When instantiation or configuration of a component is not possible to implement in terms of
 existing tools and interfaces provided by the framework, it is recommended to implement one of
@@ -84,10 +84,10 @@ out reason the company decided that tires, should be instantiated using their ow
 instance building block. Same with inflating a tire. They decided to use their own implementation.
 
 Next example shows a custom implementation of tire manufacturing process. By implementing
-InstanceFactory interface, the building block can be used along the rest of components already
-present in framework, such as GenericFactory. The only hinder is that what remains is the ugliness, and
-verbosity, due to need to manually instantiate the building block, and pass to generic factory. In-
-stead of manually doing it, wrapping instantiator into a function will lessen the verbosity (check makeTire
+$(D_INLINECODE InstanceFactory) interface, the building block can be used along the rest of components already
+present in framework, such as $(D_INLINECODE GenericFactory). The only hinder is that what remains is the ugliness, and
+verbosity, due to need to manually instantiate the building block, and pass to generic factory. Instead
+of manually doing it, wrapping instantiator into a function will lessen the verbosity (check $(D_INLINECODE makeTire)
 definition and usage), and increase the readability of configuration code, thanks to UFCS feature of 
 D programming language.
 
@@ -126,7 +126,7 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
 --------------------
 
 The code for tire inflator configurer can be seen in examples from source code. The difference
-from TireConstructorInstanceFactory is that implementation should extend PropertyConfigurer.
+from $(D_INLINECODE TireConstructorInstanceFactory) is that implementation should extend $(D_INLINECODE PropertyConfigurer).
 
 Once the custom implementation and their wrapper are implemented, it is possible to use them
 as any other built-in building blocks from framework. Next example shows how implemented building
@@ -158,7 +158,7 @@ Tire(17 inch, 3 atm, hell tire)
 --------------------
 
 Try to implement your own instance factory or property configurer, wrap them
-in a function, and use in component configuration. Try to do this for Car
+in a function, and use in component configuration. Try to do this for $(D_INLINECODE Car)
 component from previous examples.
 
 License:
