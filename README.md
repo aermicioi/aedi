@@ -28,13 +28,13 @@ Add Aedi as a dependency to a dub project:
 Json configuration:
 
 ```json
-"aedi": "~>0.2.0"
+"aedi": "~>0.3.0"
 ```
 
 SDL configuration:
 
 ```sdl
-dependency "aedi" version="~>0.2.0"
+dependency "aedi" version="~>0.3.0"
 ```
 
 ## Quickstart
