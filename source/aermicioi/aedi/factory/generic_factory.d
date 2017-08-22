@@ -49,7 +49,7 @@ import std.typecons;
 A property configurer, has the purpose to modify data of type T according to some logic encapsulated in it.
 
 **/
-interface PropertyConfigurer(T) {
+interface PropertyConfigurer(T) : LocatorAware!() {
     
     public {
         
@@ -66,7 +66,7 @@ interface PropertyConfigurer(T) {
 /**
 An instance factory, instantiates data of type T.
 **/
-interface InstanceFactory(T) {
+interface InstanceFactory(T) : LocatorAware!() {
     
     public {
         
@@ -227,6 +227,16 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
             **/
             GenericFactory!T locator(Locator!() locator) {
                 this.locator_ = locator;
+
+                if (this.factory_ !is null) {
+
+                    this.factory_.locator = locator;
+                }
+                
+                foreach (configurer; this.configurers) {
+                    configurer.locator = locator;
+                }
+
                 return this;
             }
             
@@ -278,16 +288,54 @@ GenericFactory!T genericFactory(T)(Locator!() locator) {
 }
 
 /**
+Default implementation of locator aware used in generic factory module.
+**/
+abstract class LocatorHolder : LocatorAware!() {
+
+    private {
+        Locator!() locator_;        
+    }
+
+    public {
+        @property {
+            /**
+    		Sets the locator that will be used by configurer to fetch object referenced in argument list.
+    		
+    		Params:
+    			locator = the (service) locator that will be used to fetch required objects.
+    		
+    		Returns:
+    			The ParameterHolder instance.
+    		**/
+            LocatorHolder locator(Locator!() locator)  {
+            	this.locator_ = locator;
+            
+            	return this;
+            }
+            
+            /**
+                Get locator
+                
+                Returns:
+                    Locator!()
+            **/
+            Locator!() locator() @safe nothrow {
+            	return this.locator_;
+            }
+        }
+    }
+}
+
+/**
 ParameterHolder Stores a set of Args for futher usage in it's subclasses.
 
 Params:
     Args = a type tuple of args that ParameterHolder can hold.
 **/
-abstract class ParameterHolder(Args...) : LocatorAware!() {
+abstract class ParameterHolder(Args...) : LocatorHolder {
     
     protected {
         Tuple!Args args_;
-        Locator!() locator_;
     }
     
     public {
@@ -319,32 +367,6 @@ abstract class ParameterHolder(Args...) : LocatorAware!() {
         	return this.args_;
         } 
     
-        @property {
-            /**
-    		Sets the locator that will be used by configurer to fetch object referenced in argument list.
-    		
-    		Params:
-    			locator = the (service) locator that will be used to fetch required objects.
-    		
-    		Returns:
-    			The ParameterHolder instance.
-    		**/
-            ParameterHolder!Args locator(Locator!() locator)  {
-            	this.locator_ = locator;
-            
-            	return this;
-            }
-            
-            /**
-                Get locator
-                
-                Returns:
-                    Locator!()
-            **/
-            Locator!() locator() @safe nothrow {
-            	return this.locator_;
-            }
-        }
     }
 }
 
@@ -487,7 +509,7 @@ auto fieldConfigurer(string property, T, Arg)(Locator!() locator, auto ref Arg a
 /**
 Instantiates an aggregate using it's constructor with no arguments.
 **/
-class DefaultConstructorBasedFactory(T) : InstanceFactory!T 
+class DefaultConstructorBasedFactory(T) : LocatorHolder, InstanceFactory!T 
     if (
         hasDefaultCtor!T
     ) {
@@ -913,7 +935,7 @@ As a consequence, any reference based type will
 point to same content when it is instantiated 
 multiple times. 
 **/
-class ValueInstanceFactory(T) : InstanceFactory!T {
+class ValueInstanceFactory(T) : LocatorHolder, InstanceFactory!T {
     private {
         T initial_;
     }
@@ -972,7 +994,7 @@ class ValueInstanceFactory(T) : InstanceFactory!T {
 InstanceFactory that delegates the task of instantiating a component
 to some third party factory.
 **/
-class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!(Factory!X) {
+class DelegatingInstanceFactory(T, X : T) : LocatorHolder, InstanceFactory!T, MutableDecorator!(Factory!X) {
     
     private {
         Factory!X decorated_;
