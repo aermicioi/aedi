@@ -401,13 +401,9 @@ class MethodConfigurer(T, string property, Args...) : ParameterHolder!Args, Prop
                         )
                     )[0]
                 );
-                Tuple!ArgTuple parameters;
                 
-                foreach (index, ref parameter; parameters) {
-                    
-                    parameter = args[index].resolve!(typeof(parameter))(this.locator);
-                }
-                __traits(getMember, obj, property)(parameters.expand);
+                mixin(q{__traits(getMember, obj, property)(} ~ compileArgumentsTuple!ArgTuple(q{ArgTuple}, q{this.args}, q{this.locator}) ~ q{);});
+
             } catch (Exception e) {
                 throw new PropertyConfigurerException("Error occurred during call of " ~ name!T ~ "." ~ property, e);
             }
@@ -556,28 +552,20 @@ class ConstructorBasedFactory(T, Args...) : ParameterHolder!Args, InstanceFactor
             
             try {
                 
-                alias ConstructorArgs = staticMap!(Unqual,
-                    Parameters!(
-                        Filter!(
-                            partialSuffixed!(
-                                isArgumentListCompatible,
-                                Args
-                            ), 
-                            __traits(getOverloads, T, "__ctor")
-                        )[0]
-                    )
+                alias ConstructorArgs = Parameters!(
+                    Filter!(
+                        partialSuffixed!(
+                            isArgumentListCompatible,
+                            Args
+                        ), 
+                        __traits(getOverloads, T, "__ctor")
+                    )[0]
                 );
-                
-                Tuple!ConstructorArgs parameters;
-                
-                foreach (index, ref parameter; parameters) {
-                    parameter = this.args[index].resolve!(typeof(parameter))(this.locator);
-                }
-                
+
                 static if (is(T : Object)) {
-                    return new T(parameters.expand);
+                    mixin(q{return new T(} ~ compileArgumentsTuple!ConstructorArgs(q{ConstructorArgs}, q{this.args}, q{this.locator}) ~ q{);});
                 } else {
-                    return T(parameters.expand);
+                    mixin(q{return T(} ~ compileArgumentsTuple!ConstructorArgs(q{ConstructorArgs}, q{this.args}, q{this.locator}) ~ q{);});
                 }
             } catch (Exception e) {
                 
@@ -689,18 +677,20 @@ class FactoryMethodBasedFactory(T, string method, W, Args...) :
                     )[0]
                 );
                 
-                Tuple!FactoryMethodParameters parameters;
-                
-                foreach (index, ref parameter; parameters) {
-                    parameter = this.args[index].resolve!(typeof(parameter))(this.locator);
-                }
-                
                 static if (!__traits(isStaticFunction, getCompatibleOverload!(T, method, Args))) {
     
-                    return __traits(getMember, this.fact.resolve!(T)(this.locator), method)(parameters.expand);
+                    mixin(
+                        q{return __traits(getMember, this.fact.resolve!(T)(this.locator), method)(} ~ 
+                        compileArgumentsTuple!FactoryMethodParameters(q{FactoryMethodParameters}, q{this.args}, q{this.locator}) ~ 
+                        q{);}
+                        );
                 } else {
     
-                    return __traits(getMember, T, method)(parameters.expand);
+                    mixin(
+                        q{return __traits(getMember, T, method)(} ~ 
+                        compileArgumentsTuple!FactoryMethodParameters(q{FactoryMethodParameters}, q{this.args}, q{this.locator}) ~ 
+                        q{);}
+                        );
                 }
             } catch (Exception e) {
                 
@@ -1223,3 +1213,17 @@ private {
             "__ctor"
         );
 }	
+
+private {
+    string compileArgumentsTuple(Tuple...)(string types, string array, string locator) {
+        import std.conv : to;
+        import std.array : join;
+        string[] stmt;
+
+        foreach (index, Type; Tuple) {
+            stmt ~= array ~ "[" ~ index.to!string ~ "].resolve!(" ~ types ~ "[" ~ index.to!string ~ "])(" ~ locator ~ ")";
+        }
+
+        return stmt.join(", ");
+    }
+}
