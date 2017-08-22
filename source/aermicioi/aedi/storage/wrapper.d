@@ -30,12 +30,21 @@ Authors:
 module aermicioi.aedi.storage.wrapper;
 
 import std.traits;
+import std.meta : staticMap;
 
 interface Wrapper(T) {
     public {
         @property ref T value();
         
         alias value this;
+    }
+}
+
+interface Castable(T) {
+    public {
+        @property T casted();
+
+        alias casted this;
     }
 }
 
@@ -49,26 +58,70 @@ Also thanks to alias value this semantics, in D is possible to do automatic
 unboxing of values, just like Java does with simple values :P.
 **/
 class WrapperImpl(T) : Wrapper!T {
-    private {
-        T value_;
+    mixin WrapperMixin!T;
+}
+
+/**
+ditto
+**/
+class CastableWrapperImpl(T, Castables...) : Wrapper!T, staticMap!(toCastable, Castables) {
+    import std.meta;
+    import aermicioi.util.traits;
+    mixin WrapperMixin!T;
+
+    mixin CastableMixin!(Castables);
+}
+
+private {
+
+    mixin template WrapperMixin(T) {
+        private {
+            T value_;
+        }
+        
+        public {
+            
+            this() @disable;
+            
+            this(ref T value) {
+                this.value_ = value;
+            }
+            
+            this(T value) {
+                this.value_ = value;
+            }
+            
+            alias value this;
+            
+            @property ref T value() {
+                return this.value_;
+            } 
+        }
     }
-    
-    public {
-        
-        this() @disable;
-        
-        this(ref T value) {
-            this.value_ = value;
+
+    mixin template CastableMixin() {
+
+    }
+
+    mixin template CastableMixin(Type) {
+        @property {
+            Type casted() {
+                return cast(Type) this.value;
+            }
         }
-        
-        this(T value) {
-            this.value_ = value;
-        }
-        
-        alias value this;
-        
-        @property ref T value() {
-            return this.value_;
-        } 
+    }
+
+    mixin template CastableMixin(Type, Second, More...) {
+
+        mixin CastableMixin!(Type);
+
+        mixin CastableMixin!(Second);
+
+        mixin CastableMixin!(More);
+    }
+
+    template toCastable(T) {
+        alias toCastable = Castable!T;
     }
 }
+

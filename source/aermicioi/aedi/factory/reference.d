@@ -261,6 +261,96 @@ auto anonymous(ObjectFactory factory) {
     return anonymous;
 }
 
+class AlternateReference : RuntimeReference {
+    private {
+        RuntimeReference original_;
+        RuntimeReference alternative_;
+    }
+
+    public {
+        /**
+            Set original
+            
+            Params: 
+                original = primary reference used to fetch dependency
+            Returns:
+                typeof(this)
+        **/
+        typeof(this) original(RuntimeReference original) @safe nothrow pure {
+            this.original_ = original;
+        
+            return this;
+        }
+        
+        /**
+            Get original
+            
+            Returns:
+                RuntimeReference
+        **/
+        RuntimeReference original() @safe nothrow pure {
+            return this.original_;
+        }
+
+        /**
+            Set alternative
+            
+            Params: 
+                alternative = the second reference used when first throws exception
+            
+            Returns:
+                typeof(this)
+        **/
+        typeof(this) alternative(RuntimeReference alternative) @safe nothrow pure {
+            this.alternative_ = alternative;
+        
+            return this;
+        }
+        
+        /**
+            Get alternative
+            
+            Returns:
+                RuntimeReference
+        **/
+        RuntimeReference alternative() @safe nothrow pure {
+            return this.alternative_;
+        }
+
+        /**
+        Resolve the reference, to referenced data.
+        
+        Resolve the reference, to referenced data.
+        
+        Params:
+            locator = an optional source of data used to resolve reference
+        
+        Returns:
+            Object the actual object, or data that is wrapped in Wrapper object.
+        **/
+        Object get(Locator!() locator) {
+            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+            
+            try {
+                
+                return this.original.get(locator);
+            } catch (NotFoundException e) {
+                
+                return this.alternative.get(locator);
+            }
+        }
+    }
+}
+
+AlternateReference alternate(RuntimeReference original, RuntimeReference alternate) {
+    AlternateReference reference = new AlternateReference();
+
+    reference.original = original;
+    reference.alternative = alternate;
+
+    return reference;
+}
+
 /**
 Resolve a reference, and attempt to convert to data of type T.
 
@@ -312,7 +402,16 @@ auto resolve(T)(RuntimeReference reference, Locator!() locator)
         Wrapper!T result = cast(Wrapper!T) obj;
         
         if (result !is null) {
-            return result;
+            return result.value;
+        }
+    }
+
+    {
+        Castable!T result = cast(Castable!T) obj;
+        
+        if (result !is null) {
+           
+            return result.casted;
         }
     }
     
@@ -330,10 +429,23 @@ ditto
 auto resolve(T)(RuntimeReference reference, Locator!() locator)
     if (!is(T == interface)) {
     
-    Wrapper!T result = cast(Wrapper!T) reference.get(locator);
-    
-    if (result !is null) {
-        return result;
+    Object obj = reference.get(locator);
+
+    {
+        Wrapper!T result = cast(Wrapper!T) obj;
+        
+        if (result !is null) {
+            return result.value;
+        }
+    }
+
+    {
+        Castable!T result = cast(Castable!T) obj;
+        
+        if (result !is null) {
+            
+            return result.casted;
+        }
     }
     
     throw new InvalidCastException(

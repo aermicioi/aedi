@@ -49,6 +49,17 @@ unittest {
 }
 
 unittest {
+    SingletonContainer container = new SingletonContainer;
+    MockValueFactory!ubyte fact = new MockValueFactory!ubyte;
+    WrappingFactory!(MockValueFactory!ubyte) wrapper = new WrappingFactory!(MockValueFactory!ubyte)(fact);
+    
+    wrapper.locator = container;
+    
+    assert(wrapper.type == typeid(ubyte));
+    assert(wrapper.factory.classinfo == typeid(CastableWrapperImpl!(ubyte, ushort, uint, ulong, short, int, long, float, double)));
+}
+
+unittest {
     MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
     MockFactory!MockObject oFact = new MockFactory!MockObject;
     RuntimeWrappingFactory!(MockValueFactory!MockStruct) wrapper = new RuntimeWrappingFactory!(MockValueFactory!MockStruct)(fact);

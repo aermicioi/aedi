@@ -225,7 +225,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
                 Returns:
                     typeof(this)
             **/
-            GenericFactoryImpl!T locator(Locator!() locator) {
+            GenericFactory!T locator(Locator!() locator) {
                 this.locator_ = locator;
                 return this;
             }

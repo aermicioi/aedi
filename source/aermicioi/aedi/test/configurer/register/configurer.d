@@ -50,8 +50,7 @@ unittest {
     assert(container.locate!(Employee)() !is null);
     assert(container.locate!Employee(name!Person) !is null);
     assert(container.locate!Employee(name!(Identifiable!ulong)) !is null);
-    assert(container.locate!StructFixtureFactory !is null);
-    assert(container.locate!StructFixtureFactory.value == StructFixtureFactory());
+    assert(container.locate!StructFixtureFactory == StructFixtureFactory());
 }
 
 unittest {
@@ -156,12 +155,9 @@ unittest {
     assert(prototype.locate!Employee(name!Person) !is null);
     assert(prototype.locate!Employee(name!(Identifiable!ulong)) !is null);
     
-    assert(singleton.locate!StructFixtureFactory !is null);
-    assert(singleton.locate!StructFixtureFactory !is singleton.locate!StructFixtureFactory("factory"));
-    assert(singleton.locate!StructFixtureFactory.value == singleton.locate!StructFixtureFactory("factory"));
+    assert(singleton.locate!StructFixtureFactory == singleton.locate!StructFixtureFactory("factory"));
     
-    assert(prototype.locate!StructFixtureFactory !is prototype.locate!StructFixtureFactory("protoFactory"));
-    assert(prototype.locate!StructFixtureFactory.value == prototype.locate!StructFixtureFactory("protoFactory"));
+    assert(prototype.locate!StructFixtureFactory == prototype.locate!StructFixtureFactory("protoFactory"));
 }
 
 unittest {
@@ -188,7 +184,6 @@ unittest {
     assert(container.locate!Job() !is null);
     assert(container.locate!(Person)(name!(Identifiable!ulong)) !is null);
     
-    assert(container.locate!StructFixtureFactory !is null);
     assert(container.locate!StructFixtureFactory.job is container.locate!Job);
     assert(container.locate!StructFixtureFactory.person is container.locate!Person);
     assert(container.locate!StructFixtureFactory.employee is container.locate!Employee);

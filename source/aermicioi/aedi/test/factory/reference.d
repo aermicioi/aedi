@@ -81,6 +81,7 @@ unittest {
     assert(anonymous(cfactory).resolve!MockObject(storage) !is null);
     assert(anonymous(cfactory).resolve!MockObject(storage).classinfo is typeid(MockObject));
     
-    assert(anonymous(sfactory).resolve!int(storage) !is null);
     assert(anonymous(sfactory).resolve!int(storage) == 0);
+    assert(anonymous(sfactory).resolve!long(storage) == 0);
+    assert(anonymous(sfactory).resolve!double(storage) == 0.0);
 }

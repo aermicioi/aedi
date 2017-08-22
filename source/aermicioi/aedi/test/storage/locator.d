@@ -49,6 +49,7 @@ unittest {
     storage.set(new WrapperImpl!(MockStruct)(MockStruct(10)), "alien");
     storage.set(new WrapperImpl!(MockExternObject)(new MockExternObject(10)), "c++alien");
     storage.set(new WrapperImpl!(MockExternInterface)(new MockExternObject(10)), "c++alienInterface");
+	storage.set(new CastableWrapperImpl!(ubyte, short, int, long)(10), "castable.com");
     
     assert(storage.locate!MockObject("john") is john);
     assertThrown!InvalidCastException(storage.locate!MockObjectFactoryMethod("john"));
@@ -59,6 +60,13 @@ unittest {
     
     assert(storage.locate!MockStruct("alien") == MockStruct(10));
     assertThrown!InvalidCastException(storage.locate!int("alien"));
+
+	assert(storage.locate!ubyte("castable.com") == cast(ubyte) 10);
+	assert(storage.locate!short("castable.com") == cast(short) 10);
+	assert(storage.locate!int("castable.com") == cast(int) 10);
+	assert(storage.locate!long("castable.com") == cast(long) 10);
+
+	assertThrown(storage.locate!ushort("castable.com"));
     
     assert(storage.locate!MockObject is katty);
 }

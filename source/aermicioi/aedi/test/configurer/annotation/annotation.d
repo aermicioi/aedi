@@ -57,7 +57,6 @@ unittest {
     assert(container.locate!Job() !is null);
     assert(container.locate!(Person)(name!(Identifiable!ulong)) !is null);
     
-    assert(container.locate!StructFixtureFactory !is null);
     assert(container.locate!StructFixtureFactory.job is container.locate!Job);
     assert(container.locate!StructFixtureFactory.person is container.locate!Person);
     assert(container.locate!StructFixtureFactory.employee is container.locate!Employee);

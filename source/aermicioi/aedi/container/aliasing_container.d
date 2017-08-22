@@ -71,6 +71,7 @@ template AliasingContainer(T) {
         Locator!(),
         AliasAware!string,
         MutableDecorator!T,
+        Decorator!Container
     );
 
     /**

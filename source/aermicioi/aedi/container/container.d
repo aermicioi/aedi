@@ -59,7 +59,7 @@ interface ConfigurableContainer : Container, Storage!(ObjectFactory, string), Al
 }
 
 /**
-Provide an interface for accessing factories used by containers to instantiate data.
+Provide an interface for accessing factories used by containers to instantiate component.
 **/
 interface FactoryLocator(T : Factory!Z, Z) {
     import std.range.interfaces;
@@ -68,17 +68,17 @@ interface FactoryLocator(T : Factory!Z, Z) {
     public {
         
         /**
-        Get factory for constructed data identified by identity.
+        Get factory for constructed component identified by identity.
         
-        Get factory for constructed data identified by identity.
+        Get factory for constructed component identified by identity.
         Params:
-        	identity = the identity of data that factory constructs.
+        	identity = the identity of component that factory constructs.
         
         Throws:
         	NotFoundException when factory for it is not found.
         
         Returns:
-        	T the factory for constructed data.
+        	T the factory for constructed component.
         **/
         T getFactory(string identity);
         

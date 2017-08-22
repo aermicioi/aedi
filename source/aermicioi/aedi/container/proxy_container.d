@@ -100,7 +100,8 @@ template ProxyContainerImpl(T)
                 InterfacesTuple!T
             ),
             ProxyContainer, 
-            MutableDecorator!T
+            MutableDecorator!T,
+            Decorator!Container
         );
 
     /**

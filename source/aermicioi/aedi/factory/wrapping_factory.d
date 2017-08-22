@@ -122,6 +122,30 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
             static if (is(Z : Object)) {
                 
                 return this.decorated.factory;
+            } else static if (is(Z == class)) {
+                import aermicioi.aedi.storage.wrapper : CastableWrapperImpl;
+                return new CastableWrapperImpl!(Z, InterfacesTuple!Z)(this.decorated.factory);
+                // return new CastableWrapperImpl!(Z, InterfacesTuple!Z, BaseClassesTuple!Z)(this.decorated.factory); /// Nope not working with extern classes
+            } else static if (is(Z == ubyte)) {
+                return new CastableWrapperImpl!(Z, ushort, uint, ulong, short, int, long, float, double)(this.decorated.factory);
+            } else static if (is(Z == ushort)) {
+                return new CastableWrapperImpl!(Z, uint, ulong, int, long, float, double)(this.decorated.factory);
+            } else static if (is(Z == uint)) {
+                return new CastableWrapperImpl!(Z, ulong, long, float, double)(this.decorated.factory);
+            } else static if (is(Z == ulong)) {
+                return new CastableWrapperImpl!(Z, double)(this.decorated.factory);
+            } else static if (is(Z == byte)) {
+                return new CastableWrapperImpl!(Z, short, int, long, float, double)(this.decorated.factory);
+            } else static if (is(Z == short)) {
+                return new CastableWrapperImpl!(Z, int, long, float, double)(this.decorated.factory);
+            } else static if (is(Z == int)) {
+                return new CastableWrapperImpl!(Z, long, float, double)(this.decorated.factory);
+            } else static if (is(Z == long)) {
+                return new CastableWrapperImpl!(Z, double)(this.decorated.factory);
+            } else static if (is(Z == float)) {
+                return new CastableWrapperImpl!(Z, double)(this.decorated.factory);
+            } else static if (is(Z == double)) {
+                return new WrapperImpl!(Z)(this.decorated.factory);
             } else {
                 import aermicioi.aedi.storage.wrapper : WrapperImpl;
                 return new WrapperImpl!Z(this.decorated.factory);

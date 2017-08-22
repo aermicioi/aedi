@@ -28,7 +28,7 @@ Authors:
 	aermicioi
 **/
 
-module aermicioi.aermicioi.aedi.test.factory_configurer;
+module aermicioi.aedi.test.factory_configurer;
 
 import aermicioi.aedi.storage;
 import aermicioi.aedi.configurer.register.register;

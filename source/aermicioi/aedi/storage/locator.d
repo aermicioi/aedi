@@ -152,18 +152,33 @@ ditto
 @trusted auto ref locate(T)(Locator!(Object, string) locator, string id) 
     if (is(T == interface)) {
     import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
-    import aermicioi.aedi.storage.wrapper : Wrapper;
+    import aermicioi.aedi.storage.wrapper : Wrapper, Castable;
     
-    auto casted = cast(T) locator.get(id);
-    
-    if (casted !is null) {
-        return casted;
+    auto obj = locator.get(id);
+
+    {
+        auto result = cast(T) obj;
+        
+        if (result !is null) {
+            return result;
+        }
     }
     
-    auto wrapper = cast(Wrapper!T) locator.get(id);
-    
-    if (wrapper !is null) {
-        return wrapper;
+    {
+        auto result = cast(Wrapper!T) obj;
+        
+        if (result !is null) {
+            return result.value;
+        }
+    }
+
+    {
+        auto result = cast(Castable!T) obj;
+        
+        if (result !is null) {
+            
+            return result.casted;
+        }
     }
     
     throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
@@ -175,15 +190,28 @@ ditto
 @trusted auto ref locate(T)(Locator!(Object, string) locator, string id) 
     if(!is(T == interface)) {
     import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
-    import aermicioi.aedi.storage.wrapper : Wrapper;
+    import aermicioi.aedi.storage.wrapper : Wrapper, Castable;
     
-    auto wrapper = (cast(Wrapper!T) locator.get(id));
-    
-    if (wrapper is null) {
-        throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
+    auto obj = locator.get(id);
+    {
+        auto result = cast(Wrapper!T) obj;
+        
+        if (result !is null) {
+
+            return result.value;
+        }
+    }
+
+    {
+        auto result = cast(Castable!T) obj;
+        
+        if (result !is null) {
+
+            return result.casted;
+        }
     }
     
-    return wrapper;
+    throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
 }
 
 /**
