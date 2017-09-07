@@ -500,3 +500,160 @@ private {
         return subject.info.isDerived(iface.info);
     }
 }
+
+class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecorator!T, DefferredExecutionerAware {
+    import aermicioi.aedi.exception;
+    mixin MutableDecoratorMixin!T;
+
+    private {
+
+        DefferredExecutioner executioner_;
+    }
+
+    public {
+        this(T factory) {
+            this.decorated = factory;
+        }
+
+        @property {
+            /**
+            Set executioner
+            
+            Params: 
+                executioner = executioner used for deffered construction.
+            
+            Returns:
+                typeof(this)
+            **/
+            typeof(this) executioner(DefferredExecutioner executioner) @safe nothrow pure {
+                this.executioner_ = executioner;
+            
+                return this;
+            }
+            
+            /**
+            Get executioner
+            
+            Returns:
+                DefferredExecutioner
+            **/
+            DefferredExecutioner executioner() @safe nothrow pure {
+                return this.executioner_;
+            }
+
+            /**
+    		Get the type info of T that is created.
+    		
+    		Returns:
+    			TypeInfo object of created component.
+    		**/
+        	TypeInfo type() {
+        	    return this.decorated.type;
+        	}
+        	
+            /**
+            Set a locator to object.
+            
+            Params:
+                locator = the locator that is set to oject.
+            
+            Returns:
+                LocatorAware.
+            **/
+        	DefferedProxyWrapper!T locator(Locator!() locator) {
+        		this.decorated.locator = locator;
+        	
+        		return this;
+        	}
+        }
+
+        Z factory() {
+            try {
+                return this.decorated.factory();
+            } catch (AediException exception) {
+
+                if (this.executioner !is null) {
+
+                    Throwable current = exception;
+
+                    while (current !is null) {
+
+                        CircularReferenceException circularReferenceException = cast(CircularReferenceException) current;
+
+                        if (current !is null) {
+
+                            if (circularReferenceException !is null) {
+
+                                DefferedProxy!Z proxy = new DefferedProxy!Z;
+                                this.executioner.add(
+                                    () {
+                                        proxy.original__ = this.decorated.factory();
+                                    }
+                                );
+
+                                return proxy;
+                            }
+                        }
+                    }
+                }
+
+                throw exception;
+            }
+        }
+    }
+}
+
+private abstract class DefferedProxyHusk(T) : T {
+
+    protected {
+        T original__;
+    }
+
+    public {
+        
+    }
+}
+
+import std.typecons : AutoImplement;
+import std.traits;
+
+alias DefferedProxy(T) = AutoImplement!(
+    DefferedProxyHusk!T,
+    __how,
+    __what
+    );
+
+template __what(alias fun) {
+    enum bool __what = !isFinalFunction!(fun) || (__traits(identifier, fun) == "__ctor") || (__traits(identifier, fun) == "__dtor");
+}
+
+string __how(C, alias fun)() {
+
+    static if (__traits(identifier, fun) == "__ctor") {
+        return __ctor!(C, fun);
+    } else static if (__traits(identifier, fun) == "__dtor") {
+        return __dtor!(C, fun);
+    } else {
+        return __method!(C, fun);
+    }
+}
+
+string __method(C, alias fun)() {
+    string stmt = null;
+    static if (!is(ReturnType!fun == void)) {
+    
+        stmt ~= q{return };
+    }
+
+    return stmt ~ q{original__.} ~ __traits(identifier, fun) ~ q{(args);};
+}
+
+string __ctor(C, alias fun)() {
+    return q{
+        super(args);
+    };
+}
+
+string __dtor(C, alias fun)() {
+    return q{};
+}

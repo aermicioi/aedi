@@ -83,6 +83,22 @@ unittest
 
 unittest
 {
+    auto container = deffered(singleton());
+
+    assert(typeid(container) is typeid(DefferedContainer!SingletonContainer));
+}
+
+unittest
+{
+    import aermicioi.aedi.storage.locator : locate;
+    import aermicioi.aedi.factory.generic_factory : DefferredExecutioner;
+    auto container = deffered(singleton(), "deff");
+
+    assert(container.locate!DefferredExecutioner("deff") is container.executioner);
+}
+
+unittest
+{
     auto container = container(values(), values());
 
     assert(typeid(container) is typeid(TupleContainer!(ValueContainer, ValueContainer)));

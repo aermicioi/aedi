@@ -29,6 +29,7 @@ Authors:
 **/
 module aermicioi.aedi.container.decorating_mixin;
 
+import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.storage;
@@ -36,9 +37,22 @@ import aermicioi.aedi.storage.locator;
 
 import aermicioi.aedi.container.container : FactoryLocator;
 
+mixin template ContainerMixin(T : Container) {
 
-mixin template AliasAwareMixin(T : Decorator!Z, Z : AliasAware!W, W) {
+    /**
+    Sets up the internal state of container.
+    
+    Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
+    **/
+    DefferedContainer instantiate()
+    {
+        this.decorated.instantiate();
 
+        return this;
+    }
+}
+
+mixin template AliasAwareMixin(T : AliasAware!W, W) {
     /**
     Alias a identity to an alias_.
             
@@ -49,7 +63,7 @@ mixin template AliasAwareMixin(T : Decorator!Z, Z : AliasAware!W, W) {
     Returns:
         this
     **/
-    T link(W identity, W alias_)
+    AliasAware!W link(W identity, W alias_)
     {
         decorated.link(identity, alias_);
 
@@ -66,7 +80,7 @@ mixin template AliasAwareMixin(T : Decorator!Z, Z : AliasAware!W, W) {
         this
         
     **/
-    T unlink(W alias_)
+    AliasAware!W unlink(W alias_)
     {
         decorated.unlink(alias_);
 
@@ -93,7 +107,7 @@ mixin template AliasAwareMixin(T) {
 
 }
 
-mixin template StorageMixin(T : Decorator!Z, Z : Storage!(W, X), W, X) {
+mixin template StorageMixin(T : Storage!(W, X), W, X) {
     /**
     Set component in decorated by identity.
     
@@ -168,7 +182,9 @@ mixin template LocatorMixin(T) {
     pragma(msg, is(T));
 }
 
-mixin template FactoryLocatorMixin(T : Decorator!Z, Z : FactoryLocator!W, W) {
+mixin template FactoryLocatorMixin(T : FactoryLocator!W, W) {
+    import std.range.interfaces : InputRange;
+    import std.typecons : Tuple;
     /**
     Get factory for constructed data identified by identity.
     

@@ -427,3 +427,37 @@ auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) {
     
     return factory;
 }
+
+auto defferedConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory) {
+    return factory.defferredConfiguration(fullyQualifiedName!DefferredExecutioner);
+}
+
+auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) {
+    auto defferedExecutioinerAware = cast(DefferredExecutionerAware) factory.decorated;
+    if ((defferedExecutioinerAware !is null) && (factory.locator.has(defferedExecutionerIdentity))) {
+     
+        defferedExecutioinerAware.executioner = factory.locator.locate!DefferredExecutioner(defferedExecutionerIdentity);
+    }
+
+    return factory;
+}
+
+auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory) {
+    return factory.defferredConfiguration(fullyQualifiedName!DefferredExecutioner);
+}
+
+auto defferredConstruction(Z : ConfigurationContextFactory!T, T : Object)(Z factory, string defferedExecutionerIdentity) {
+    if (factory.locator.has(defferedExecutionerIdentity)) {
+
+        auto proxy = new DefferedProxyWrapper!(Factory!T)(factory.decorated);
+        factory.wrapper.decorated = proxy;
+        proxy.executioner = factory.locator.locate!DefferredExecutioner;
+    }
+
+    return factory;
+}
+
+auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) {
+
+    return factory;
+}

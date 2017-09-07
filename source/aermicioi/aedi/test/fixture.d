@@ -41,6 +41,79 @@ interface MockTotallyNotInheritedInterface {
     int iNot(int iPain);
 }
 
+class CircularMockObject : MockInterface {
+    
+    int property;
+
+    CircularMockObject circularDependency_;
+    
+    int imethod(int arg1, int arg2) { 
+        property = arg1 - arg2;
+        
+        return property;
+    }
+
+    /**
+    Set circularDependency
+    
+    Params: 
+        circularDependency = the triggering dependency.
+    
+    Returns:
+        typeof(this)
+    **/
+    typeof(this) circularDependency(CircularMockObject circularDependency) @safe nothrow pure {
+        this.circularDependency_ = circularDependency;
+    
+        return this;
+    }
+    
+    /**
+    Get circularDependency
+    
+    Returns:
+        CircularMockObject
+    **/
+    CircularMockObject circularDependency() @safe nothrow pure {
+        return this.circularDependency_;
+    }
+}
+
+class MockCircularConstructionObject {
+    Object dependency_;
+
+    this(Object dependency) {
+        this.dependency = dependency;
+    }
+
+    @property {
+        /**
+        Set dependency
+        
+        Params: 
+            dependency = the circular dependency
+        
+        Returns:
+            typeof(this)
+        **/
+        typeof(this) dependency(Object dependency) @safe nothrow pure {
+            this.dependency_ = dependency;
+        
+            return this;
+        }
+        
+        /**
+        Get dependency
+        
+        Returns:
+            Object
+        **/
+        Object dependency() @safe nothrow pure {
+            return this.dependency_;
+        }
+    }
+}
+
 class MockObject : MockInterface {
     
     int property;
@@ -222,14 +295,20 @@ class MockValueFactory(T) : Factory!T {
     }
 }
 
-class CircularFactoryMock(T) : MockFactory!T {
-    
+class CircularFactoryMock(T) : MockFactory!T, Factory!T {
+    Object fetched;
+    string referenced = "mock";
+
     public {
-        override Object factory() {
+        override T factory() {
             auto t = new T;
-            this.locator_.get("mock");
+            this.fetched = this.locator_.get(this.referenced);
             
             return t;
+        }
+
+        override TypeInfo type() @safe nothrow {
+            return typeid(T);
         }
     }
 }

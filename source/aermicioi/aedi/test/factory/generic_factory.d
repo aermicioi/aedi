@@ -229,3 +229,26 @@ unittest {
     assert(factory.factory() !is null);
     assert(ifact.decorated is pfact);
 }
+
+unittest {
+    import aermicioi.aedi.container.singleton_container;
+    import aermicioi.aedi.factory.wrapping_factory;
+    SingletonContainer storage = new SingletonContainer();
+    GenericFactoryImpl!CircularMockObject first = new GenericFactoryImpl!CircularMockObject(storage);
+    GenericFactoryImpl!CircularMockObject second = new GenericFactoryImpl!CircularMockObject(storage);
+    DefferredExecutionerImpl executioner = new DefferredExecutionerImpl();
+    first.executioner = executioner;
+    second.executioner = executioner;
+
+    storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(first), "first");
+    storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(second), "second");
+
+    first.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(storage, new LocatorReference("second")));
+    second.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(storage, new LocatorReference("first")));
+    
+    CircularMockObject fObject = storage.locate!CircularMockObject("first");
+    CircularMockObject sObject = storage.locate!CircularMockObject("second");
+    assert(sObject.circularDependency_ is null);
+    executioner.execute;
+    assert(sObject.circularDependency_ !is null);
+}

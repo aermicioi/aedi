@@ -40,10 +40,79 @@ import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.storage.wrapper;
 import aermicioi.util.traits;
 
+
 import std.conv : to;
 import std.meta;
 import std.traits;
 import std.typecons;
+
+/**
+Interface for objects that are executing delayed/defferred actions.
+**/
+interface DefferredExecutioner {
+
+    public {
+
+        /**
+        Add a new defferred action to be executed
+        
+        Params: 
+            dg = the deffered action to execute
+            
+        Returns:
+            typeof(this)
+        **/
+        DefferredExecutioner add(void delegate() dg);
+
+        /**
+        Add a set of defferred actions to be executed
+        
+        Params: 
+            dgs = list of defferred actions
+        
+        Returns:
+            typeof(this)
+        **/
+        DefferredExecutioner add(void delegate()[] dgs);
+
+        /**
+        Execute defferred actions
+        
+        Returns:
+            typeof(this)
+        **/
+        DefferredExecutioner execute();
+    }
+}
+
+/**
+Interface for objects that are aware of deffered executioner, and are able to store their defferred actions in it
+for later execution, by themselves or other third party.
+**/
+interface DefferredExecutionerAware {
+    public {
+        @property {
+            /**
+            Set executioner
+            
+            Params: 
+                executioner = the executioner used to deffer actions for a later time
+            
+            Returns:
+                typeof(this)
+            **/
+            typeof(this) executioner(DefferredExecutioner executioner) @safe nothrow pure;
+            
+            /**
+            Get executioner
+            
+            Returns:
+                DefferredExecutioner
+            **/
+            DefferredExecutioner executioner() @safe nothrow pure;
+        }
+    }
+}
 
 /**
 A property configurer, has the purpose to modify data of type T according to some logic encapsulated in it.
@@ -148,7 +217,7 @@ interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigu
 /**
 A concrete implementation of GenericFactory interface.
 **/
-class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
+class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecutionerAware {
     
     private {
         Locator!() locator_;
@@ -156,6 +225,8 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
         InstanceFactory!T factory_;
         
         PropertyConfigurer!T[] configurers;
+
+        DefferredExecutioner executioner_;
     }
     
     public {
@@ -194,13 +265,69 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!() {
             }
 
             foreach (key, configurer; this.configurers) {
-                configurer.configure(instance);
+
+                try {
+
+                    configurer.configure(instance);
+                } catch (AediException exception) {
+
+                    if (this.executioner !is null) {
+
+                        Throwable current = exception;
+
+                        while (current !is null) {
+                            CircularReferenceException e = cast(CircularReferenceException) current;
+
+                            if (e !is null) {
+                                this.executioner.add(() {
+                                    configurer.configure(instance);
+                                });
+
+                                break;
+                            }
+
+                            current = current.next;
+                        }
+
+                        if (current is null) {
+                            throw exception;
+                        }
+                    } else {
+
+                        throw exception;
+                    }
+                }
             }
             
             return instance;
         }
         
         @property {
+
+            /**
+            Set executioner
+            
+            Params: 
+                executioner = executioner used to deffer configurations at later time
+            
+            Returns:
+                typeof(this)
+            **/
+            typeof(this) executioner(DefferredExecutioner executioner) @safe nothrow pure {
+                this.executioner_ = executioner;
+            
+                return this;
+            }
+            
+            /**
+            Get executioner
+            
+            Returns:
+                DefferredExecutioner
+            **/
+            DefferredExecutioner executioner() @safe nothrow pure {
+                return this.executioner_;
+            }
             
             /**
             Sets the constructor of new object.
@@ -285,6 +412,66 @@ ditto
 **/
 GenericFactory!T genericFactory(T)(Locator!() locator) {
     return new GenericFactoryImpl!T(locator);
+}
+
+
+/**
+Standard implementation of DefferredExecutioner interface.
+**/
+class DefferredExecutionerImpl : DefferredExecutioner {
+
+    private {
+        void delegate()[] deffered;
+    }
+
+    public {
+
+        /**
+        Add a new defferred action to be executed
+        
+        Params: 
+            dg = the deffered action to execute
+            
+        Returns:
+            typeof(this)
+        **/
+        DefferredExecutioner add(void delegate() dg) {
+            this.deffered ~= dg;
+
+            return this;
+        }
+
+        /**
+        Add a set of defferred actions to be executed
+        
+        Params: 
+            dgs = list of defferred actions
+        
+        Returns:
+            typeof(this)
+        **/
+        DefferredExecutioner add(void delegate()[] dgs) {
+            this.deffered ~= dgs;
+
+            return this;
+        }
+
+        /**
+        Execute defferred actions
+        
+        Returns:
+            typeof(this)
+        **/
+        DefferredExecutioner execute() {
+            foreach (dg; this.deffered) {
+                dg();
+            }
+
+            this.deffered = null;
+
+            return this;
+        }
+    }
 }
 
 /**

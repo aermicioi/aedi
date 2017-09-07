@@ -37,67 +37,119 @@ import aermicioi.aedi.exception.invalid_cast_exception;
 
 import aermicioi.aedi.test.fixture;
 
-unittest {
+unittest
+{
     SingletonContainer container = new SingletonContainer;
     MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
-    WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(MockValueFactory!MockStruct)(fact);
-    
+    WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(
+            MockValueFactory!MockStruct)(fact);
+
     wrapper.locator = container;
-    
+
     assert(wrapper.type == typeid(MockStruct));
     assert(wrapper.factory.classinfo == typeid(WrapperImpl!MockStruct));
 }
 
-unittest {
+unittest
+{
     SingletonContainer container = new SingletonContainer;
     MockValueFactory!ubyte fact = new MockValueFactory!ubyte;
-    WrappingFactory!(MockValueFactory!ubyte) wrapper = new WrappingFactory!(MockValueFactory!ubyte)(fact);
-    
+    WrappingFactory!(MockValueFactory!ubyte) wrapper = new WrappingFactory!(MockValueFactory!ubyte)(
+            fact);
+
     wrapper.locator = container;
-    
+
     assert(wrapper.type == typeid(ubyte));
-    assert(wrapper.factory.classinfo == typeid(CastableWrapperImpl!(ubyte, ushort, uint, ulong, short, int, long, float, double)));
+    assert(wrapper.factory.classinfo == typeid(CastableWrapperImpl!(ubyte,
+            ushort, uint, ulong, short, int, long, float, double)));
 }
 
-unittest {
+unittest
+{
     MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
     MockFactory!MockObject oFact = new MockFactory!MockObject;
-    RuntimeWrappingFactory!(MockValueFactory!MockStruct) wrapper = new RuntimeWrappingFactory!(MockValueFactory!MockStruct)(fact);
-    RuntimeWrappingFactory!(MockFactory!MockObject) oWrapper = new RuntimeWrappingFactory!(MockFactory!MockObject)(oFact);
-    
+    RuntimeWrappingFactory!(MockValueFactory!MockStruct) wrapper = new RuntimeWrappingFactory!(
+            MockValueFactory!MockStruct)(fact);
+    RuntimeWrappingFactory!(MockFactory!MockObject) oWrapper = new RuntimeWrappingFactory!(
+            MockFactory!MockObject)(oFact);
+
     assert(wrapper.type == typeid(MockStruct));
     assert(wrapper.factory.classinfo == typeid(WrapperImpl!MockStruct));
-    
+
     assert(oWrapper.type == typeid(MockObject));
     assert(oWrapper.factory.classinfo == typeid(MockObject));
 }
 
-unittest {
+unittest
+{
     SingletonContainer container = new SingletonContainer;
     MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
-    WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(MockValueFactory!MockStruct)(fact);
+    WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(
+            MockValueFactory!MockStruct)(fact);
     UnwrappingFactory!MockStruct unwrapper = new UnwrappingFactory!MockStruct(wrapper);
     unwrapper.locator = container;
-    
+
     assert(unwrapper.type == typeid(MockStruct));
     assert(unwrapper.factory is MockStruct());
-    
+
     MockFactory!MockObject wrong = new MockFactory!MockObject;
 
     assertThrown!InvalidCastException(unwrapper.decorated = wrong);
 }
 
-unittest {
+unittest
+{
     SingletonContainer container = new SingletonContainer;
     MockValueFactory!MockObject fact = new MockValueFactory!MockObject;
-    WrappingFactory!(MockValueFactory!MockObject) wrapper = new WrappingFactory!(MockValueFactory!MockObject)(fact);
-    ClassUnwrappingFactory!MockInterface unwrapper = new ClassUnwrappingFactory!MockInterface(wrapper);
+    WrappingFactory!(MockValueFactory!MockObject) wrapper = new WrappingFactory!(
+            MockValueFactory!MockObject)(fact);
+    ClassUnwrappingFactory!MockInterface unwrapper = new ClassUnwrappingFactory!MockInterface(
+            wrapper);
     unwrapper.locator = container;
-    
+
     assert(unwrapper.type == typeid(MockObject));
     import std.stdio;
+
     assert(unwrapper.factory.classinfo == typeid(MockInterface).info);
-    
+
     MockFactory!MockObjectFactoryMethod wrong = new MockFactory!MockObjectFactoryMethod;
     assertThrown!InvalidCastException(unwrapper.decorated = wrong);
+}
+
+unittest
+{
+    import aermicioi.aedi.factory.generic_factory;
+    import aermicioi.aedi.factory.factory;
+
+    DefferredExecutioner executioner = new DefferredExecutionerImpl;
+    SingletonContainer container = new SingletonContainer;
+
+    CircularFactoryMock!MockObject first = new CircularFactoryMock!MockObject();
+    CircularFactoryMock!MockObject second = new CircularFactoryMock!MockObject();
+    DefferedProxyWrapper!(Factory!MockObject) defferedF = new DefferedProxyWrapper!(Factory!MockObject)(first);
+    DefferedProxyWrapper!(Factory!MockObject) defferedS = new DefferedProxyWrapper!(Factory!MockObject)(second);
+    
+    first.locator = container;
+    first.referenced = "second";
+    second.locator = container;
+    second.referenced = "first";
+    defferedF.executioner = executioner;
+    defferedS.executioner = executioner;
+
+    container.set(new WrappingFactory!(DefferedProxyWrapper!(Factory!MockObject))(defferedF), "first");
+    container.set(new WrappingFactory!(DefferedProxyWrapper!(Factory!MockObject))(defferedS), "second");
+
+    Object mock = container.get("first");
+
+    import std.stdio;
+    typeid(mock).writeln;
+    assert(first.fetched !is null);
+    assert(first.fetched !is mock);
+    assert(cast (DefferedProxy!MockObject) first.fetched !is null);
+    executioner.execute;
+    auto proxy = (cast(MockObject) first.fetched);
+    auto original = cast(MockObject) container.get("second");
+
+    proxy.imethod(1, 10);
+    assert(original.property == proxy.property);
 }

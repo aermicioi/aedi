@@ -32,6 +32,7 @@ module aermicioi.aedi.test.configurer.register.context;
 import aermicioi.aedi.configurer.register.context;
 import aermicioi.aedi.configurer.register.factory_configurer;
 import aermicioi.aedi.container.singleton_container;
+import aermicioi.aedi.container.deffered_container;
 import aermicioi.aedi.container.application_container;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.object_storage;
@@ -132,6 +133,7 @@ unittest {
 
 unittest {
     SingletonContainer container = new SingletonContainer;
+    
 
     with (container.configure.withRegistrationInfo) {
         
@@ -182,3 +184,40 @@ unittest {
         assertThrown!AediException(container.locate!MockObject(fullyQualifiedName!MockInterface));
     }
 }
+
+unittest {
+    SingletonContainer singleton = new SingletonContainer;
+    DefferedContainer!SingletonContainer container = new DefferedContainer!SingletonContainer(singleton);
+
+    with (container.configure.withConfigurationDefferring) {
+        
+        register!CircularMockObject("first")
+            .set!"circularDependency"("second".lref);
+        register!CircularMockObject("second")
+            .set!"circularDependency"("first".lref);
+    }
+
+    assert(
+        container.locate!CircularMockObject("first").circularDependency is 
+        container.locate!CircularMockObject("second")
+        );
+}
+
+// Closing it due to not being finished completely
+// unittest {
+//     SingletonContainer singleton = new SingletonContainer;
+//     DefferedContainer!SingletonContainer container = new DefferedContainer!SingletonContainer(singleton);
+
+//     with (container.configure.withConstructionDefferring) {
+        
+//         register!MockCircularConstructionObject("first")
+//             .construct!("second".lref);
+//         register!MockCircularConstructionObject("second")
+//             .construct!("first".lref);
+//     }
+
+//     assert(
+//         container.locate!CircularMockObject("first").circularDependency is 
+//         container.locate!CircularMockObject("second")
+//         );
+// }

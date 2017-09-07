@@ -92,7 +92,7 @@ struct RegistrationContext(
             ConfigurationContextFactory!T factory = new ConfigurationContextFactory!T();
             
             GenericFactoryImpl!T implementation = new GenericFactoryImpl!T(locator);
-            ObjectWrappingFactory!(GenericFactory!T) wrapper = new ObjectWrappingFactory!(GenericFactory!T)(implementation);
+            ObjectWrappingFactory!(Factory!T) wrapper = new ObjectWrappingFactory!(Factory!T)(implementation);
             
             factory.decorated = implementation;
             factory.wrapper = wrapper;
@@ -485,4 +485,371 @@ ditto
 **/
 auto withRegistrationInfo(T : RegistrationContext!Z, alias Z)(auto ref T context) {
     return RegistrationInfoTaggedRegistrationContext!T(context);
+}
+
+/**
+A component registration interface for storage.
+
+Registration context registers components into storage,
+and uses a locator as a source of dependencies for components.
+
+Params:
+	ObjectWrappingFactory = factory used to wrap components that are not
+	derived from Object.
+**/
+struct DefferredConfigurationContext(
+    R,
+    Args...
+) {
+    public {
+        
+        string executionerIdentity;
+        R context;
+
+        alias context this;
+
+        /**
+        Constructor for RegistrationContext
+        
+        Params: 
+            storage = storage where to put registered components
+            locator = locator used to get registered component's dependencies
+        **/
+        this(R context, string executionerIdentity) 
+        in {
+            assert(executionerIdentity !is null);
+        }
+        body {
+            this.context = context;
+            this.executionerIdentity = executionerIdentity;
+        }
+        
+        /**
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Params:
+            Interface = interface of registered component that it implements
+        	T = type of registered component
+        	identity = identity by which component is stored in storage
+        
+        Returns:
+        	GenericFactory!T factory for component for further configuration
+        **/
+        ConfigurationContextFactory!T register(T)(string identity) {
+            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+            
+            ConfigurationContextFactory!T factory = this.context.register!T(identity);
+            
+            auto defferedExecutioinerAware = cast(DefferredExecutionerAware) factory.decorated;
+            if (defferedExecutioinerAware !is null) {
+                try {
+
+                    auto executioner = this.context.locator.locate!DefferredExecutioner();
+                    defferedExecutioinerAware.executioner = executioner;
+                } catch (NotFoundException e) {
+
+                }
+            }
+
+            return factory;
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(T)() {
+            return register!T(fullyQualifiedName!T);
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(Interface, T : Interface)()
+            if (!is(T == Interface)) {
+            return register!T(fullyQualifiedName!Interface);
+        }
+        
+        alias register = this.context.register;
+    }
+}
+
+/**
+A decorating component registration interface for container, that adds configuration deferring ability if possible.
+
+A decorating component registration interface for container, that adds configuration deferring ability if possible.
+The registration interface will automatically add deffering abilities to configured components if and
+only if locator for components used by created factories provide a deferred action executioner, and 
+created factory supports usage of defferred action executioner.
+
+Params:
+	R context to override.
+**/
+struct DefferredConfigurationContext(
+    R
+) {
+    public {
+        import aermicioi.aedi.configurer.register.factory_configurer : defferredConfiguration;
+        
+        string executionerIdentity;
+        R context;
+
+        alias context this;
+
+        /**
+        Constructor for RegistrationContext
+        
+        Params: 
+            storage = storage where to put registered components
+            locator = locator used to get registered component's dependencies
+        **/
+        this(R context, string executionerIdentity) 
+        in {
+            assert(executionerIdentity !is null);
+        }
+        body {
+            this.context = context;
+            this.executionerIdentity = executionerIdentity;
+        }
+        
+        /**
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Params:
+            Interface = interface of registered component that it implements
+        	T = type of registered component
+        	identity = identity by which component is stored in storage
+        
+        Returns:
+        	GenericFactory!T factory for component for further configuration
+        **/
+        ConfigurationContextFactory!T register(T)(string identity) {
+            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+            
+            ConfigurationContextFactory!T factory = this.context.register!T(identity);
+            
+            return factory.defferredConfiguration(this.executionerIdentity);
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(T)() {
+            return register!T(fullyQualifiedName!T);
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(Interface, T : Interface)()
+            if (!is(T == Interface)) {
+            return register!T(fullyQualifiedName!Interface);
+        }
+
+        /**
+        Register a component of type T by identity, type, or interface it implements with a default value.
+        
+        Register a component of type T by identity, type, or interface it implements with a default value.
+        
+        Params:
+            Interface = interface of registered component that it implements
+        	T = type of registered component
+        	identity = identity by which component is stored in storage
+        	value = initial value of component;
+        
+        Returns:
+        	GenericFactory!T factory for component for further configuration
+        **/
+        ConfigurationContextFactory!T register(T)(auto ref T value, string identity) {
+            import aermicioi.aedi.configurer.register.factory_configurer : val = value;
+            
+            ConfigurationContextFactory!T factory = register!T(identity);
+            
+            factory.val(value);
+            
+            return factory;
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(T)(auto ref T value)
+            if (!is(T == string)) {
+            
+            return register(value, fullyQualifiedName!T);
+        }
+            
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(Interface, T : Interface)(auto ref T value)
+            if (!is(T == Interface)) {
+            
+            return register(value, fullyQualifiedName!Interface);
+        }
+    }
+}
+
+/**
+Wrap a configuration context into a defferring configuration context.
+
+Params: 
+    context = the context to be wrapped up into.
+    executionerIdentity = the identity of executioner that is searched in
+    factory locator to be used for defferring configuration to the last minute.
+
+Returns:
+    DefferredConfigurationContext!T
+**/
+auto withConfigurationDefferring(T)(T context, string executionerIdentity) {
+    return DefferredConfigurationContext!(T)(context, executionerIdentity);
+}
+
+/**
+ditto
+**/
+auto withConfigurationDefferring(T)(T context) {
+    return DefferredConfigurationContext!(T)(context, fullyQualifiedName!DefferredExecutioner);
+}
+
+/**
+A decorating component registration interface for container, that adds construction deferring ability if possible.
+
+A decorating component registration interface for container, that adds construction deferring ability if possible.
+The registration interface will automatically add deffering abilities to configured components if and
+only if locator for components used by created factories provide a deferred action executioner, and 
+created factory supports usage of defferred action executioner.
+
+Params:
+	R context to override.
+**/
+struct DefferredConstructionContext(
+    R
+) {
+    public {
+        import aermicioi.aedi.configurer.register.factory_configurer : defferredConstruction;
+        
+        string executionerIdentity;
+        R context;
+
+        alias context this;
+
+        /**
+        Constructor for RegistrationContext
+        
+        Params: 
+            storage = storage where to put registered components
+            locator = locator used to get registered component's dependencies
+        **/
+        this(R context, string executionerIdentity) 
+        in {
+            assert(executionerIdentity !is null);
+        }
+        body {
+            this.executionerIdentity = executionerIdentity;
+        }
+        
+        /**
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Register a component of type T by identity, type, or interface it implements.
+        
+        Params:
+            Interface = interface of registered component that it implements
+        	T = type of registered component
+        	identity = identity by which component is stored in storage
+        
+        Returns:
+        	GenericFactory!T factory for component for further configuration
+        **/
+        ConfigurationContextFactory!T register(T)(string identity) {
+            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+            
+            ConfigurationContextFactory!T factory = this.context.register!T(identity);
+            
+            return factory.defferredConstruction(this.executionerIdentity);
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(T)() {
+            return register!T(fullyQualifiedName!T);
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(Interface, T : Interface)()
+            if (!is(T == Interface)) {
+            return register!T(fullyQualifiedName!Interface);
+        }
+
+        /**
+        Register a component of type T by identity, type, or interface it implements with a default value.
+        
+        Register a component of type T by identity, type, or interface it implements with a default value.
+        
+        Params:
+            Interface = interface of registered component that it implements
+        	T = type of registered component
+        	identity = identity by which component is stored in storage
+        	value = initial value of component;
+        
+        Returns:
+        	GenericFactory!T factory for component for further configuration
+        **/
+        ConfigurationContextFactory!T register(T)(auto ref T value, string identity) {
+            import aermicioi.aedi.configurer.register.factory_configurer : val = value;
+            
+            ConfigurationContextFactory!T factory = register!T(identity);
+            
+            factory.val(value);
+            
+            return factory;
+        }
+        
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(T)(auto ref T value)
+            if (!is(T == string)) {
+            
+            return register(value, fullyQualifiedName!T);
+        }
+            
+        /**
+        ditto
+        **/
+        ConfigurationContextFactory!T register(Interface, T : Interface)(auto ref T value)
+            if (!is(T == Interface)) {
+            
+            return register(value, fullyQualifiedName!Interface);
+        }
+    }
+}
+
+/**
+Wrap a configuration context into a defferring construction context.
+
+Params: 
+    context = the context to be wrapped up into.
+    executionerIdentity = the identity of executioner that is searched in
+    factory locator to be used for defferring the construction
+
+Returns:
+    DefferredConstructionContext!T
+**/
+auto withConstructionDefferring(T)(T context, string executionerIdentity) {
+    return DefferredConstructionContext!(T)(context, executionerIdentity);
+}
+
+/**
+ditto
+**/
+auto withConstructionDefferring(T)(T context) {
+    return DefferredConstructionContext!(T)(context, fullyQualifiedName!DefferredExecutioner);
 }

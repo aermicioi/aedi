@@ -69,6 +69,9 @@ Wrap up a container into switchable container.
 
 Wraps up a container to provide switching capabilites to it.
 
+Params:
+	container = container to wrap up in switchable container
+
 Returns:
 	SwitchableContainer!T
 **/
@@ -80,6 +83,9 @@ auto switchable(T : Container)(auto ref T container) {
 Wrap up a container into subscribable container.
 
 Wraps up a container to provide events to subscribe to.
+
+Params:
+	container = container to wrap up in subscribable container
 
 Returns:
 	SubscribableContainer!T
@@ -95,6 +101,9 @@ Wraps up container into a container that adds capability to
 search for a component based on it's type, or implemented
 hierarchy of classes and interfaces.
 
+Params:
+	container = container to wrap up in typed container
+
 Returns:
 	TypeBasedContainer!T
 **/
@@ -108,11 +117,40 @@ Wrap up a container into aliasing container.
 Wraps up container into aliasing container which provides
 capabilities to alias identity of components in original container.
 
+Params:
+	container = container to wrap up in aliasing container
+
 Returns:
 	AliasingContainer!T
 **/
 auto aliasing(T)(auto ref T container) {
     return (new AliasingContainer!T()).decorated(container);
+}
+
+/**
+Wrap up a container into a defferring container.
+
+Wraps up container into a defferring container which executes defferred actions
+when a component from it is requested from exterior and not interior of container.
+Therefore with help of it, is possible to solve circular dependency errors by defferring
+setting a dependency at a later time when dependents are fully constructed.
+
+Params:
+	container = container to wrap up in defferred container
+	defferedExecutionerIdentity = identity of container for defferred actions that will be used by contained factories if needed.
+
+Returns:
+	DefferedContainer!T
+**/
+auto deffered(T)(auto ref T container, string defferedExecutionerIdentity) {
+	return (new DefferedContainer!T(container, defferedExecutionerIdentity));
+}
+
+/**
+ditto
+**/
+auto deffered(T)(auto ref T container) {
+	return (new DefferedContainer!T(container));
 }
 
 /**

@@ -95,3 +95,37 @@ Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) {
     
     return needle;
 }
+
+mixin template MutableDecoratorMixin(T) {
+
+	private {
+		T decorated_;
+	}
+
+	public {
+		/**
+		Set decorated
+		
+		Params: 
+			decorated = the element that is decorated by implementor
+		
+		Returns:
+			typeof(this)
+		**/
+		typeof(this) decorated(T decorated) @safe nothrow pure {
+			this.decorated_ = decorated;
+		
+			return this;
+		}
+		
+		/**
+		Get decorated
+		
+		Returns:
+			T
+		**/
+		T decorated() @safe nothrow pure {
+			return this.decorated_;
+		}
+	}
+}
