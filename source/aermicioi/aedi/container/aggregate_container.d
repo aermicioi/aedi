@@ -122,7 +122,7 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
         	    }
         	}
 
-        	throw new NotFoundException("Object by id " ~ identity ~ " not found.");
+        	throw new NotFoundException("Component by id " ~ identity ~ " not found.");
         }
 
         /**

@@ -122,7 +122,7 @@ class PrototypeContainer : ConfigurableContainer {
                 return obj;
             }
 
-            throw new NotFoundException("Object by id " ~ key ~ " not found");
+            throw new NotFoundException("Component by id " ~ key ~ " not found");
         }
 
         /**

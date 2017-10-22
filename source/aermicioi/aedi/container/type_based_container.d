@@ -211,7 +211,7 @@ template TypeBasedContainer(T) {
                     );
                 }
 
-                throw new NotFoundException("Object with id " ~ identity ~ " not found.");
+                throw new NotFoundException("Component with id " ~ identity ~ " not found.");
             }
 
             /**

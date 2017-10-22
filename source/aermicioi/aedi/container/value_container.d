@@ -105,7 +105,7 @@ class ValueContainer : Container, Storage!(Object, string) {
                 return this.values.get(identity);
             }
 
-            throw new NotFoundException("Object by id " ~ identity ~ " not found.");
+            throw new NotFoundException("Component by id " ~ identity ~ " not found.");
         }
 
         /**

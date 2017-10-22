@@ -113,7 +113,7 @@ class SingletonContainer : ConfigurableContainer {
 
             if (!this.singletons.has(key)) {
                 if (!this.factories.has(key)) {
-                    throw new NotFoundException("Object with id " ~ key ~ " not found.");
+                    throw new NotFoundException("Component with id " ~ key ~ " not found.");
                 }
 
                 this.singletons.set(

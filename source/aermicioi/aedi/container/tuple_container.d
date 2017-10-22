@@ -81,7 +81,7 @@ class TupleContainer(T...) : Container {
         	    }
         	}
 
-        	throw new NotFoundException("Object by id " ~ identity ~ " not found.");
+        	throw new NotFoundException("Component by id " ~ identity ~ " not found.");
         }
 
         /**
