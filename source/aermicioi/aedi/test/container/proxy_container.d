@@ -41,10 +41,16 @@ unittest
     SingletonContainer container = new SingletonContainer();
     ProxyContainerImpl!(SingletonContainer) proxyContainer = new ProxyContainerImpl!(
             SingletonContainer);
+    scope(exit) proxyContainer.terminate;
+
     proxyContainer.decorated = container;
     assert(proxyContainer.decorated is container);
+    
+    proxyContainer.instantiate;
 
     proxyContainer.set(new MockFactory!MockObject, "mock.object");
+    proxyContainer.set(new MockFactory!MockObject, "mock.object.the.second");
+    proxyContainer.set(new MockFactory!MockObject, "mock.object.the.third");
 
     assert(!proxyContainer.has("mock.object"));
     

@@ -36,6 +36,7 @@ import aermicioi.aedi.configurer.register.factory_configurer;
 import aermicioi.aedi.container.singleton_container;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.test.fixture;
+import aermicioi.aedi.storage.allocator_aware;
 import std.exception;
 import std.traits;
 
@@ -59,7 +60,7 @@ unittest {
     container.register!(Identifiable!ulong, Employee)();
     container.register!(StructFixtureFactory)
         .callback(
-            function StructFixtureFactory(Locator!() loc)
+            function StructFixtureFactory(IAllocator alloc, Locator!() loc)
             {
                 return StructFixtureFactory(new Job("Aligator", Currency(20)));
             }
@@ -158,19 +159,10 @@ unittest {
     container.register!MockInterface
         .parent(fact);
     
-    container.register!MockObject("parented")
-        .parent(container, fullyQualifiedName!MockObject);
-        
-    assertNotThrown!InvalidCastException(
-        container.register!MockInterface("lohness")
-            .parent(container, fullyQualifiedName!MockObject)
-    );
-        
     container.instantiate();
     
     assert(container.locate!MockObject is obj);
     assert(container.locate!MockInterface !is null);
-    assert(container.locate!MockObject("parented") is obj);
 }
 
 unittest {

@@ -114,6 +114,7 @@ template ProxyContainerImpl(T)
             T decorated_;
 
             ObjectStorage!(ProxyObjectFactory, string) proxyFactories;
+            ObjectStorage!(Object, string) proxies;
         }
 
         public
@@ -125,6 +126,7 @@ template ProxyContainerImpl(T)
             this() {
 
                 this.proxyFactories = new ObjectStorage!(ProxyObjectFactory, string);
+                this.proxies = new ObjectStorage!(Object, string);
             }
 
             @property
@@ -190,6 +192,23 @@ template ProxyContainerImpl(T)
 
                     return this;
                 }
+
+                /**
+                Destruct all managed components.
+                
+                Destruct all managed components. The method denotes the end of container lifetime, and therefore destruction of all managed components
+                by it.
+                **/
+                ProxyContainerImpl terminate() {
+
+                    foreach (pair; this.proxies.contents.byKeyValue) {
+                        this.proxyFactories.get(pair.key).destruct(pair.value);
+                    }
+
+                    this.proxies.contents.clear;
+
+                    return this;
+                }
             }
 
             static if (is(T : Storage!(ObjectFactory, string)))
@@ -224,6 +243,12 @@ template ProxyContainerImpl(T)
                 **/
                 ProxyContainerImpl remove(string identity)
                 {
+                    if (this.proxies.has(identity)) {
+                        auto temporary = this.proxies.get(identity);
+                        this.proxyFactories.get(identity).destruct(temporary);
+                        this.proxies.remove(identity);
+                    }
+                    
                     this.decorated.remove(identity);
                     this.proxyFactories.remove(identity);
 
@@ -245,6 +270,12 @@ template ProxyContainerImpl(T)
                 **/
                 ProxyContainerImpl remove(string identity)
                 {
+                    if (this.proxies.has(identity)) {
+                        auto temporary = this.proxies.get(identity);
+                        this.proxyFactories.get(identity).destruct(temporary);
+                        this.proxies.remove(identity);
+                    }
+
                     this.proxyFactories.remove(identity);
 
                     return this;
@@ -353,7 +384,9 @@ template ProxyContainerImpl(T)
     		**/
             Object get(string identity)
             {
-                return proxyFactories.get(identity).factory();
+                this.proxies.set(proxyFactories.get(identity).factory(), identity);
+
+                return this.proxies.get(identity);
             }
 
             /**

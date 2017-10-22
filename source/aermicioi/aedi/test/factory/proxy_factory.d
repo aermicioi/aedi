@@ -34,16 +34,23 @@ import aermicioi.aedi.factory.proxy_factory;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.wrapper;
 import aermicioi.aedi.test.fixture;
+import aermicioi.aedi.exception.invalid_cast_exception;
+
+import std.exception;
 
 unittest {
     auto container = new ObjectStorage!();
     auto container2 = new ObjectStorage!();
     container.set(new MockObject(), "mock.object");
     container2.set(new MockObject(), "mock.object.the_second");
+    auto notAProxy = new MockObject();
     
     auto proxyFactory = new ProxyFactory!(MockObject)("mock.object", container);
     
-    assert((cast(Proxy!MockObject) proxyFactory.factory()) !is null);
+    MockObject proxied = proxyFactory.factory;
+    assert((cast(Proxy!MockObject) proxied) !is null);
+    assertNotThrown!InvalidCastException(proxyFactory.destruct(proxied));
+    assertThrown!InvalidCastException(proxyFactory.destruct(notAProxy));
 
     proxyFactory.factory().imethod(10, 5);
     assert(container.locate!MockObject("mock.object").property == 5);
@@ -53,9 +60,16 @@ unittest {
     wrapper.locator = container2;
     wrapper.source = container2;
 
-    (cast(MockObject) wrapper.factory()).imethod(10, 4);
+    proxied = cast(MockObject) wrapper.factory();
+    proxied.imethod(10, 4);
     assert(container2.locate!MockObject("mock.object.the_second").property == 6);
     assert((cast(Proxy!MockObject) wrapper.factory()) !is null);
+
+    auto obj = cast(Object) proxied;
+    assertNotThrown!InvalidCastException(wrapper.destruct(obj));
+    obj = cast(Object) notAProxy;
+    assertThrown!InvalidCastException(wrapper.destruct(obj));
+
     assert(wrapper.type is typeid(Proxy!MockObject));
     assert(wrapper.locator is container2);
     assert(wrapper.source is container2);

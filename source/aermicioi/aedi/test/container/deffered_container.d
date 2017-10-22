@@ -55,8 +55,8 @@ unittest {
     storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(first), "first");
     storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(second), "second");
 
-    first.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(storage, new LocatorReference("second")));
-    second.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(storage, new LocatorReference("first")));
+    first.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(new LocatorReference("second")));
+    second.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(new LocatorReference("first")));
     
     CircularMockObject fObject = deffered.locate!CircularMockObject("first");
     CircularMockObject sObject = deffered.locate!CircularMockObject("second");

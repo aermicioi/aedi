@@ -67,6 +67,7 @@ unittest {
         
         {
             SwitchableContainer!(ConfigurableContainer) switchable = new SwitchableContainer!(ConfigurableContainer);
+            scope(exit) switchable.terminate;
             switchable.decorated = singleton;
 
             switchable.enabled = false;
@@ -97,6 +98,7 @@ unittest {
         
         {
             SwitchableContainer!(Container) switchable = new SwitchableContainer!(Container);
+            scope(exit) switchable.terminate;
             switchable.decorated = singleton;
 
             switchable.enabled = false;
@@ -108,6 +110,7 @@ unittest {
         
         {
             SwitchableContainer!(ConfigurableContainer) switchable = new SwitchableContainer!(ConfigurableContainer);
+            scope(exit) switchable.terminate;
             switchable.decorated = singleton;
             
             switchable.enabled = false;

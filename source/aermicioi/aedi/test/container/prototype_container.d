@@ -39,6 +39,8 @@ import std.exception;
 
 unittest {
     PrototypeContainer container = new PrototypeContainer;
+    scope(exit) container.terminate;
+
     auto factory = new MockFactory!MockObject;
     auto factory1 = new MockFactory!MockObject;
     
@@ -68,6 +70,7 @@ unittest {
     import std.range;
     import std.conv;
     PrototypeContainer container = new PrototypeContainer;
+    scope(exit) container.terminate;
     
     container.set(new MockFactory!MockObject(), "mockObject");
     container.set(new MockFactory!MockObject(), "mockObject1");
@@ -78,6 +81,9 @@ unittest {
     assert(container.get("mockObject") !is null);
     assert(container.get("mockObject") != container.get("mockObject"));
     assert(container.get("mockObject") != container.get("mockObject1"));
+
+    container.remove("mockObject");
+    assert(!container.has("mockObject"));
     
     assertThrown!NotFoundException(container.get("unknown"));
 }

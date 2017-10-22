@@ -101,7 +101,7 @@ class Paper {
 
 @component
 @fact(// An aggregate can be annotated with a custom factory.
-    (Locator!() loc) {
+    (IAllocator alloc, Locator!() loc) {
         auto paper = new HardenedPaper(Paper.Quality.high, loc.locate!Color);
         paper.color = loc.locate!Color;
         
@@ -353,7 +353,7 @@ unittest {
         
     container.register!(Paper, HardenedPaper) // Register HardenedPaper in container with identity of Paper's FQN.
         .callback( // use the delegate to construct HardenedPaper. Useful to use when some special instantiation logic is required. 
-            delegate(Locator!() loc) {
+            delegate(IAllocator alloc, Locator!() loc) {
                 return new HardenedPaper(Paper.Quality.high, loc.locate!Color);
             }
         );

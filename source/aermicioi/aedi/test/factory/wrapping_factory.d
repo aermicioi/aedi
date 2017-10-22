@@ -33,9 +33,33 @@ import aermicioi.aedi.container.singleton_container;
 import aermicioi.aedi.factory.wrapping_factory;
 import aermicioi.aedi.storage.wrapper;
 import std.exception;
+import std.experimental.allocator;
 import aermicioi.aedi.exception.invalid_cast_exception;
 
 import aermicioi.aedi.test.fixture;
+
+unittest
+{
+    MockValueFactory!MockStruct sfact = new MockValueFactory!MockStruct;
+    MockValueFactory!MockObject ofact = new MockValueFactory!MockObject;
+    
+    WrappingFactory!(MockValueFactory!MockStruct) swrapper = new WrappingFactory!(
+            MockValueFactory!MockStruct)(sfact);
+    WrappingFactory!(MockValueFactory!MockObject) owrapper = new WrappingFactory!(
+            MockValueFactory!MockObject)(ofact);
+
+    auto screated = swrapper.factory();
+    auto ocreated = owrapper.factory();
+
+    assertNotThrown!InvalidCastException(swrapper.destruct(screated));
+    assertNotThrown!InvalidCastException(owrapper.destruct(ocreated));
+
+    screated = swrapper.factory();
+    ocreated = owrapper.factory();
+
+    assertThrown!InvalidCastException(owrapper.destruct(screated));
+    assertThrown!InvalidCastException(swrapper.destruct(ocreated));
+}
 
 unittest
 {
@@ -66,63 +90,12 @@ unittest
 
 unittest
 {
-    MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
-    MockFactory!MockObject oFact = new MockFactory!MockObject;
-    RuntimeWrappingFactory!(MockValueFactory!MockStruct) wrapper = new RuntimeWrappingFactory!(
-            MockValueFactory!MockStruct)(fact);
-    RuntimeWrappingFactory!(MockFactory!MockObject) oWrapper = new RuntimeWrappingFactory!(
-            MockFactory!MockObject)(oFact);
-
-    assert(wrapper.type == typeid(MockStruct));
-    assert(wrapper.factory.classinfo == typeid(WrapperImpl!MockStruct));
-
-    assert(oWrapper.type == typeid(MockObject));
-    assert(oWrapper.factory.classinfo == typeid(MockObject));
-}
-
-unittest
-{
-    SingletonContainer container = new SingletonContainer;
-    MockValueFactory!MockStruct fact = new MockValueFactory!MockStruct;
-    WrappingFactory!(MockValueFactory!MockStruct) wrapper = new WrappingFactory!(
-            MockValueFactory!MockStruct)(fact);
-    UnwrappingFactory!MockStruct unwrapper = new UnwrappingFactory!MockStruct(wrapper);
-    unwrapper.locator = container;
-
-    assert(unwrapper.type == typeid(MockStruct));
-    assert(unwrapper.factory is MockStruct());
-
-    MockFactory!MockObject wrong = new MockFactory!MockObject;
-
-    assertThrown!InvalidCastException(unwrapper.decorated = wrong);
-}
-
-unittest
-{
-    SingletonContainer container = new SingletonContainer;
-    MockValueFactory!MockObject fact = new MockValueFactory!MockObject;
-    WrappingFactory!(MockValueFactory!MockObject) wrapper = new WrappingFactory!(
-            MockValueFactory!MockObject)(fact);
-    ClassUnwrappingFactory!MockInterface unwrapper = new ClassUnwrappingFactory!MockInterface(
-            wrapper);
-    unwrapper.locator = container;
-
-    assert(unwrapper.type == typeid(MockObject));
-    import std.stdio;
-
-    assert(unwrapper.factory.classinfo == typeid(MockInterface).info);
-
-    MockFactory!MockObjectFactoryMethod wrong = new MockFactory!MockObjectFactoryMethod;
-    assertThrown!InvalidCastException(unwrapper.decorated = wrong);
-}
-
-unittest
-{
     import aermicioi.aedi.factory.generic_factory;
     import aermicioi.aedi.factory.factory;
 
     DefferredExecutioner executioner = new DefferredExecutionerImpl;
     SingletonContainer container = new SingletonContainer;
+    scope(exit) container.terminate;
 
     CircularFactoryMock!MockObject first = new CircularFactoryMock!MockObject();
     CircularFactoryMock!MockObject second = new CircularFactoryMock!MockObject();
@@ -142,7 +115,6 @@ unittest
     Object mock = container.get("first");
 
     import std.stdio;
-    typeid(mock).writeln;
     assert(first.fetched !is null);
     assert(first.fetched !is mock);
     assert(cast (DefferedProxy!MockObject) first.fetched !is null);

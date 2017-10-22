@@ -41,6 +41,8 @@ import std.typecons;
 
 unittest {
     AggregateContainer container = new AggregateContainer();
+    scope(exit) container.terminate();
+    
     container.set(new ApplicationContainer(), "app");
     container.set(new SingletonContainer(), "singleton");
     container.set(new ApplicationContainer(), "prototype");

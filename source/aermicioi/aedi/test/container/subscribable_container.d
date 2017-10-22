@@ -38,6 +38,7 @@ import std.exception;
 
 unittest {
     SubscribableContainer!SingletonContainer container = new SubscribableContainer!SingletonContainer;
+    scope(exit) container.terminate;
     container.decorated = new SingletonContainer;
     
     assert(container.decorated !is null);

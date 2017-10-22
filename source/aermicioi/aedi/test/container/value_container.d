@@ -36,6 +36,8 @@ import std.exception;
 
 unittest {
     ValueContainer storage = new ValueContainer;
+	scope(exit) storage.terminate;
+	
     auto john = new Person();
     auto mary = new Person();
     auto katty = new Person();

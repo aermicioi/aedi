@@ -74,6 +74,31 @@ unittest {
 
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
+    storage.set(new CastableWrapperImpl!(int, long)(10), "cobj");
+    
+    auto objReference = new LocatorReference("cobj");
+    
+    assert(objReference.resolve!int(storage) == 10);
+    assert(objReference.resolve!long(storage) == 10L);
+    
+    assertThrown!InvalidCastException(objReference.resolve!ubyte(storage));
+}
+
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
+    auto object = new MockExternObject;
+    storage.set(new CastableWrapperImpl!(MockExternObject, MockExternInterface)(object), "cobj");
+    
+    auto objReference = new LocatorReference("cobj");
+    
+    assert(objReference.resolve!MockExternObject(storage) is object);
+    assert(objReference.resolve!MockExternInterface(storage) is object);
+    
+    assertThrown!InvalidCastException(objReference.resolve!ubyte(storage));
+}
+
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
     
     MockFactory!MockObject cfactory = new MockFactory!MockObject;
     MockValueFactory!int sfactory = new MockValueFactory!int();
@@ -84,4 +109,27 @@ unittest {
     assert(anonymous(sfactory).resolve!int(storage) == 0);
     assert(anonymous(sfactory).resolve!long(storage) == 0);
     assert(anonymous(sfactory).resolve!double(storage) == 0.0);
+}
+
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
+    
+    storage.set(new MockObject, "reliable");
+    storage.set(new MockObject, "reliable.the.second");
+
+    auto reliable = "reliable".lref.alternate("reliable.the.second".lref);
+    auto unreliable = "unreliable".lref.alternate("reliable.the.second".lref);
+
+    assert(reliable.resolve!MockObject(storage) is storage.get("reliable"));
+    assert(unreliable.resolve!MockObject(storage) is storage.get("reliable.the.second"));
+}
+
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
+    
+    storage.set(new MockFactory!MockObject(), name!(MockFactory!MockObject));
+
+    auto typed = lref!(MockFactory!MockObject);
+
+    assert(typed.resolve!(MockFactory!MockObject)(storage) is storage.get(name!(MockFactory!MockObject)));
 }

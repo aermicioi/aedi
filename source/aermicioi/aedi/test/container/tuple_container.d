@@ -45,6 +45,7 @@ unittest {
     ValueContainer first = new ValueContainer;
     ValueContainer second = new ValueContainer;
     TupleContainer!(ValueContainer, ValueContainer) container = new TupleContainer!(ValueContainer, ValueContainer)(first, second);
+    scope(exit) container.terminate;
     
     first.set(new WrapperImpl!int(10), "mock");
     first.set(new WrapperImpl!int(11), "mock1");

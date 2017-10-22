@@ -212,9 +212,32 @@ class MockObjectFactoryMethod {
     static MockStruct staticFactoryStruct(int property) {
         return MockStruct(property);
     }
+
+    void destructObject(MockObject object) {
+        object.property = 1;
+    }
+
+    void destructStruct(ref MockStruct strct) {
+        strct.property = 2;
+        // HAHA destroy a struct, so funny, so funny. Nope, here should lie code responsible for preparint struct for destruction.
+        // Resource deallocation and so on.
+    }
+
+    static void staticDestructObject(MockObject object) {
+        object.property = 3;
+    }
+
+    static void staticDestructStruct(ref MockStruct strct) {
+        strct.property = 4;
+
+        // HAHA destroy a struct, so funny, so funny. Nope, here should lie code responsible for preparint struct for destruction.
+        // Resource deallocation and so on.
+    }
 }
 
 class MockFactory(T) : ObjectFactory {
+    import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
+    mixin AllocatorAwareMixin!(typeof(this));
     
     public {
         Locator!() locator_;
@@ -225,6 +248,19 @@ class MockFactory(T) : ObjectFactory {
             auto t = new T;
             
             return t;
+        }
+
+        /**
+        Destructs a component of type T.
+        
+        Params: 
+            component = component that is to ve destroyed.
+        
+        Returns:
+            
+        **/
+        void destruct(ref Object component) {
+            destroy(component);
         }
         
         @property {
@@ -242,6 +278,8 @@ class MockFactory(T) : ObjectFactory {
 }
 
 class MockFailingFactory(T) : ObjectFactory {
+    import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
+    mixin AllocatorAwareMixin!(typeof(this));    
     
     public {
         Locator!() locator_;
@@ -251,6 +289,10 @@ class MockFailingFactory(T) : ObjectFactory {
         Object factory() {
             import aermicioi.aedi.exception.di_exception;
             throw new AediException("Well, I'll just fail everything.");
+        }
+
+        void destruct(ref Object destruct) {
+            destroy(destruct);
         }
         
         @property {
@@ -268,6 +310,9 @@ class MockFailingFactory(T) : ObjectFactory {
 }
 
 class MockValueFactory(T) : Factory!T {
+    import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
+    mixin AllocatorAwareMixin!(typeof(this));
+
     public {
         Locator!() locator_;
     }
@@ -278,6 +323,21 @@ class MockValueFactory(T) : Factory!T {
                 return new T();
             } else {
                 return T();
+            }
+        }
+
+        /**
+        Destructs a component of type T.
+        
+        Params: 
+            component = component that is to ve destroyed.
+        
+        Returns:
+            
+        **/
+        void destruct(ref T component) {
+            static if (is(T : Object)) {
+                destroy(component);
             }
         }
         
@@ -296,6 +356,8 @@ class MockValueFactory(T) : Factory!T {
 }
 
 class CircularFactoryMock(T) : MockFactory!T, Factory!T {
+    import std.experimental.allocator : IAllocator;
+
     Object fetched;
     string referenced = "mock";
 
@@ -307,8 +369,21 @@ class CircularFactoryMock(T) : MockFactory!T, Factory!T {
             return t;
         }
 
+        void destruct(ref T component) {
+            Object obj = component;
+            super.destruct(obj);
+        }
+
+        alias destruct = MockFactory!T.destruct;
+
         override TypeInfo type() @safe nothrow {
             return typeid(T);
+        }
+
+        override CircularFactoryMock!T allocator(IAllocator allocator) {
+            super.allocator = allocator;
+
+            return this;
         }
     }
 }

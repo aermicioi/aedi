@@ -37,6 +37,7 @@ import aermicioi.aedi.container.application_container;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.allocator_aware;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.exception.di_exception;
 import aermicioi.aedi.test.fixture;
@@ -139,19 +140,19 @@ unittest {
         
         register!MockObject("identity")
             .callback(
-                function MockObject(Locator!() loc) {
+                function MockObject(IAllocator alloc, Locator!() loc) {
                     throw new Exception("We'll fail graciously here");
                 }
             );
         register!MockObject()
             .callback(
-                function MockObject(Locator!() loc) {
+                function MockObject(IAllocator alloc, Locator!() loc) {
                     throw new Exception("We'll fail graciously here");
                 }
             );
         register!(MockInterface, MockObject)()
             .callback(
-                function MockObject(Locator!() loc) {
+                function MockObject(IAllocator alloc, Locator!() loc) {
                     throw new Exception("We'll fail graciously here");
                 }
             );

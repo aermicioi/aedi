@@ -37,8 +37,10 @@ import aermicioi.aedi.exception.instance_factory_exception;
 import aermicioi.aedi.exception.property_configurer_exception;
 import aermicioi.aedi.factory.reference;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.allocator_aware;
 import aermicioi.aedi.storage.wrapper;
 import std.exception;
+import std.experimental.allocator : theAllocator;
 
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
@@ -47,18 +49,17 @@ unittest {
     assert(factory.locator() is storage);
     assert(factory.type() is typeid(MockObject));
     
-    factory.setInstanceFactory(null);
-    assertThrown!AediException(factory.factory);
-    factory.setInstanceFactory(new DefaultConstructorBasedFactory!MockObject);
+    factory.setInstanceFactory(new DefaultInstanceFactory!MockObject);
     assert(factory.factory().classinfo is typeid(MockObject));
 }
 
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     MockObject obj = new MockObject;
-    auto smethod = methodConfigurer!("method", MockObject)(storage, 20, 10);
-    auto rmethod = methodConfigurer!("method", MockObject)(storage, new LocatorReference("int"), 10);
-    auto emethod = methodConfigurer!("nasty", MockObject)(storage);
+    auto smethod = methodConfigurer!("method", MockObject)(20, 10);
+    auto rmethod = methodConfigurer!("method", MockObject)(new LocatorReference("int"), 10)
+        .locator(storage);
+    auto emethod = methodConfigurer!("nasty", MockObject)();
     
     storage.set(new WrapperImpl!int(10), "int");
     
@@ -72,9 +73,12 @@ unittest {
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     MockObject obj = new MockObject;
-    auto sproperty = fieldConfigurer!("property", MockObject)(storage, 10);
-    auto rproperty = fieldConfigurer!("property", MockObject)(storage, new LocatorReference("int"));
-    auto eproperty = fieldConfigurer!("property", MockObject)(storage, new LocatorReference("unknown"));
+    auto sproperty = fieldConfigurer!("property", MockObject)(10);
+    auto rproperty = fieldConfigurer!("property", MockObject)(new LocatorReference("int"))
+        .locator(storage);
+    auto eproperty = fieldConfigurer!("property", MockObject)(new LocatorReference("unknown"))
+        .locator(storage);
+
     
     storage.set(new WrapperImpl!int(20), "int");
     
@@ -87,17 +91,24 @@ unittest {
 
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
-    DefaultConstructorBasedFactory!MockObject cfactory = new DefaultConstructorBasedFactory!MockObject;
-    DefaultConstructorBasedFactory!MockStruct sfactory = new DefaultConstructorBasedFactory!MockStruct;
+    DefaultInstanceFactory!MockObject cfactory = new DefaultInstanceFactory!MockObject()
+        .allocator(theAllocator);
+    DefaultInstanceFactory!MockStruct sfactory = new DefaultInstanceFactory!MockStruct()
+        .allocator(theAllocator);
     assert(cfactory.factory !is null);
     assert(sfactory.factory == MockStruct.init);
 }
 
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
-    auto csfactory = constructorBasedFactory!MockObject(storage, 10);
-    auto crfactory = constructorBasedFactory!MockObject(storage, new LocatorReference("int"));
-    auto cefactory = constructorBasedFactory!MockObject(storage, new LocatorReference("unknown"));
+    auto csfactory = constructorBasedFactory!MockObject(cast(int) 10)
+        .allocator(theAllocator);
+    auto crfactory = constructorBasedFactory!MockObject(new LocatorReference("int"))
+        .locator(storage)
+        .allocator(theAllocator);
+    auto cefactory = constructorBasedFactory!MockObject(new LocatorReference("unknown"))
+        .locator(storage)
+        .allocator(theAllocator);
     
     storage.set(new WrapperImpl!int(20), "int");
     
@@ -108,12 +119,16 @@ unittest {
 
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
-    auto scsfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryObject")(storage, 10);
-    auto scrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryObject")(storage, new LocatorReference("int"));
-    auto scefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryObject")(storage, new LocatorReference("unknown"));
-    auto sssfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryStruct")(storage, 10);
-    auto ssrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryStruct")(storage, new LocatorReference("int"));
-    auto ssefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryStruct")(storage, new LocatorReference("unknown"));
+    auto scsfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryObject")(10);
+    auto scrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryObject")(new LocatorReference("int"))
+        .locator(storage);
+    auto scefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryObject")(new LocatorReference("unknown"))
+        .locator(storage);
+    auto sssfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryStruct")(10);
+    auto ssrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryStruct")(new LocatorReference("int"))
+        .locator(storage);
+    auto ssefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "staticFactoryStruct")(new LocatorReference("unknown"))
+        .locator(storage);
     
     auto cfactory = new MockObjectFactoryMethod;
     auto sfactory = new MockObjectFactoryMethod;
@@ -122,12 +137,16 @@ unittest {
     sfactory.property = 11;
     storage.set(new MockObjectFactoryMethod, "dfactory");
     
-    auto dcsfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryObject")(storage, cfactory);
-    auto dcrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryObject")(storage, new LocatorReference("dfactory"));
-    auto dcefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryObject")(storage, new LocatorReference("unknown"));
-    auto dssfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(storage, sfactory);
-    auto dsrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(storage, new LocatorReference("dfactory"));
-    auto dsefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(storage, new LocatorReference("unknown"));
+    auto dcsfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryObject")(cfactory);
+    auto dcrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryObject")(new LocatorReference("dfactory"))
+        .locator(storage);
+    auto dcefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryObject")(new LocatorReference("unknown"))
+        .locator(storage);
+    auto dssfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(sfactory);
+    auto dsrfactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(new LocatorReference("dfactory"))
+        .locator(storage);
+    auto dsefactory = factoryMethodBasedFactory!(MockObjectFactoryMethod, "factoryStruct")(new LocatorReference("unknown"))
+        .locator(storage);
     
     storage.set(new WrapperImpl!int(20), "int");
     
@@ -150,15 +169,19 @@ unittest {
 
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
-    auto csfactory = callbackFactory!MockObject(storage, function (Locator!() loc, int i) {
-        return new MockObject(i);
-    }, cast(int) 10);
-    auto crfactory = callbackFactory!MockObject(storage, delegate (Locator!() loc, LocatorReference i) {
-        return new MockObject(i.resolve!int(loc));
-    }, new LocatorReference("int"));
-    auto cefactory = callbackFactory!MockObject(storage, function MockObject(Locator!() loc, int i) {
+    auto csfactory = callbackFactory!MockObject(function (IAllocator alloc, Locator!() loc, int i) {
+        return alloc.make!MockObject(i);
+    }, cast(int) 10)
+        .allocator(theAllocator);
+    auto crfactory = callbackFactory!MockObject(delegate (IAllocator alloc, Locator!() loc, LocatorReference i) {
+        return alloc.make!MockObject(i.resolve!int(loc));
+    }, new LocatorReference("int"))
+        .locator(storage)
+        .allocator(theAllocator);
+    auto cefactory = callbackFactory!MockObject(function MockObject(IAllocator alloc, Locator!() loc, int i) {
         throw new Exception("Not going to instantiate");
-    }, cast(int) 10);
+    }, cast(int) 10)
+        .allocator(theAllocator);
     
     storage.set(new WrapperImpl!int(20), "int");
     
@@ -171,29 +194,33 @@ unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     MockObject obj = new MockObject;
     MockStruct str = MockStruct();
-    auto cscallback = callbackConfigurer!MockObject(storage, function (Locator!() loc, MockObject obj, int i) {
+    auto cscallback = callbackConfigurer!MockObject(function (Locator!() loc, MockObject obj, int i) {
         obj.property = i;
     }, 10);
     
-    auto crcallback = callbackConfigurer!MockObject(storage, delegate (Locator!() loc, MockObject obj, LocatorReference i) {
+    auto crcallback = callbackConfigurer!MockObject(delegate (Locator!() loc, MockObject obj, LocatorReference i) {
         obj.property = i.resolve!int(loc);
-    }, new LocatorReference("int"));
+    }, new LocatorReference("int"))
+        .locator(storage);
     
-    auto cecallback = callbackConfigurer!MockObject(storage, function (Locator!() loc, MockObject obj, LocatorReference i) {
+    auto cecallback = callbackConfigurer!MockObject(function (Locator!() loc, MockObject obj, LocatorReference i) {
         obj.property = i.resolve!int(loc);
-    }, new LocatorReference("unk"));
+    }, new LocatorReference("unk"))
+        .locator(storage);
     
-    auto sscallback = callbackConfigurer!MockStruct(storage, function (Locator!() loc, ref MockStruct obj, int i) {
+    auto sscallback = callbackConfigurer!MockStruct(function (Locator!() loc, ref MockStruct obj, int i) {
         obj.property = i;
     }, 10);
     
-    auto srcallback = callbackConfigurer!MockStruct(storage, delegate (Locator!() loc, ref MockStruct obj, LocatorReference i) {
+    auto srcallback = callbackConfigurer!MockStruct(delegate (Locator!() loc, ref MockStruct obj, LocatorReference i) {
         obj.property = i.resolve!int(loc);
-    }, new LocatorReference("int"));
+    }, new LocatorReference("int"))
+        .locator(storage);
     
-    auto secallback = callbackConfigurer!MockStruct(storage, function (Locator!() loc, ref MockStruct obj, LocatorReference i) {
+    auto secallback = callbackConfigurer!MockStruct(function (Locator!() loc, ref MockStruct obj, LocatorReference i) {
         obj.property = i.resolve!int(loc);
-    }, new LocatorReference("unk"));
+    }, new LocatorReference("unk"))
+        .locator(storage);
     
     storage.set(new WrapperImpl!int(20), "int");
     
@@ -243,12 +270,79 @@ unittest {
     storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(first), "first");
     storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(second), "second");
 
-    first.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(storage, new LocatorReference("second")));
-    second.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(storage, new LocatorReference("first")));
+    first.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(new LocatorReference("second")));
+    second.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(new LocatorReference("first")));
     
     CircularMockObject fObject = storage.locate!CircularMockObject("first");
     CircularMockObject sObject = storage.locate!CircularMockObject("second");
     assert(sObject.circularDependency_ is null);
     executioner.execute;
     assert(sObject.circularDependency_ !is null);
+}
+
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
+    GenericFactory!MockObject factory = new GenericFactoryImpl!MockObject(storage);
+    
+    assert(factory.locator() is storage);
+    assert(factory.type() is typeid(MockObject));
+
+    auto object = factory.factory;
+
+    factory.destruct(object);
+}
+
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
+    bool destroyed = false;
+    auto destructor = callbackInstanceDestructor!MockObject((IAllocator allocator, ref MockObject obj) {
+        destroyed = true;
+        allocator.dispose(obj);
+    });
+
+    GenericFactory!MockObject factory = new GenericFactoryImpl!MockObject(storage);
+    factory.setInstanceDestructor(destructor);
+
+    assert(factory.locator() is storage);
+    assert(factory.type() is typeid(MockObject));
+
+    auto object = factory.factory;
+
+    factory.destruct(object);
+
+    assert(destroyed == true);
+}
+
+unittest {
+    ObjectStorage!() storage = new ObjectStorage!();
+
+    auto scsfactory = factoryMethodInstanceDestructor!(MockObject, "staticDestructObject", MockObjectFactoryMethod)();
+    auto sssfactory = factoryMethodInstanceDestructor!(MockStruct, "staticDestructStruct", MockObjectFactoryMethod)();
+    
+    auto cfactory = new MockObjectFactoryMethod;
+    auto sfactory = new MockObjectFactoryMethod;
+    
+    cfactory.property = 10;
+    sfactory.property = 11;
+    storage.set(new MockObjectFactoryMethod, "dfactory");
+    
+    auto dcsfactory = factoryMethodInstanceDestructor!(MockObject, "destructObject", MockObjectFactoryMethod)(cfactory);
+    auto dssfactory = factoryMethodInstanceDestructor!(MockStruct, "destructStruct", MockObjectFactoryMethod)(sfactory);
+    
+    storage.set(new WrapperImpl!int(20), "int");
+    
+    auto scs = cfactory.staticFactoryObject(10);
+    auto sss = sfactory.staticFactoryStruct(20);
+    auto dcs = cfactory.factoryObject;
+    auto dss = sfactory.factoryStruct;
+
+    scsfactory.destruct(scs);
+    sssfactory.destruct(sss);
+    dcsfactory.destruct(dcs);
+    dssfactory.destruct(dss);
+
+    assert(scs.property == 3);
+    assert(sss.property == 4);
+    assert(dcs.property == 1);
+    assert(dss.property == 2);
 }

@@ -1,6 +1,5 @@
 /**
 
-
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -29,75 +28,38 @@ License:
 Authors:
 	Alexandru Ermicioi
 **/
-module aermicioi.aedi.factory.factory;
+module aermicioi.aedi.exception.in_use_exception;
 
-import aermicioi.aedi.storage.allocator_aware;
-import aermicioi.aedi.storage.locator_aware;
-import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.exception.di_exception;
 
 /**
-Interface for objects able to create some instance of type T.
+Exception denoting something is in use, and cannot be modified or removed.
 
-Intent of this interface is to provide a single entry for objects, able to
-instantiate something.
+Exception denoting something is in use, and cannot be modified or removed.
+Usually thrown when an used component is attempted to remove from container.
 **/
-interface Factory(T) : LocatorAware!(), AllocatorAware!() {
+class InUseException : AediException {
+    private {
+        string[] keys;
+    }
 
-	public {
 
-		/**
-		Instantiates component of type T.
-
-		Returns:
-			T instantiated component.
-		**/
-		T factory();
+    public {
 
         /**
-        Destructs a component of type T.
-
-        Params:
-            component = component that is to ve destroyed.
+        Default constructor for InUseException
         **/
-        void destruct(ref T component);
+        nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+        {
+            super(msg, file, line, next);
+        }
 
-		@property {
-
-		    /**
-    		Get the type info of T that is created.
-
-    		Returns:
-    			TypeInfo object of created component.
-    		**/
-    		TypeInfo type();
-		}
-	}
-}
-
-alias ObjectFactory = Factory!Object;
-
-mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
-
-    /**
-    Destructs a component of type T.
-
-    Params:
-        component = component that is to ve destroyed.
-    **/
-    void destruct(ref Z component) {
-        this.decorated.destruct(component);
-    }
-}
-
-mixin template FactoryDecoratorMixin(T : Factory!Z, Z) {
-
-    /**
-    Instantiates component of type T.
-
-    Returns:
-        T instantiated component.
-    **/
-    Z factory() {
-        return this.decorated.factory();
+        /**
+        ditto
+        **/
+        nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+        {
+            super(msg, file, line, next);
+        }
     }
 }
