@@ -57,7 +57,7 @@ mixin template AllocatorAwareMixin(T : AllocatorAware!Z, Z) {
 }
 
 mixin template AllocatorAwareMixin(Z) {
-
+    import std.experimental.allocator;
     private {
         Z allocator_;
     }

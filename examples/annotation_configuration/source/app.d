@@ -2,20 +2,20 @@
 Aedi, a dependency injection library.
 
 Aedi is a dependency injection library. It does provide a set of containers that do
-IoC, and an interface to configure application components (structs, objects, etc.) 
+IoC, and an interface to configure application components (structs, objects, etc.)
 
 Aim:
 
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
-Code api, offers a rich set of functionality, and flexibility. Though alternatives to 
+Code api, offers a rich set of functionality, and flexibility. Though alternatives to
 configuring a container with components should be provided along with their strengths
 and disadvantages. For this purpose as an alternative to code api, the framework implements
 annotation based configuration of components.
 
 The main idea of annotation based configuration of components is that,
-information about component's dependencies and configuration properties are 
+information about component's dependencies and configuration properties are
 stored in form of annotations right in it. The framework does provide
 annotation based counterparts of almost all configuration primitives available
 in code api. Example below shows a component configured using annotation based information:
@@ -24,46 +24,46 @@ in code api. Example below shows a component configured using annotation based i
 @component // Mark component to be registered in container
 @qualifier("custom.identity") // Specify custom identity for component in container instead of it's type as identity
 class Car {
-    
+
     // ...
 
     public {
-        
+
         @constructor(lref!Size, lref!Engine) // Construct this component using arguments passed to constructor annotation
         this(Size size, Engine engine) {
             this.size_ = size;
             this.engine = engine;
         }
-        
+
         @property {
-            
+
             @setter("color.green".lref) // Set the property to arguments passed in setter
             Car color(Color color) @safe nothrow {
             	this.color_ = color;
-            
-            	return this;
-            }
-            
-            // ...
-            
-            @setter(lref!Engine) // Set the property to arguments passed in setter
-            Car engine(Engine engine) @safe nothrow {
-            	this.engine_ = engine;
-            
+
             	return this;
             }
 
             // ...
-            
+
+            @setter(lref!Engine) // Set the property to arguments passed in setter
+            Car engine(Engine engine) @safe nothrow {
+            	this.engine_ = engine;
+
+            	return this;
+            }
+
+            // ...
+
             @autowired // Automatically wire property using components from container identified by their types
             Car frontLeft(Tire frontLeft) @safe nothrow {
             	this.frontLeft_ = frontLeft;
-            
+
             	return this;
             }
-            
+
             // ...
-            
+
             @callback(
                 function (Locator!() locator, ref Car configured) {
                     configured.frontRight = locator.locate!Tire;
@@ -71,32 +71,32 @@ class Car {
             ) // Use a callback to configure the property, or entire object. Can be attached anywhere on component
             Car frontRight(Tire frontRight) @safe nothrow {
             	this.frontRight_ = frontRight;
-            
+
             	return this;
             }
-            
+
             // ...
-            
+
             @autowired // Automatically wire property using components from container identified by their types
             Car backLeft(Tire backLeft) @safe nothrow {
             	this.backLeft_ = backLeft;
-            
+
             	return this;
             }
-            
+
             // ...
-            
+
             @autowired // Automatically wire property using components from container identified by their types
             Car backRight(Tire backRight) @safe nothrow {
             	this.backRight_ = backRight;
-            
+
             	return this;
             }
-            
+
             // ...
-            
+
         }
-        
+
         // ...
     }
 }
@@ -104,7 +104,7 @@ class Car {
 
 As seen above describing a component using annotation consists of
 annotating it with $(D_INLINECODE @component), optionally specyfing
-an identity using $(D_INLINECODE @qualifier), and annotating it 
+an identity using $(D_INLINECODE @qualifier), and annotating it
 with construction and configuration annotations such as:
 $(UL
     $(LI $(D_INLINECODE @constructor ) (only on constructors) - annotates component with it's construction dependencies )
@@ -152,14 +152,14 @@ License:
 	execute, and transmit the Software, and to prepare derivative works of the
 	Software, and to permit third-parties to whom the Software is furnished to
 	do so, all subject to the following:
-	
+
 	The copyright notices in the Software and this entire statement, including
 	the above license grant, this restriction and the following disclaimer,
 	must be included in all copies of the Software, in whole or in part, and
 	all derivative works of the Software, unless such copies or derivative
 	works are solely in the form of machine-executable object code generated by
 	a source language processor.
-	
+
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 	FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
@@ -192,7 +192,7 @@ Size of a car.
 **/
 @component // Mark component to be registered in container
 struct Size {
-    
+
     @setter(200UL) // Set the property to arguments passed in setter
     ulong width;
 
@@ -209,9 +209,9 @@ Interface for engines.
 An engine should implement it, in order to be installable in a car.
 **/
 interface Engine {
-    
+
     public {
-        
+
         void turnOn();
         void run();
         void turnOff();
@@ -224,18 +224,18 @@ A concrete implementation of Engine that uses gasoline for propelling.
 @component // Mark component to be registered in container
 @qualifier("gasoline")
 class GasolineEngine : Engine {
-    
+
     public {
-        
+
         void turnOn() {
             writeln("pururukVrooomVrrr");
-            
+
         }
-        
+
         void run() {
             writeln("vrooom");
         }
-        
+
         void turnOff() {
             writeln("vrrrPrrft");
         }
@@ -248,18 +248,18 @@ A concrete implementation of Engine that uses diesel for propelling.
 @component // Mark component to be registered in container
 @qualifier("diesel")
 class DieselEngine : Engine {
-    
+
     public {
-        
+
         void turnOn() {
             writeln("pururukVruumVrrr");
-            
+
         }
-        
+
         void run() {
             writeln("vruum");
         }
-        
+
         void turnOff() {
             writeln("vrrrPft");
         }
@@ -273,16 +273,16 @@ A concrete implementation of Engine that uses electricity for propelling.
 @qualifier!Engine()
 class ElectricEngine : Engine {
     public {
-        
+
         void turnOn() {
             writeln("pzt");
-            
+
         }
-        
+
         void run() {
             writeln("vvvvvvvvv");
         }
-        
+
         void turnOff() {
             writeln("tzp");
         }
@@ -300,48 +300,48 @@ class Tire {
         float pressure_;
         string vendor_;
     }
-    
+
     public @property {
         @setter(17) // Set the property to arguments passed in setter
         Tire size(int size) @safe nothrow {
         	this.size_ = size;
-        
+
         	return this;
         }
-        
+
         int size() @safe nothrow {
         	return this.size_;
         }
-        
+
         @setter(3.0) // Set the property to arguments passed in setter
         Tire pressure(float pressure) @safe nothrow {
         	this.pressure_ = pressure;
-        
+
         	return this;
         }
-        
+
         float pressure() @safe nothrow {
         	return this.pressure_;
         }
-        
+
         @setter("tire.vendor".lref) // Set the property to arguments passed in setter
         Tire vendor(string vendor) @safe nothrow {
         	this.vendor_ = vendor;
-        
+
         	return this;
         }
-        
+
         string vendor() @safe nothrow {
         	return this.vendor_;
         }
     }
-    
+
     public override string toString() {
         import std.algorithm;
         import std.range;
         import std.conv;
         import std.utf;
-        
+
         return only("Tire(", this.size.to!string, " inch, ", this.pressure.to!string, " atm, ", this.vendor, ")")
             .joiner
             .byChar
@@ -355,26 +355,26 @@ A class representing a car.
 @component // Mark component to be registered in container
 @qualifier("custom.identity")
 class Car {
-    
+
     private {
         Color color_; // Car color
         Size size_; // Car size
         Engine engine_; // Car engine
-        
+
         Tire frontLeft_;
         Tire frontRight_;
         Tire backLeft_;
         Tire backRight_;
     }
-    
+
     public {
-        
+
         /**
         Constructor of car.
-        
-        Constructs a car with a set of sizes. A car cannot of course have 
+
+        Constructs a car with a set of sizes. A car cannot of course have
         undefined sizes, so we should provide it during construction.
-        
+
         Params:
             size = size of a car.
         **/
@@ -383,66 +383,66 @@ class Car {
             this.size_ = size;
             this.engine = engine;
         }
-        
+
         @property {
-            
+
             /**
             Set color of car
-            
+
             Set color of car. A car can live with undefined color (physics allow it).
-            
+
             Params:
             	color = color of a car.
-            
+
             Returns:
             	Car
             **/
             @setter("color.green".lref) // Set the property to arguments passed in setter
             Car color(Color color) @safe nothrow {
             	this.color_ = color;
-            
+
             	return this;
             }
-            
+
             Color color() @safe nothrow {
             	return this.color_;
             }
-            
+
             Size size() @safe nothrow {
             	return this.size_;
             }
-            
+
             /**
             Set engine used in car.
-            
+
             Params:
             	engine = engine used in car to propel it.
-            
+
             Returns:
             	Car
             **/
             @setter(lref!Engine) // Set the property to arguments passed in setter
             Car engine(Engine engine) @safe nothrow {
             	this.engine_ = engine;
-            
+
             	return this;
             }
-            
+
             Engine engine() @safe nothrow {
             	return this.engine_;
             }
-            
+
             @autowired // Automatically wire property using components from container identified by their types
             Car frontLeft(Tire frontLeft) @safe nothrow {
             	this.frontLeft_ = frontLeft;
-            
+
             	return this;
             }
-            
+
             Tire frontLeft() @safe nothrow {
             	return this.frontLeft_;
             }
-            
+
             @callback(
                 function (Locator!() locator, ref Car configured) {
                     configured.frontRight = locator.locate!Tire;
@@ -450,46 +450,46 @@ class Car {
             ) // Use a callback to configure the property, or entire object. Can be attached anywhere on component
             Car frontRight(Tire frontRight) @safe nothrow {
             	this.frontRight_ = frontRight;
-            
+
             	return this;
             }
-            
+
             Tire frontRight() @safe nothrow {
             	return this.frontRight_;
             }
-            
+
             @autowired // Automatically wire property using components from container identified by their types
             Car backLeft(Tire backLeft) @safe nothrow {
             	this.backLeft_ = backLeft;
-            
+
             	return this;
             }
-            
+
             Tire backLeft() @safe nothrow {
             	return this.backLeft_;
             }
-            
+
             @autowired // Automatically wire property using components from container identified by their types
             Car backRight(Tire backRight) @safe nothrow {
             	this.backRight_ = backRight;
-            
+
             	return this;
             }
-            
+
             Tire backRight() @safe nothrow {
             	return this.backRight_;
             }
-            
+
         }
-        
+
         void start() {
             engine.turnOn();
         }
-        
+
         void run() {
             engine.run();
         }
-        
+
         void stop() {
             engine.turnOff();
         }
@@ -500,9 +500,9 @@ class Car {
 A manufacturer of cars.
 **/
 class CarManufacturer {
-    
+
     public {
-        Car manufacture(Size size) { 
+        Car manufacture(Size size) {
             return new Car(size, new DieselEngine()); // Manufacture a car.
         }
     }
@@ -525,9 +525,10 @@ void main() {
         prototype(), "prototype", // Create prototype container, and store it in joint container by "prototype" identity
         values(), "parameters"  // Create value container, and store it in joint container by "prototype" identity
     );
+    scope(exit) container.terminate();
 
     container.componentScan!(app); // load all annotated components from module "app"
-    
+
     with (container.configure("singleton")) {
 
         register(Color(0, 255, 0), "color.green");
@@ -538,8 +539,8 @@ void main() {
 
         values.register(Size(200, 150, 300), "size.smarty");
     }
-    
+
     container.instantiate(); // Boot container (or prepare managed code/data).
-    
+
     container.locate!Car("custom.identity").drive("Electric car");
 }

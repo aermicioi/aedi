@@ -2,7 +2,7 @@
 Aedi, a dependency injection library.
 
 Aedi is a dependency injection library. It does provide a set of containers that do
-IoC, and an interface to configure application components (structs, objects, etc.) 
+IoC, and an interface to configure application components (structs, objects, etc.)
 
 Aim:
 
@@ -26,30 +26,38 @@ The following steps are formalized into a set of interfaces shown below, where e
 itself is encapsulated into objects implementing presented interfaces.
 
 --------------------
-interface PropertyConfigurer(T) {
-    
+interface PropertyConfigurer(T) : LocatorAware!() {
+
     public {
-        
+
         void configure(ref T object);
     }
 }
 
-interface InstanceFactory(T) {
-    
+interface InstanceFactory(T) : LocatorAware!(), AllocatorAware!() {
+
     public {
-        
+
         T factory();
     }
 }
 
-interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigurersAware!T {
-    
+interface InstanceDestructor(T) : LocatorAware!(), AllocatorAware!() {
+
     public {
-        
+
+        void destruct(ref T destructable);
+    }
+}
+
+interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigurersAware!T {
+
+    public {
+
         @property {
-            
+
             alias locator = Factory!T.locator;
-            
+
             Locator!() locator();
         }
     }
@@ -57,17 +65,24 @@ interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigu
 
 interface InstanceFactoryAware(T) {
     public {
-        
+
         @property {
-   
             InstanceFactoryAware!T setInstanceFactory(InstanceFactory!T factory);
+        }
+    }
+}
+
+interface InstanceDestructorAware(T) {
+    public {
+
+        @property {
+            InstanceDestructorAware!T setInstanceDestructor(InstanceDestructor!T destructor);
         }
     }
 }
 
 interface PropertyConfigurersAware(T) {
     public {
-   
         PropertyConfigurersAware!T addPropertyConfigurer(PropertyConfigurer!T configurer);
     }
 }
@@ -81,44 +96,62 @@ When instantiation or configuration of a component is not possible to implement 
 existing tools and interfaces provided by the framework, it is recommended to implement one of
 building block interface, depending on what stage the problem resides. For car simulation app, with-
 out reason the company decided that tires, should be instantiated using their own implementation of
-instance building block. Same with inflating a tire. They decided to use their own implementation.
+instance building block. Same with inflating a tire they've decided to use their own implementation,
+along with tire recycling, making a closed production cycle.
 
 Next example shows a custom implementation of tire manufacturing process. By implementing
 $(D_INLINECODE InstanceFactory) interface, the building block can be used along the rest of components already
 present in framework, such as $(D_INLINECODE GenericFactory). The only hinder is that what remains is the ugliness, and
 verbosity, due to need to manually instantiate the building block, and pass to generic factory. Instead
 of manually doing it, wrapping instantiator into a function will lessen the verbosity (check $(D_INLINECODE makeTire)
-definition and usage), and increase the readability of configuration code, thanks to UFCS feature of 
+definition and usage), and increase the readability of configuration code, thanks to UFCS feature of
 D programming language.
 
 --------------------
 auto makeTire(T : GenericFactory!Z, Z : Tire)(auto ref T factory, int size) {
     factory.setInstanceFactory(new TireConstructorInstanceFactory(size));
-    
+
     return factory;
 }
 
 class TireConstructorInstanceFactory : InstanceFactory!Tire {
-    
+
     private {
         int size;
+
+        Locator!(Object, string) locator_;
+        IAllocator allocator_;
     }
-    
+
     public {
         this(int size) {
             this.size = size;
         }
-        
+
+        @property {
+            TireConstructorInstanceFactory locator(Locator!(Object, string) locator) {
+                this.locator_ = locator;
+
+                return this;
+            }
+
+            TireConstructorInstanceFactory allocator(IAllocator allocator) pure nothrow @safe {
+                this.allocator_ = allocator;
+
+                return this;
+            }
+        }
+
         Tire factory() {
             Tire tire;
-            
+
             import std.stdio;
-            
+
             write("Creating a tire of ", size, " inches: ");
-            tire = new Tire();
+            tire = this.allocator_.make!Tire;
             tire.size = size;
             writeln("\t[..OK..]");
-            
+
             return tire;
         }
     }
@@ -127,25 +160,29 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
 
 The code for tire inflator configurer can be seen in examples from source code. The difference
 from $(D_INLINECODE TireConstructorInstanceFactory) is that implementation should extend $(D_INLINECODE PropertyConfigurer).
+Same can be said about tire destructor, it implements $(D_INLINECODE InstanceDestructor) to provide
+destruction mechanisms for generic factory.
 
 Once the custom implementation and their wrapper are implemented, it is possible to use them
 as any other built-in building blocks from framework. Next example shows how implemented building
 blocks can be used along with other configuration primitives.
 --------------------
 void main() {
-    
+
     SingletonContainer container = new SingletonContainer;
-    
+    scope (exit) container.terminate();
+
     with (container.configure) {
 
         register!Tire("logging.tire")
             .makeTire(17)
             .inflateTire(3.0)
-            .set!"vendor"("hell tire");
+            .set!"vendor"("hell tire")
+            .destroyTire;
     }
-    
+
     container.instantiate();
-    
+
     container.locate!Tire("logging.tire").writeln;
 }
 --------------------
@@ -155,6 +192,7 @@ Running it, produces following result:
 Creating a tire of 17 inches: 	[..OK..]
 Inflating tire to 3 atm: 	[..OK..]
 Tire(17 inch, 3 atm, hell tire)
+Destroying tire:        [..OK..]
 --------------------
 
 Try to implement your own instance factory or property configurer, wrap them
@@ -170,14 +208,14 @@ License:
 	execute, and transmit the Software, and to prepare derivative works of the
 	Software, and to permit third-parties to whom the Software is furnished to
 	do so, all subject to the following:
-	
+
 	The copyright notices in the Software and this entire statement, including
 	the above license grant, this restriction and the following disclaimer,
 	must be included in all copies of the Software, in whole or in part, and
 	all derivative works of the Software, unless such copies or derivative
 	works are solely in the form of machine-executable object code generated by
 	a source language processor.
-	
+
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 	FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
@@ -194,49 +232,76 @@ module app;
 
 import aermicioi.aedi;
 import std.stdio;
+import std.experimental.allocator;
 
 class TireConstructorInstanceFactory : InstanceFactory!Tire {
-    
+
     private {
         int size;
+
+        Locator!(Object, string) locator_;
+        IAllocator allocator_;
     }
-    
+
     public {
         this(int size) {
             this.size = size;
         }
-        
+
+        @property {
+            TireConstructorInstanceFactory locator(Locator!(Object, string) locator) {
+                this.locator_ = locator;
+
+                return this;
+            }
+
+            TireConstructorInstanceFactory allocator(IAllocator allocator) pure nothrow @safe {
+                this.allocator_ = allocator;
+
+                return this;
+            }
+        }
+
         Tire factory() {
             Tire tire;
-            
+
             import std.stdio;
-            
+
             write("Creating a tire of ", size, " inches: ");
-            tire = new Tire();
+            tire = this.allocator_.make!Tire;
             tire.size = size;
             writeln("\t[..OK..]");
-            
+
             return tire;
         }
     }
 }
 
 class TireInflatorConfigurer : PropertyConfigurer!Tire {
-    
+
     private {
         float atmospheres;
+        Locator!() locator_;
     }
-    
+
     public {
-        
+
         this(float atmospheres = 3.0) {
             this.atmospheres = atmospheres;
         }
-        
+
+        @property {
+            TireInflatorConfigurer locator(Locator!(Object, string) locator) {
+                this.locator_ = locator;
+
+                return this;
+            }
+        }
+
         void configure(ref Tire tire) {
-            
+
             import std.stdio;
-            
+
             write("Inflating tire to ", atmospheres, " atm: ");
             tire.pressure = atmospheres;
             writeln("\t[..OK..]");
@@ -244,15 +309,34 @@ class TireInflatorConfigurer : PropertyConfigurer!Tire {
     }
 }
 
+class TireInstanceDestructor : InstanceDestructor!Tire {
+    mixin LocatorAwareMixin!TireInstanceDestructor;
+    mixin AllocatorAwareMixin!TireInstanceDestructor;
+
+    public {
+        void destruct(ref Tire destructable) {
+            write("Destroying tire: ");
+            this.allocator.dispose(destructable);
+            writeln("\t[..OK..]");
+        }
+    }
+}
+
 auto makeTire(T : GenericFactory!Z, Z : Tire)(auto ref T factory, int size) {
     factory.setInstanceFactory(new TireConstructorInstanceFactory(size));
-    
+
     return factory;
 }
 
 auto inflateTire(T : GenericFactory!Z, Z : Tire)(auto ref T factory, float pressure) {
     factory.addPropertyConfigurer(new TireInflatorConfigurer(pressure));
-    
+
+    return factory;
+}
+
+auto destroyTire(T : GenericFactory!Z, Z : Tire)(auto ref T factory) {
+    factory.setInstanceDestructor(new TireInstanceDestructor());
+
     return factory;
 }
 
@@ -262,45 +346,45 @@ class Tire {
         float pressure_;
         string vendor_;
     }
-    
+
     public @property {
         Tire size(int size) @safe nothrow {
         	this.size_ = size;
-        
+
         	return this;
         }
-        
+
         int size() @safe nothrow {
         	return this.size_;
         }
-        
+
         Tire pressure(float pressure) @safe nothrow {
         	this.pressure_ = pressure;
-        
+
         	return this;
         }
-        
+
         float pressure() @safe nothrow {
         	return this.pressure_;
         }
-        
+
         Tire vendor(string vendor) @safe nothrow {
         	this.vendor_ = vendor;
-        
+
         	return this;
         }
-        
+
         string vendor() @safe nothrow {
         	return this.vendor_;
         }
     }
-    
+
     public override string toString() {
         import std.algorithm;
         import std.range;
         import std.conv;
         import std.utf;
-        
+
         return only("Tire(", this.size.to!string, " inch, ", this.pressure.to!string, " atm, ", this.vendor, ")")
             .joiner
             .byChar
@@ -309,18 +393,20 @@ class Tire {
 }
 
 void main() {
-    
+
     SingletonContainer container = new SingletonContainer;
-    
+    scope (exit) container.terminate();
+
     with (container.configure) {
 
         register!Tire("logging.tire")
             .makeTire(17)
             .inflateTire(3.0)
-            .set!"vendor"("hell tire");
+            .set!"vendor"("hell tire")
+            .destroyTire;
     }
 
     container.instantiate();
-    
+
     container.locate!Tire("logging.tire").writeln;
 }

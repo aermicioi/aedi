@@ -534,7 +534,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
 		Destructs a component of type T.
 
 		Params:
-			component = component that is to ve destroyed.
+			component = component that is to be destroyed.
 		**/
 		void destruct(ref T component) {
 

@@ -1,4 +1,4 @@
-# Aedi, a dependency injection framework. 
+# Aedi, a dependency injection framework.
 
 [![Dub license](https://img.shields.io/dub/l/aedi.svg)]()
 [![Travis CI](https://img.shields.io/travis/aermicioi/aedi/master.svg)](https://travis-ci.org/aermicioi/aedi)
@@ -7,7 +7,7 @@
 [![Dub downloads](https://img.shields.io/dub/dt/aedi.svg)](https://code.dlang.org/packages/aedi)
 
 Aedi is a dependency injection framework. It provides a set of containers that do
-IoC, and an interface to configure application components (structs, objects, etc.) 
+IoC, and an interface to configure components (structs, objects, or any data possible in D).
 
 ## Aim
 
@@ -17,9 +17,10 @@ feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 ## Features
 
 - Configuration through code or annotations.
+- Memory management based on std.experimental.allocator for components.
 - Modular design.
-- Documentation. Usage tutorial as well api documentation is available (check Documentation section).
-- Unittested.
+- Documentation. Tutorials and api documentation in section below.
+- Highly tested.
 
 ## Installation
 
@@ -28,69 +29,91 @@ Add Aedi as a dependency to a dub project:
 Json configuration:
 
 ```json
-"aedi": "~>0.3.0"
+"aedi": "~>0.4.0"
 ```
 
 SDL configuration:
 
 ```sdl
-dependency "aedi" version="~>0.3.0"
+dependency "aedi" version="~>0.4.0"
 ```
 
 ## Quickstart
 
-1. Create a container
-2. Register an application component. Any data (struct, object, union, etc) is treated as application component.
-3. Write a wiring configuration
+1. Create a container.
+2. Register an application component.
+3. Bind dependencies to it.
 4. Repeat process for other components.
-5. Boot container
+5. Boot container, and start using registered components.
+6. Finish and cleanup container.
 
-First of all a container should be created:
-
-```D
-	// Containers are responsible for storing, and managing application's components.
-    SingletonContainer container = new SingletonContainer;
-```
-
-Next, register component into container:
+Following code example shows the fastest way to create and use an IoC container.
 
 ```D
-    container.register!Color
-```
+import aermicioi.aedi;
+import std.stdio;
 
-Component is registered by calling `.register` method on container with type of component.
-Note, that in example we do not end the statement. That's because component should be 
-configured next:
+/**
+A struct that should be managed by container.
+**/
+struct Color {
+    ubyte r;
+    ubyte g;
+    ubyte b;
+}
 
-```D
-        .set!"r"(cast(ubyte) 250)
-        .set!"g"(cast(ubyte) 210)
-        .set!"b"(cast(ubyte) 255);
-```
+/**
+Size of a car.
+**/
+struct Size {
 
-`.set` method configures component properties to specific values (setter injection in other words).
-Note the example ends in `;` which means that it's end of statement and Color registration/configuration.
-Once components are registered and configured, container needs to be booted (instantiated):
+    ulong width;
+    ulong height;
+    ulong length;
+}
 
-```D
-    container.instantiate();
-```
+/**
+A class representing a car.
+**/
+class Car {
 
-Container during boot operation, will do various stuff, including creation and wiring of components
-between them. It's important to call `container.instantiate()` after all application's components 
-have been registered into container, otherwise it is not guaranteed that application will work correctly.
+    public {
+        Color color; // Car color
+        Size size; // Car size
+    }
+}
 
-Once container is booted, components in it are available for use. 
-To fetch it use locate method like in following example:
+void print(Car car) {
+    "You bought a new car with following specs:".writeln;
+    writeln("Size:\t", car.size;
+    writeln("Color:\t", car.color);
+}
 
-```D
-container.locate!Color.writeln;
-```
+void main() {
+    SingletonContainer container = singleton(); // 1. Create a container.
+    scope(exit) container.terminate(); // 6. Finish and cleanup container.
 
-Run example from [getting started](https://github.com/aermicioi/aedi/wiki/Getting-started) tutorial:
+    with (container.configure) {
 
-```D
-Color is:	Color(250, 210, 255)
+        register!Car // 2. Register an application component.
+            .construct(lref!Size) // 3. Bind dependencies to it.
+            .set!"color"(lref!Color);
+
+        register!Color // 4. Repeat process for other components.
+            .set!"r"(cast(ubyte) 0)
+            .set!"g"(cast(ubyte) 255)
+            .set!"b"(cast(ubyte) 0);
+
+        register!Size
+            .set!"width"(200UL)
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+    }
+
+    container.instantiate(); // 5. Boot container.
+
+    container.locate!Car.print; // 5. Start using registered components.
+}
 ```
 
 ## Documentation

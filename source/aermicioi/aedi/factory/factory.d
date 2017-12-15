@@ -85,6 +85,7 @@ mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
         component = component that is to ve destroyed.
     **/
     void destruct(ref Z component) {
+
         this.decorated.destruct(component);
     }
 }

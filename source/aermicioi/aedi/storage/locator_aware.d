@@ -71,7 +71,7 @@ mixin template LocatorAwareMixin(T : LocatorAware!(Z, X), Z, X) {
 }
 
 mixin template LocatorAwareMixin(Type = Object, KeyType = string) {
-
+    import aermicioi.aedi.storage.locator;
     private {
         Locator!(Type, KeyType) locator_;
     }
