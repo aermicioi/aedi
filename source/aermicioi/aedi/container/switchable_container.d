@@ -259,6 +259,7 @@ template SwitchableContainer(T) {
             }
 
             static if (is(T : FactoryLocator!ObjectFactory)) {
+
                 mixin FactoryLocatorMixin!(typeof(this));
             }
 

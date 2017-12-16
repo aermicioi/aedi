@@ -153,8 +153,21 @@ auto deffered(T)(auto ref T container) {
 	return (new DefferedContainer!T(container));
 }
 
+/**
+Wrap up container into gc registering container.
+
+Wrap up container into gc registering container, that will automatically
+register all created components by it into garbage collector for proper
+scanning.
+
+Params:
+	container = container to decorate with gc component registration.
+
+Returns:
+	GcRegisteringContainer!T
+**/
 auto gcRegistered(T)(auto ref T container) {
-	return (new GCRegisteringContainer!T).decorated(container);
+	return (new GcRegisteringContainer!T).decorated(container);
 }
 
 /**
