@@ -19,47 +19,74 @@ $(UL
     $(LI Boot container )
 )
 
-First of all a container should be created:
----------------
-SingletonContainer container = singleton();
----------------
+Following code example shows the fastest way to create and use an IoC container.
 
-Container is responsible for storing, and managing application's components.
+-------------------
+import aermicioi.aedi;
+import std.stdio;
 
-Next, register and configure component into container:
----------------
-with (container.configure) {
-
-    register!Color // Register color into container.
-        .set!"r"(cast(ubyte) 250) // Set red color to 250
-        .set!"g"(cast(ubyte) 210) // Set green color to 210
-        .set!"b"(cast(ubyte) 255); // Set blue color to 255
+/++
+A struct that should be managed by container.
+++/
+struct Color {
+    ubyte r;
+    ubyte g;
+    ubyte b;
 }
----------------
 
-Configuration process begins with .configure in a with statement and afterwards
-component is registered by calling .register method on container with type of component.
-.set method sets component properties to specific values (setter injection in other words).
-Note the example ends in `;` which means that it's end of statement and Color registration/configuration.
-Once components are registered and configured, container needs to be booted (instantiated):
----------------
-container.instantiate();
----------------
+/++
+Size of a car.
+++/
+struct Size {
 
-Container during boot operation, will do various stuff, including creation and wiring of components
-between them. It is desired to call container.instantiate() after all application's components
-have been registered into container, though a container can work even without calling it.
+    ulong width;
+    ulong height;
+    ulong length;
+}
 
-Once container is booted, components in it are available for use.
-To fetch it use locate method like in following example:
----------------
-container.locate!Color.print;
----------------
+/++
+A class representing a car.
+++/
+class Car {
 
-Try running the example, the output of example will be the Color that was registered in container.
----------------
-Color is:	Color(250, 210, 255)
----------------
+    public {
+        Color color; // Car color
+        Size size; // Car size
+    }
+}
+
+void print(Car car) {
+    "You bought a new car with following specs:".writeln;
+    writeln("Size:\t", car.size;
+    writeln("Color:\t", car.color);
+}
+
+void main() {
+    SingletonContainer container = singleton(); // 1. Create a container.
+    scope(exit) container.terminate(); // 6. Finish and cleanup container. Always call it at the end of application.
+
+    with (container.configure) {
+
+        register!Car // 2. Register an application component.
+            .construct(lref!Size) // 3. Bind dependencies to it.
+            .set!"color"(lref!Color);
+
+        register!Color // 4. Repeat process for other components.
+            .set!"r"(cast(ubyte) 0)
+            .set!"g"(cast(ubyte) 255)
+            .set!"b"(cast(ubyte) 0);
+
+        register!Size
+            .set!"width"(200UL)
+            .set!"height"(150UL)
+            .set!"length"(500UL);
+    }
+
+    container.instantiate(); // 5. Boot container.
+
+    container.locate!Car.print; // 5. Start using registered components.
+}
+-------------------
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
