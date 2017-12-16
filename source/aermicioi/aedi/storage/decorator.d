@@ -65,7 +65,7 @@ interface MutableDecorator(T) : Decorator!T {
             Returns:
             	this
             **/
-        	Decorator!T decorated(T decorated) @safe nothrow pure;
+        	typeof(this) decorated(T decorated) @safe nothrow pure;
         }
     }
 }

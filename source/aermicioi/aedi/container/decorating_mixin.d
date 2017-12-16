@@ -155,11 +155,11 @@ mixin template StorageMixin(T : Storage!(W, X), W, X) {
     }
 }
 
-mixin template StorageMixin(T) {
-
+mixin template LocatorMixin(T : Locator!(W, X), W, X) {
+    mixin LocatorMixin!(W, X);
 }
 
-mixin template LocatorMixin(T : Decorator!Z, Z : Locator!(W, X), W, X) {
+mixin template LocatorMixin(W, X) {
     /**
     Get object created by a factory identified by key
 
@@ -185,14 +185,6 @@ mixin template LocatorMixin(T : Decorator!Z, Z : Locator!(W, X), W, X) {
     {
         return this.decorated_.has(key);
     }
-}
-
-mixin template LocatorMixin(T) {
-    import std.traits;
-    pragma(msg, "here");
-    pragma(msg, T);
-    pragma(msg, InterfacesTuple!T);
-    pragma(msg, is(T));
 }
 
 mixin template FactoryLocatorMixin(T : FactoryLocator!W, W) {

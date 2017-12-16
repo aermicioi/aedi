@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.container.subscribable_container;
 
 import aermicioi.aedi.container.container;
+import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.alias_aware;
@@ -152,61 +153,8 @@ template SubscribableContainer(T)
                 subscribers[ContainerInstantiationEventType.post] = null;
             }
 
-            @property
-            {
-                /**
-                Set the decorated object for decorator.
-
-                Params:
-                    container = decorated data
-
-                Returns:
-                    typeof(this)
-                **/
-                SubscribableContainer decorated(T container) @safe nothrow
-                {
-                    this.decorated_ = container;
-
-                    return this;
-                }
-
-                /**
-                Get the decorated object.
-
-                Returns:
-                    T decorated object
-                **/
-                T decorated() @safe nothrow
-                {
-                    return this.decorated_;
-                }
-            }
-
-            /**
-            Get object created by a factory identified by key
-
-            Params:
-                key = identity of factory
-            Returns:
-           	Object
-            **/
-            Object get(string key)
-            {
-                return this.decorated.get(key);
-            }
-
-            /**
-            Check if an object factory for it exists in container.
-
-            Params:
-                key = identity of factory
-            Returns:
-                bool
-            **/
-            bool has(in string key) inout
-            {
-                return this.decorated_.has(key);
-            }
+            mixin MutableDecoratorMixin!T;
+            mixin LocatorMixin!(typeof(this));
 
             /**
             Subscriber a delegate to a particular event emmited by object
@@ -261,125 +209,17 @@ template SubscribableContainer(T)
 
             static if (is(T : Storage!(ObjectFactory, string)))
             {
-
-                /**
-                Set object factory
-
-                Params:
-                    element = factory for a object that is to be managed by prototype container.
-                    identity = identity of factory
-                Returns:
-                    typeof(this)
-                **/
-                SubscribableContainer!T set(ObjectFactory element, string identity)
-                {
-                    decorated.set(element, identity);
-
-                    return this;
-                }
-
-                /**
-                Remove an object factory from container.
-
-                Params:
-                    identity = identity of factory to be removed
-                Returns:
-                    typeof(this)
-                **/
-                SubscribableContainer!T remove(string identity)
-                {
-                    decorated.remove(identity);
-
-                    return this;
-                }
+                mixin StorageMixin!(typeof(this));
             }
 
             static if (is(T : AliasAware!string))
             {
-
-                /**
-                Alias a identity to an alias_.
-
-                Params:
-                    identity = the originial identity which is to be aliased.
-                    alias_ = the alias of identity.
-
-                Returns:
-                    this
-                **/
-                SubscribableContainer!T link(string identity, string alias_)
-                {
-                    decorated.link(identity, alias_);
-
-                    return this;
-                }
-
-                /**
-                Removes alias.
-
-                Params:
-                    alias_ = alias to remove.
-
-                Returns:
-                    this
-
-                **/
-                SubscribableContainer!T unlink(string alias_)
-                {
-                    decorated.unlink(alias_);
-
-                    return this;
-                }
-
-                /**
-                Resolve an alias to original identity, if possible.
-
-                Params:
-                    alias_ = alias of original identity
-
-                Returns:
-                    Type the last identity in alias chain.
-
-                **/
-                const(string) resolve(in string alias_) const
-                {
-                    return decorated_.resolve(alias_);
-                }
+                mixin AliasAwareMixin!(typeof(this));
             }
 
             static if (is(T : FactoryLocator!ObjectFactory))
             {
-
-                /**
-                Get factory for constructed data identified by identity.
-
-                Get factory for constructed data identified by identity.
-                Params:
-                    identity = the identity of data that factory constructs.
-
-                Throws:
-                    NotFoundException when factory for it is not found.
-
-                Returns:
-                    ObjectFactory the factory for constructed data.
-                **/
-                ObjectFactory getFactory(string identity)
-                {
-                    return this.decorated.getFactory(identity);
-                }
-
-                /**
-                Get all factories available in container.
-
-                Get all factories available in container.
-
-                Returns:
-                    InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
-                **/
-                InputRange!(Tuple!(ObjectFactory, string)) getFactories()
-                {
-                    return this.decorated.getFactories();
-                }
+                mixin FactoryLocatorMixin!(typeof(this));
             }
         }
     }

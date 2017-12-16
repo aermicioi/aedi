@@ -31,6 +31,7 @@ module aermicioi.aedi.container.gc_registering_container;
 
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.object_storage;
+import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.storage;
@@ -63,7 +64,7 @@ Decorated container must implement following interfaces:
 Params:
     T = The decorated that switchable decorated will decorate.
 **/
-template SubscribableContainer(T)
+template GcRegisteringContainer(T)
 {
 
     /**
@@ -87,12 +88,11 @@ template SubscribableContainer(T)
         ),
         InterfacesTuple!T),
         Container,
-        Subscribable!ContainerInstantiationEventType,
         MutableDecorator!T,
         Decorator!Container
     );
 
-    class SubscribableContainer : InheritanceSet
+    class GcRegisteringContainer : InheritanceSet
     {
         private
         {
@@ -103,118 +103,15 @@ template SubscribableContainer(T)
         {
 
             /**
-            Default constructor for SubscribableContainer
+            Default constructor for GcRegisteringContainer
             **/
             this()
             {
             }
 
-            @property
-            {
-                /**
-                Set the decorated object for decorator.
-
-                Params:
-                    container = decorated data
-
-                Returns:
-                    typeof(this)
-                **/
-                SubscribableContainer decorated(T container) @safe nothrow
-                {
-                    this.decorated_ = container;
-
-                    return this;
-                }
-
-                /**
-                Get the decorated object.
-
-                Returns:
-                    T decorated object
-                **/
-                T decorated() @safe nothrow
-                {
-                    return this.decorated_;
-                }
-            }
-
-            /**
-            Get object created by a factory identified by key
-
-            Params:
-                key = identity of factory
-            Returns:
-           	Object
-            **/
-            Object get(string key)
-            {
-                return this.decorated.get(key);
-            }
-
-            /**
-            Check if an object factory for it exists in container.
-
-            Params:
-                key = identity of factory
-            Returns:
-                bool
-            **/
-            bool has(in string key) inout
-            {
-                return this.decorated_.has(key);
-            }
-
-            /**
-            Subscriber a delegate to a particular event emmited by object
-
-            Params:
-                event = type of event emmited by object
-                subscriber = the callback to be called on event emmited
-            Returns:
-           	    typeof(this)
-            **/
-            SubscribableContainer subscribe(ContainerInstantiationEventType event,
-                    void delegate() subscriber)
-            {
-                this.subscribers[event] ~= subscriber;
-
-                return this;
-            }
-
-            /**
-            Sets up the internal state of container.
-
-            Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
-            **/
-            SubscribableContainer instantiate()
-            {
-                foreach (preProcessor; this.subscribers[ContainerInstantiationEventType.pre])
-                {
-                    preProcessor();
-                }
-
-                this.decorated.instantiate();
-
-                foreach (postProcessor; this.subscribers[ContainerInstantiationEventType.post])
-                {
-                    postProcessor();
-                }
-
-                return this;
-            }
-
-            /**
-            Destruct all managed components.
-
-            Destruct all managed components. The method denotes the end of container lifetime, and therefore destruction of all managed components
-            by it.
-            **/
-            Container terminate() {
-                this.decorated.terminate();
-
-                return this;
-            }
+            mixin MutableDecoratorMixin!(T);
+            mixin LocatorMixin!(typeof(this));
+            mixin ContainerMixin!(typeof(this));
 
             static if (is(T : Storage!(ObjectFactory, string)))
             {
@@ -228,9 +125,9 @@ template SubscribableContainer(T)
                 Returns:
                     typeof(this)
                 **/
-                SubscribableContainer!T set(ObjectFactory element, string identity)
+                GcRegisteringContainer!T set(ObjectFactory element, string identity)
                 {
-                    decorated.set(element, identity);
+                    decorated.set(new GcRegisteringFactoryDecorator(element), identity);
 
                     return this;
                 }
@@ -243,7 +140,7 @@ template SubscribableContainer(T)
                 Returns:
                     typeof(this)
                 **/
-                SubscribableContainer!T remove(string identity)
+                GcRegisteringContainer!T remove(string identity)
                 {
                     decorated.remove(identity);
 
@@ -254,89 +151,13 @@ template SubscribableContainer(T)
             static if (is(T : AliasAware!string))
             {
 
-                /**
-                Alias a identity to an alias_.
-
-                Params:
-                    identity = the originial identity which is to be aliased.
-                    alias_ = the alias of identity.
-
-                Returns:
-                    this
-                **/
-                SubscribableContainer!T link(string identity, string alias_)
-                {
-                    decorated.link(identity, alias_);
-
-                    return this;
-                }
-
-                /**
-                Removes alias.
-
-                Params:
-                    alias_ = alias to remove.
-
-                Returns:
-                    this
-
-                **/
-                SubscribableContainer!T unlink(string alias_)
-                {
-                    decorated.unlink(alias_);
-
-                    return this;
-                }
-
-                /**
-                Resolve an alias to original identity, if possible.
-
-                Params:
-                    alias_ = alias of original identity
-
-                Returns:
-                    Type the last identity in alias chain.
-
-                **/
-                const(string) resolve(in string alias_) const
-                {
-                    return decorated_.resolve(alias_);
-                }
+                mixin AliasAwareMixin!(typeof(this));
             }
 
             static if (is(T : FactoryLocator!ObjectFactory))
             {
 
-                /**
-                Get factory for constructed data identified by identity.
-
-                Get factory for constructed data identified by identity.
-                Params:
-                    identity = the identity of data that factory constructs.
-
-                Throws:
-                    NotFoundException when factory for it is not found.
-
-                Returns:
-                    ObjectFactory the factory for constructed data.
-                **/
-                ObjectFactory getFactory(string identity)
-                {
-                    return this.decorated.getFactory(identity);
-                }
-
-                /**
-                Get all factories available in container.
-
-                Get all factories available in container.
-
-                Returns:
-                    InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
-                **/
-                InputRange!(Tuple!(ObjectFactory, string)) getFactories()
-                {
-                    return this.decorated.getFactories();
-                }
+                mixin FactoryLocatorMixin!(typeof(this));
             }
         }
     }
@@ -351,6 +172,10 @@ private class GcRegisteringFactoryDecorator : Factory!Object {
     mixin MutableDecoratorMixin!(Factory!Object);
 
     public {
+        this(Factory!Object decorated) {
+            this.decorated = decorated;
+        }
+
         /**
 		Instantiates component of type Object.
 
@@ -361,7 +186,7 @@ private class GcRegisteringFactoryDecorator : Factory!Object {
             import core.memory;
 
             Object object = this.decorated.factory();
-            GC.addRange(cast(void*) object, this.type.initializer.length);
+            GC.addRange(cast(void*) object, this.type.initializer.length, object.classinfo);
 
             return object;
         }

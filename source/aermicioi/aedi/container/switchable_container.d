@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.container.switchable_container;
 
 import aermicioi.aedi.container.container;
+import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.decorator;
@@ -167,33 +168,7 @@ template SwitchableContainer(T) {
             	return this.enabled_;
             }
 
-            /**
-            Set the decorated decorated
-
-            Params:
-                decorated = decorated to be decorated
-
-            Returns:
-                SwitchableContainer!T decorating decorated.
-            **/
-            SwitchableContainer!T decorated(T decorated) @safe nothrow {
-            	this.decorated_ = decorated;
-
-            	return this;
-            }
-
-
-            /**
-            Get the decorated decorated.
-
-            Get the decorated decorated.
-
-            Returns:
-            	inout(T) decorated decorated
-            **/
-            T decorated() @safe nothrow {
-            	return this.decorated_;
-            }
+            mixin MutableDecoratorMixin!T;
 
             static if (is(T : Container)) {
 
@@ -229,38 +204,7 @@ template SwitchableContainer(T) {
             }
 
             static if (is(T : Storage!(ObjectFactory, string))) {
-                /**
-        		Set factory in decorated by identity.
-
-        		Params:
-        			identity = identity of factory.
-        			element = factory that is to be saved in decorated.
-
-        		Return:
-        			SwitchableContainer!T decorating decorated.
-        		**/
-                SwitchableContainer!T set(ObjectFactory element, string identity) {
-                    decorated.set(element, identity);
-
-                    return this;
-                }
-
-                /**
-                Remove factory from decorated with identity.
-
-                Remove factory from decorated with identity.
-
-                Params:
-                	identity = the identity of factory to be removed.
-
-            	Return:
-            		SwitchableContainer!T decorating decorated
-                **/
-                SwitchableContainer!T remove(string identity) {
-                    decorated.remove(identity);
-
-                    return this;
-                }
+                mixin StorageMixin!(typeof(this));
             }
 
             static if (is(T : AliasAware!string)) {
@@ -315,34 +259,7 @@ template SwitchableContainer(T) {
             }
 
             static if (is(T : FactoryLocator!ObjectFactory)) {
-                /**
-                Get factory for constructed data identified by identity.
-
-                Get factory for constructed data identified by identity.
-                Params:
-                    identity = the identity of data that factory constructs.
-
-                Throws:
-                    NotFoundException when factory for it is not found.
-
-                Returns:
-                    ObjectFactory the factory for constructed data.
-                **/
-                ObjectFactory getFactory(string identity) {
-                    return this.decorated.getFactory(identity);
-                }
-
-                /**
-                Get all factories available in container.
-
-                Get all factories available in container.
-
-                Returns:
-                    InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
-                **/
-                InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
-                    return this.decorated.getFactories();
-                }
+                mixin FactoryLocatorMixin!(typeof(this));
             }
 
             /**
