@@ -47,7 +47,8 @@ register!Size("size.sedan") // Register a size of a generic "sedan" into contain
 
 As a consequence to using custom allocation strategies, for all containers, $(D_INLINECODE terminate)
 method should be called when containers lifetime ends (whether at end of application, or during some other
-event).
+event), otherwise it is not guaranteed that components are finalized correctly, even if they were allocated on
+garbage collector.
 
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
