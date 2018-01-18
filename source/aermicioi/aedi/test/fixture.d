@@ -480,7 +480,7 @@ class Employee : Person {
 
         }
 
-        @autowired
+        @constructor("Simple as toad", cast(ubyte) 10)
         this(string name, ubyte age) {
             super(name, age);
         }

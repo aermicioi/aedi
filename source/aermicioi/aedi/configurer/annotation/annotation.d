@@ -50,6 +50,10 @@ import std.meta;
 import std.typecons;
 import std.conv : to;
 import std.algorithm;
+import std.experimental.allocator;
+
+enum bool isComponentAnnotation(T) = is(T : ComponentAnnotation);
+enum bool isComponentAnnotation(alias T) = isComponentAnnotation!(toType!T);
 
 /**
 Annotation used to denote an aggregate that should be stored into an container.
@@ -72,11 +76,51 @@ struct ComponentAnnotation {
     }
 }
 
+enum bool isValueAnnotation(T) = is(T : ValueAnnotation!Value, Value);
+enum bool isValueAnnotation(alias T) = isValueAnnotation!(toType!T);
+
+/**
+Notice:
+beware of dragons, if used with a class instance, the value could be destroyed by container that manages it.
+**/
+struct ValueAnnotation(Value) {
+
+    Value value;
+}
+
+ValueAnnotation!T value(T)(T value) {
+    return ValueAnnotation!T(value);
+}
+
+enum bool isAllocatorAnnotation(T) = is(T : AllocatorAnnotation!X, X);
+enum bool isAllocatorAnnotation(alias T) = isAllocatorAnnotation!(toType!T);
+
+struct AllocatorAnnotation(T = IAllocator) {
+
+    T allocator;
+
+    /**
+    Get iallocator
+
+    Returns:
+        IAllocator
+    **/
+    IAllocator iallocator() {
+        return this.allocator.allocatorObject;
+    }
+}
+
+AllocatorAnnotation!T allocator(T)(T allocator) {
+    return AllocatorAnnotation!T(allocator);
+}
+
 /**
 ditto
 **/
 alias component = ComponentAnnotation;
 
+enum bool isConstructorAnnotation(T) = is(T : ConstructorAnnotation!Z, Z...);
+enum bool isConstructorAnnotation(alias T) = isConstructorAnnotation!(toType!T);
 /**
 Annotation used to mark a constructor to be used for aggregate instantiation.
 
@@ -95,24 +139,6 @@ struct ConstructorAnnotation(Args...) {
     this(Args args) {
         this.args = args;
     }
-
-    /**
-    Constructs a constructor based factory for aggregate of type T
-
-    Params:
-    	T = the aggregate type
-    	locator = locator used to extract needed dependencies for T
-
-    Returns:
-    	InstanceFactory!T for objects
-    	InstanceFactory!(Wrapper!T) for structs
-    **/
-    InstanceFactory!T factoryContainer(T, string property)(Locator!() locator) {
-        auto constructor = new ConstructorBasedFactory!(T, Args)(args.expand);
-        constructor.locator = locator;
-
-        return constructor;
-    }
 }
 
 /**
@@ -122,6 +148,8 @@ auto constructor(Args...)(Args args) {
     return ConstructorAnnotation!Args(args);
 }
 
+enum bool isSetterAnnotation(T) = is(T : SetterAnnotation!Z, Z...);
+enum bool isSetterAnnotation(alias T) = isSetterAnnotation!(toType!T);
 /**
 Annotation used to mark a member to be called or set (in case of fields), with args passed to setter.
 
@@ -143,51 +171,6 @@ struct SetterAnnotation(Args...) {
     this(Args args) {
         this.args = args;
     }
-
-    /**
-    Constructs a configurer that will call or set a member for aggregate of type T.
-
-    Constructs a configurer that will call or set a member for aggregate of type T.
-    In case when member is a method, it will be called with passed arguments.
-    If method is an overload set, the method that matches argument list will be called.
-    In case when member is a field, it will be set to first argument from Args list.
-
-    Params:
-    	T = the aggregate type
-    	method = the member which setter will call or set.
-    	locator = locator used to extract needed dependencies for T
-
-    Returns:
-    	PropertyConfigurer!T for objects
-    	PropertyConfigurer!(Wrapper!T) for structs
-    **/
-    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator)
-        if (
-            !isField!(T, method)
-        ) {
-        mixin assertObjectMethodCompatible!(T, method, Args);
-
-        auto method = new MethodConfigurer!(T, method, Args)(args.expand);
-        method.locator = locator;
-
-        return method;
-    }
-
-    /**
-    ditto
-    **/
-    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator)
-        if (
-            isField!(T, method) &&
-            (Args.length == 1)
-        ) {
-        mixin assertFieldCompatible!(T, method, Args);
-
-        auto method = new FieldConfigurer!(T, method, Args[0])(args[0]);
-        method.locator = locator;
-
-        return method;
-    }
 }
 
 /**
@@ -197,6 +180,8 @@ auto setter(Args...)(Args args) {
     return SetterAnnotation!Args(args);
 }
 
+enum bool isCallbackFactoryAnnotation(T) = is(T : CallbackFactoryAnnotation!Z, Z...);
+enum bool isCallbackFactoryAnnotation(alias T) = isCallbackFactoryAnnotation!(toType!T);
 /**
 Annotation that specifies a delegate to be used to instantiate aggregate.
 
@@ -220,25 +205,6 @@ struct CallbackFactoryAnnotation(Z, Dg, Args...)
         this.dg = dg;
         this.args = tuple(args);
     }
-
-    /**
-    Constructs a factory that uses delegate to instantiate an aggregate of type T.
-
-    Params:
-    	T = the aggregate type
-    	locator = locator used to extract needed dependencies for T, it is also passed to delegate as first argument.
-
-    Returns:
-    	InstanceFactory!T for objects
-    	InstanceFactory!(Wrapper!T) for structs
-    **/
-    InstanceFactory!T factoryContainer(T, string p = "")(Locator!() locator)
-        if (is(Z : T)) {
-        auto callback = new CallbackFactory!(T, Dg, Args)(dg, args.expand);
-        callback.locator = locator;
-
-        return callback;
-    }
 }
 
 /**
@@ -255,6 +221,8 @@ auto fact(T, Args...)(T function(IAllocator, Locator!(), Args) dg, Args args) {
     return CallbackFactoryAnnotation!(T, T function(IAllocator, Locator!(), Args), Args)(dg, args);
 }
 
+enum bool isCallbackConfigurerAnnotation(T) = is(T : CallbackConfigurerAnnotation!Z, Z...);
+enum bool isCallbackConfigurerAnnotation(alias T) = isCallbackConfigurerAnnotation!(toType!T);
 /**
 Annotation that specifies a delegate to be used to configure aggregate somehow.
 
@@ -282,25 +250,6 @@ struct CallbackConfigurerAnnotation(Z, Dg, Args...)
     this(Dg dg, ref Args args) {
         this.dg = dg;
         this.args = tuple(args);
-    }
-
-    /**
-    Constructs a configurer that uses delegate to configure an aggregate of type T.
-
-    Params:
-    	T = the aggregate type
-    	locator = locator that can be used by delegate to extract some custom data.
-
-    Returns:
-    	PropertyConfigurer!T for objects
-    	PropertyConfigurer!(Wrapper!T) for structs
-    **/
-    PropertyConfigurer!T factoryConfigurer(T, string p = "")(Locator!() locator)
-        if (is(T : Z)) {
-        auto callback = new CallbackConfigurer!(T, Dg, Args)(dg, args.expand);
-        callback.locator = locator;
-
-        return callback;
     }
 }
 
@@ -332,6 +281,8 @@ auto callback(T, Args...)(void function (Locator!(), T, Args) dg, Args args) {
     return CallbackConfigurerAnnotation!(T, void function (Locator!(), T, Args), Args)(dg, args);
 }
 
+enum bool isAutowiredAnnotation(T) = is(T : AutowiredAnnotation);
+enum bool isAutowiredAnnotation(alias T) = isAutowiredAnnotation!(toType!T);
 /**
 Annotation used to mark constructor or method for auto wiring.
 
@@ -343,44 +294,7 @@ will be used. Due to that autowired annotation is recommended to use on methods/
 
 **/
 struct AutowiredAnnotation {
-    PropertyConfigurer!T factoryConfigurer(T, string method)(Locator!() locator)
-        if (
-            !isField!(T, method) &&
-            isSomeFunction!(getMember!(T, method))
-        ) {
 
-        alias params = Parameters!(__traits(getOverloads, T, method)[0]);
-        auto references = tuple(staticMap!(toLref, params));
-
-        auto method = new MethodConfigurer!(T, method, staticMap!(toLrefType, params))(references.expand);
-        method.locator = locator;
-
-        return method;
-    }
-
-    PropertyConfigurer!T factoryConfigurer(T, string property)(Locator!() locator)
-        if (
-            isField!(T, property)
-        ) {
-
-        alias paramType = typeof(getMember!(T, property));
-
-        auto lref = toLref!paramType;
-        auto method = new FieldConfigurer!(T, property, toLrefType!paramType)(lref);
-        method.locator = locator;
-
-        return method;
-    }
-
-    InstanceFactory!T factoryContainer(T, string property)(Locator!() locator) {
-        alias params = Parameters!(__traits(getOverloads, T, "__ctor")[0]);
-        auto references = tuple(staticMap!(toLref, params));
-
-        auto method = new ConstructorBasedFactory!(T, staticMap!(toLrefType, params))(references.expand);
-        method.locator = locator;
-
-        return method;
-    }
 }
 
 /**
@@ -388,6 +302,8 @@ ditto
 **/
 alias autowired = AutowiredAnnotation;
 
+enum bool isQualifierAnnotation(T) = is(T : QualifierAnnotation);
+enum bool isQualifierAnnotation(alias T) = isQualifierAnnotation!(toType!T);
 /**
 An annotation used to provide custom identity for an object in container.
 **/
@@ -426,6 +342,8 @@ QualifierAnnotation qualifier(I)() {
     return QualifierAnnotation(name!I);
 }
 
+enum bool isContainedAnnotation(T) = is(T : ContainedAnnotation);
+enum bool isContainedAnnotation(alias T) = isContainedAnnotation!(toType!T);
 /**
 When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
 **/
@@ -443,4 +361,40 @@ Params:
 **/
 auto contained(string id) {
     return ContainedAnnotation(id);
+}
+
+
+enum bool isDefaultDestructor(T) = is(T) && is(T == DefaultDestructor);
+enum bool isDefaultDestructor(alias T) = is(typeof(T));
+
+struct DefaultDestructor {
+
+}
+
+DefaultDestructor defaultDestructor() {
+    return DefaultDestructor();
+}
+
+enum bool isCallbackDestructor(T) = is(T) && is(T == DefaultDestructor);
+enum bool isCallbackDestructor(alias T) = is(typeof(T));
+
+struct CallbackDestructor(T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...) {
+    Dg dg;
+    Args args;
+}
+
+CallbackDestructor callbackDestructor(T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...)(Dg dg, Args args) {
+    return CallbackDestructor(dg, args);
+}
+
+enum bool isDestructorMethod(T) = is(T) && is(T == DefaultDestructor);
+enum bool isDestructorMethod(alias T) = is(typeof(T));
+
+struct DestructorMethod(string method, T, Z, Args...) {
+    Dg dg;
+    Args args;
+}
+
+CallbackDestructor destructorMethod(string method, T, Z, Args...)(Dg dg, Args args) {
+    return DestructorMethod(dg, args);
 }
