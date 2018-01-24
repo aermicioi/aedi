@@ -116,7 +116,7 @@ interface DefferredExecutionerAware {
 }
 
 /**
-A property configurer, has the purpose to modify data of type T according to some logic encapsulated in it.
+A property configurer, has the purpose to modify component of type T according to some logic encapsulated in it.
 
 **/
 interface PropertyConfigurer(T) : LocatorAware!() {
@@ -134,7 +134,7 @@ interface PropertyConfigurer(T) : LocatorAware!() {
 }
 
 /**
-An instance factory, instantiates data of type T.
+An instance factory, instantiates component of type T.
 **/
 interface InstanceFactory(T) : LocatorAware!(), AllocatorAware!() {
 
@@ -158,7 +158,7 @@ interface InstanceDestructor(T) : LocatorAware!(), AllocatorAware!() {
     public {
 
         /**
-        Destruct an component of type T and deallocate it using stored allocator.
+        Destruct a component of type T and deallocate it using stored allocator.
 
         Params:
             destructable = element to be destructed and deallocated using stored allocator
@@ -230,10 +230,10 @@ interface PropertyConfigurersAware(T) {
     }
 }
 /**
-A generic factory, is a factory that instantiates data of type T using InstanceFactory and a list of PropertyConfigurers.
+A generic factory, is a factory that instantiates component of type T using InstanceFactory and a list of PropertyConfigurers.
 
-A generic factory, is a factory that instantiates data of type T using InstanceFactory and a list of PropertyConfigurers.
-It can optionally provide a Locator!() object to InstanceFactory and PropertyConfigurer to be used as a source of data.
+A generic factory, is a factory that instantiates component of type T using InstanceFactory and a list of PropertyConfigurers.
+It can optionally provide a Locator!() object to InstanceFactory and PropertyConfigurer to be used as a source of component.
 **/
 interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigurersAware!T, InstanceDestructorAware!T {
 
@@ -626,15 +626,15 @@ mixin template ParameterHolder(Args...) {
 }
 
 /**
-Calls aggregate's method with a set of arguments.
+Calls component's method with a set of arguments.
 
-Encapsulates a call to aggregate's method, with a set of arguments.
-The algorithm that calls aggregate's method, will automatically replace
-references from args list with data extracted from container, casted to
+Encapsulates a call to component's method, with a set of arguments.
+The algorithm that calls component's method, will automatically replace
+RuntimeReferences from args list with components extracted from container, casted to
 type that is extracted from method's signature.
 
 Params:
-    T = the aggregate type
+    T = the component type
     property = method that will be called
     Args = type tuple of args that method can be called with.
 **/
@@ -662,8 +662,8 @@ class MethodConfigurer(T, string property, Args...) : PropertyConfigurer!T
         See PropertyConfigurer interface
 
         Throws:
-            InvalidCastException when extracted data by reference, is not of type expected by argument
-            of aggregate's method
+            InvalidCastException when extracted component by reference, is not of type expected by argument
+            of component's method
         **/
         void configure(ref T obj) {
 
@@ -704,11 +704,11 @@ auto methodConfigurer(string property, T, Args...)(auto ref Args args)
 }
 
 /**
-Sets aggregate's field to a value.
+Sets component's field to a value.
 
-Encapsulates logic that sets aggregates field to a certain value.
-If argument that is contained by configurer is a reference, it will be automatically
-replaced with value extracted from locator, and set to aggregate's field.
+Encapsulates logic that sets component's field to a certain value.
+If argument that is contained by configurer is a RuntimeReference, it will be automatically
+replaced with value extracted from locator, and set to component's field.
 **/
 class FieldConfigurer(T, string property, Arg) : PropertyConfigurer!T
 	if (
@@ -733,8 +733,8 @@ class FieldConfigurer(T, string property, Arg) : PropertyConfigurer!T
         See PropertyConfigurer interface
 
         Throws:
-            InvalidCastException when extracted data by reference, is not of type expected by argument
-            of aggregate's field
+            InvalidCastException when extracted component by reference, is not of type expected by argument
+            of component's field
         **/
         void configure(ref T obj) {
 
@@ -766,7 +766,7 @@ auto fieldConfigurer(string property, T, Arg)(auto ref Arg arg)
 }
 
 /**
-Instantiates an aggregate using it's constructor with no arguments.
+Instantiates a component using it's constructor with no arguments.
 **/
 class DefaultInstanceFactory(T) : InstanceFactory!T
     if (
@@ -826,14 +826,14 @@ class DefaultFailingInstanceFactory(T) : InstanceFactory!T {
 }
 
 /**
-Instantiates aggregate using it's constructor with args.
+Instantiates component using it's constructor with args.
 
-Encapsulates construction of aggregate using a constructor, with args.
-Arguments from argument list that are references, are automatically
-replaced with data extracted from locator.
+Encapsulates construction of component using a constructor, with args.
+Arguments from argument list that are RuntimeReferences, are automatically
+replaced with component extracted from locator.
 
 Params:
-    T = aggregate type
+    T = component type
     Args = type tuple of args that are passed to T's constructor
 **/
 class ConstructorBasedFactory(T, Args...) : InstanceFactory!T
@@ -860,8 +860,8 @@ class ConstructorBasedFactory(T, Args...) : InstanceFactory!T
         See InstanceFactory interface
 
         Throws:
-            InvalidCastException when extracted data by reference, is not of type expected by argument
-            of aggregate's constructor
+            InvalidCastException when extracted component by reference, is not of type expected by argument
+            of component's constructor
         **/
         T factory() {
 
@@ -901,19 +901,19 @@ auto constructorBasedFactory(T, Args...)(auto ref Args args) {
 }
 
 /**
-Instantiates an aggregate using a method from other aggregate (factory method pattern).
+Instantiates a component using a method from other component (factory method pattern).
 
-Encapsulates construction of aggregate using factory method.
-Arguments that are references, will be replaced with data extracted
+Encapsulates construction of component using factory method.
+Arguments that are RuntimeReferences, will be replaced with components extracted
 from locator, and passed to factory's method.
 In case when method is not static member, the algorithm will use
 an instantiaton of factory passed to it, or extracted from locator
-if a reference is passed.
+if a RuntimeReference is passed.
 
 Params:
-    T = factory that is used to instantiate aggregate using it's method
-    method = the name of method used to instantiate aggregate
-    W = the factory T, or a LocatorReference to the factory.
+    T = factory that is used to instantiate component using it's method
+    method = the name of method used to instantiate component
+    W = the factory T, or a RuntimeReference to the factory.
     Args = type tuple of arguments passed to factory.
 **/
 
@@ -1088,16 +1088,16 @@ auto factoryMethodBasedFactory
 
 
 /**
-Instantiates data of type T using a delegate or function.
+Instantiates component of type T using a delegate or function.
 
-Encapsulates data's construction logic using a delegate.
-The algorithm uses a delegate to create required data,
+Encapsulates component's construction logic using a delegate.
+The algorithm uses a delegate to create required component,
 with a set of Args that are passed to delegate, and a locator
 for dependency fetching.
 
 Params:
-    T = the constructed aggregate
-    Args = type tuple of arguments passed to delegate for aggregate's construction.
+    T = the constructed component
+    Args = type tuple of arguments passed to delegate for component's construction.
 **/
 class CallbackFactory(T, Dg, Args...) : InstanceFactory!T
     if ((is(Dg == T delegate (IAllocator, Locator!(), Args)) || is(Dg == T function (IAllocator, Locator!(), Args)))) {
@@ -1160,18 +1160,18 @@ auto callbackFactory(T, Args...)(T function(IAllocator, Locator!(), Args) dg, au
 }
 
 /**
-Configures/modifies data of type T with help of a delegate or function.
+Configures/modifies component of type T with help of a delegate or function.
 
-Encapsulates data configuration logic using a delegate.
+Encapsulates component configuration logic using a delegate.
 The algorithm calls delegate, with a locator, a set of Args,
-and configured data, in order to modify the data
-somehow.
+and configured component, in order to modify the component.
 
 Note:
-    If data is not a reference type it is recommended to pass it by reference
+    If component is not a reference type it is recommended to pass it by ref
     in order to avoid receiving of a copy and not original one in delegate.
+    It is expected that the callback will use somehow method on which it was annotated with.
 Params:
-    T = the aggregate
+    T = the component
     Args = type tuple of arguments used by delegate for customization.
 **/
 class CallbackConfigurer(T, Dg, Args...) : PropertyConfigurer!T
@@ -1356,7 +1356,7 @@ class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!
             Set the decorated object for decorator.
 
             Params:
-                decorated = decorated data
+                decorated = decorated component
 
             Returns:
             	this
@@ -1399,7 +1399,7 @@ class DefaultInstanceDestructor(T) : InstanceDestructor!T {
     mixin LocatorAwareMixin!(typeof(this));
 
     /**
-    Destruct an component of type T and deallocate it using stored allocator.
+    Destruct a component of type T and deallocate it using stored allocator.
 
     Params:
         destructable = element to be destructed and deallocated using stored allocator
@@ -1456,7 +1456,7 @@ class CallbackInstaceDestructor(T, Dg : void delegate(IAllocator, ref T destruct
         }
 
         /**
-        Destruct an component of type T and deallocate it using stored allocator.
+        Destruct a component of type T and deallocate it using stored allocator.
 
         Params:
             destructable = element to be destructed and deallocated using stored allocator
@@ -1538,7 +1538,7 @@ template FactoryMethodInstanceDestructor(string method, T, Z, Args...)
             }
 
             /**
-            Destruct an component of type T and deallocate it using stored allocator.
+            Destruct a component of type T and deallocate it using stored allocator.
 
             Params:
                 destructable = element to be destructed and deallocated using stored allocator

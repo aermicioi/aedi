@@ -20,6 +20,11 @@ class MockComponent {
 
 }
 
+@component
+class AnotherMockComponent {
+
+}
+
 class MockNotComponent {
 
 }
@@ -512,31 +517,56 @@ unittest {
     scan!MockNotComponent(cast(Locator!()) storage);
     assertThrown!NotFoundException(container.locate!MockNotComponent);
 
-    scan!(MockComponent, ValueComponentMock)(container, storage);
+    scan!(MockComponent, AnotherMockComponent)(container, storage);
     assert(container.locate!MockComponent !is null);
-    assert(container.locate!ValueComponentMock !is null);
+    assert(container.locate!AnotherMockComponent !is null);
     container.remove(fullyQualifiedName!MockComponent);
-    container.remove(fullyQualifiedName!ValueComponentMock);
+    container.remove(fullyQualifiedName!AnotherMockComponent);
 
-    scan!(MockComponent, ValueComponentMock)("container", storage);
+    scan!(MockComponent, AnotherMockComponent)("container", storage);
     assert(container.locate!MockComponent !is null);
-    assert(container.locate!ValueComponentMock !is null);
+    assert(container.locate!AnotherMockComponent !is null);
     container.remove(fullyQualifiedName!MockComponent);
-    container.remove(fullyQualifiedName!ValueComponentMock);
+    container.remove(fullyQualifiedName!AnotherMockComponent);
 
-    scan!(MockComponent, ValueComponentMock)(cast(Locator!()) storage);
+    scan!(MockComponent, AnotherMockComponent)(cast(Locator!()) storage);
     assert(container.locate!MockComponent !is null);
-    assert(container.locate!ValueComponentMock !is null);
+    assert(container.locate!AnotherMockComponent !is null);
     container.remove(fullyQualifiedName!MockComponent);
-    container.remove(fullyQualifiedName!ValueComponentMock);
+    container.remove(fullyQualifiedName!AnotherMockComponent);
 
-    scan!(MockComponent, PrototypeContainer, ValueComponentMock, PrototypeContainer, ValueComponentMock, MockComponent, SingletonContainer)(cast(Locator!()) storage);
+    scan!(MockComponent, PrototypeContainer, AnotherMockComponent, PrototypeContainer, AnotherMockComponent, MockComponent, SingletonContainer)(cast(Locator!()) storage);
     assert(container.locate!MockComponent !is null);
-    assert(container.locate!ValueComponentMock !is null);
-    assert(prototype.locate!ValueComponentMock !is null);
+    assert(container.locate!AnotherMockComponent !is null);
+    assert(prototype.locate!AnotherMockComponent !is null);
     assert(prototype.locate!MockComponent !is null);
     container.remove(fullyQualifiedName!MockComponent);
-    container.remove(fullyQualifiedName!ValueComponentMock);
-    prototype.remove(fullyQualifiedName!ValueComponentMock);
+    container.remove(fullyQualifiedName!AnotherMockComponent);
+    prototype.remove(fullyQualifiedName!AnotherMockComponent);
     prototype.remove(fullyQualifiedName!MockComponent);
+}
+
+struct MockAnnotationConfigurer {
+
+    static bool run;
+
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+        run = true;
+    }
+}
+
+@MockAnnotationConfigurer()
+class DummyGenericAnnotation {
+
+}
+
+unittest {
+    scope(exit) MockAnnotationConfigurer.run = false;
+
+    ObjectStorage!() storage = new ObjectStorage!();
+    GenericFactoryImpl!DummyGenericAnnotation mock = new GenericFactoryImpl!DummyGenericAnnotation(storage);
+
+    GenericConfigurerConfiguratorPolicy.configure(mock, storage);
+
+    assert(MockAnnotationConfigurer.run);
 }

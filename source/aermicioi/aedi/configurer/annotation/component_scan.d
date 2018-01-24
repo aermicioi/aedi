@@ -50,20 +50,31 @@ import std.typecons;
 import std.conv : to;
 import std.algorithm;
 
-struct Tested {
-    static {
-        GenericFactory!X createFactory(X)(Locator!()) {return null;};
-        void configure(X)(GenericFactory!X, Locator!()) {};
-        void configureMethod(string member, X)(GenericFactory!X, Locator!());
-        void configureField(string member, X)(GenericFactory!X, Locator!());
-    }
-}
+/**
+Check if a type T is a factory policy.
 
-enum bool isFactoryPolicy(T, X = Tested) = is(T == struct) && is(typeof(&T.createFactory!X) : Z function(Locator!()), Z : Factory!X);
-enum bool isConfiguratorPolicy(T, X : GenericFactory!Z = GenericFactory!Tested, Z) =
+Check if a type T is a factory policy.
+A factory policy is a policy that based on type X, can
+create a factory for type X.
+**/
+enum bool isFactoryPolicy(T, X = Object) = is(T == struct) && is(typeof(&T.createFactory!X) : Z function(Locator!()), Z : Factory!X);
+
+/**
+Check if a type T is a configurator policy.
+
+Check if a type T is a configurator policy.
+A configurator policy is a policy that given a type
+X can create InstanceFactory, InstanceDestructor, or PropertyConfigurer
+instances and add them to a factory that implements GenericFactory!X interface, as well
+as modify other properties exposed by GenericFactory!X interface.
+**/
+enum bool isConfiguratorPolicy(T, X : GenericFactory!Z = GenericFactory!Object, Z) =
     is(T == struct) &&
     is(typeof(&T.configure!(X)) : void function(M, Locator!()), M : X);
 
+/**
+Create a GenericFactory!T if T is annotated with @component annotation.
+**/
 struct GenericFactoryPolicy {
 
     private alias getComponents(alias T) = Filter!(
@@ -71,11 +82,20 @@ struct GenericFactoryPolicy {
             allUDAs!T
         );
 
+    /**
+    Create a GenericFactory!T if T is annotated with @component annotation.
+
+    Params:
+        locator = locator used by factory to fetch it's dependencies
+
+    Returns:
+        GenericFactory!T
+    **/
     static GenericFactory!T createFactory(T)(Locator!() locator) {
         alias Component = getComponents!T;
 
         static if (Component.length > 0) {
-            debug pragma(msg, "Creating factory for component ", T);
+            debug(annotationScanDebug) pragma(msg, "Creating factory for component ", T);
             return new GenericFactoryImpl!T(locator);
         } else {
 
@@ -84,9 +104,20 @@ struct GenericFactoryPolicy {
     };
 }
 
+/**
+Chain a set of configurator policies.
+**/
 struct ChainedConfiguratorPolicy(ConfiguratorPolicies...)
     if (allSatisfy!(isConfiguratorPolicy, ConfiguratorPolicies)) {
 
+    /**
+    Run ConfiguratorPolicies on instantiator in sequential manner
+
+    Params:
+        instantiator = factory which is configured by ConfiguratorPolicies
+        locator = locator used by factory
+
+    **/
     static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         foreach (policy; ConfiguratorPolicies) {
@@ -95,6 +126,9 @@ struct ChainedConfiguratorPolicy(ConfiguratorPolicies...)
     }
 }
 
+/**
+Set allocator used by factory to instantiate component T.
+**/
 struct AllocatorConfiguratorPolicy {
 
     private alias getAllocators(alias T) = Filter!(
@@ -102,26 +136,43 @@ struct AllocatorConfiguratorPolicy {
             allUDAs!T
         );
 
+    /**
+    Set allocator from @allocator annotation into GenericFactory!Z.
+
+    Params:
+        instantiator = factory which is set allocator from @allocator annotation
+        locator = locator used by factory
+    **/
     static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         static foreach (Allocator; getAllocators!Z) {
-            debug pragma(msg, "Found custom allocator for ", Z, " provisioning with ", toType!(Allocator.allocator));
+            debug(annotationScanDebug) pragma(msg, "Found custom allocator for ", Z, " provisioning with ", toType!(Allocator.allocator));
             instantiator.allocator = Allocator.iallocator;
         }
     }
 }
 
+/**
+Set callback instance factory from @callbac annotation into GenericFactory!Z
+**/
 struct CallbackFactoryConfiguratorPolicy {
     private alias getCallbackFactories(alias T) = Filter!(
             isCallbackFactoryAnnotation,
             allUDAs!T
         );
 
+    /**
+    Set callback instance factory from @callback annotation into GenericFactory!Z.
+
+    Params:
+        instantiator = factory which is set callback instance factory from @callback annotation
+        locator = locator used by factory
+    **/
     static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         import std.experimental.allocator;
 
         foreach (CallbackFactory; tuple(getCallbackFactories!Z).expand) {
-            debug pragma(msg,
+            debug(annotationScanDebug) pragma(msg,
                 "Found callback factory for ",
                 Z,
                 " provisioning with ",
@@ -135,17 +186,27 @@ struct CallbackFactoryConfiguratorPolicy {
     }
 }
 
+/**
+Set value factory that takes component from @value annotation and provides it as a new component.
+**/
 struct ValueFactoryConfiguratorPolicy {
     private alias getValueFactories(alias T) = Filter!(
             isValueAnnotation,
             allUDAs!T
         );
 
+    /**
+    Set value factory that takes component from @value annotation and provides it as a new component.
+
+    Params:
+        instantiator = factory which is set value instance factory from @value annotation
+        locator = locator used by factory
+    **/
     static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         import std.experimental.allocator;
 
         foreach (ValueAnnotation; tuple(getValueFactories!Z).expand) {
-            debug pragma(msg,
+            debug(annotationScanDebug) pragma(msg,
                 "Found value factory for ",
                 Z,
                 " provisioning with ",
@@ -156,6 +217,9 @@ struct ValueFactoryConfiguratorPolicy {
     }
 }
 
+/**
+A policy that uses annotations that implement isConfigurerPolicy interface to configure the component factory
+**/
 struct GenericConfigurerConfiguratorPolicy {
     private alias getGenerics(alias T, X) = Filter!(
                 chain!(
@@ -165,36 +229,81 @@ struct GenericConfigurerConfiguratorPolicy {
                 allUDAs!T
             );
 
+    /**
+    Scans for annotations implementing isConfigurerPolicy interface and uses them to configure component factory.
+
+    Params:
+        instantiator = factory upon which isConfigurerPolicy annotations are applied
+        locator = locator used by factory
+    **/
     static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         foreach (Generic; tuple(getGenerics!(Z, T)).expand) {
-            debug pragma(msg, "Found annotation implementing configurer annotation contract ", typeof(Generic));
+            debug(annotationScanDebug) pragma(msg, "Found annotation implementing configurer annotation contract ", typeof(Generic), " applying to ", Z, " factory");
             Generic.configure!(T)(instantiator, locator);
         }
     }
 }
 
+/**
+A dummy structure that is providing a simple field for isFieldConfiguratorPolicy interface for testing purposes of configurator templates.
+**/
 struct ConfiguredFieldTester {
 
     int field;
 }
 
+/**
+A dummy structure that is providing a simple method for isMethodConfiguratorPolicy interface for testing purposes of configurator templates.
+**/
 struct ConfiguredMethodTester {
 
     void method(int x) {}
 }
 
+/**
+Check if T is a field configurator policy that operates upon fields of a component.
+
+Params:
+    T = the type that is tested for field configurator policy interface
+    member = member field of constructed component by GenericFactory!Z
+    X = a factory for a component, on which policy can operate
+Returns:
+    true if it is compliant, false otherwise
+**/
 enum bool isFieldConfiguratorPolicy(T, string member = "field", X : GenericFactory!Z = GenericFactory!ConfiguredFieldTester, Z) =
     is(T == struct) &&
     is(typeof(&T.configureField!(member, X)) : void function(X, Locator!()));
 
+/**
+Check if T is a field configurator policy that operates upon methods of a component.
+
+Params:
+    T = the type that is tested for field configurator policy interface
+    member = member field of constructed component by GenericFactory!Z
+    X = a factory for a component, on which policy can operate
+
+Returns:
+    true if it is compliant, false otherwise
+**/
 enum bool isMethodConfiguratorPolicy(T, string member = "method", X : GenericFactory!Z = GenericFactory!ConfiguredMethodTester, Z) =
     is(T == struct) &&
     is(typeof(&T.configureMethod!(member, X)) : void function(X, Locator!()));
 
+/**
+Configurator policy that applies method configurator policies on all public methods of a component
+**/
 struct MethodScanningConfiguratorPolicy(MethodConfiguratorPolicies...)
     if (allSatisfy!(isMethodConfiguratorPolicy, MethodConfiguratorPolicies)) {
 
-    static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Apply a set of method configurator policies on all public methods of component Z
+
+    Params:
+        Z = component which will have it's methods scanned, including overloads.
+        instantiator = Z component factory
+        locator = locator used by method configurator policies
+    **/
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         foreach (member; __traits(allMembers, Z)) {
             static if ((getProtection!(Z, member) == "public") && isSomeFunction!(__traits(getMember, Z, member))) {
                 foreach (methodConfigurer; MethodConfiguratorPolicies) {
@@ -205,10 +314,21 @@ struct MethodScanningConfiguratorPolicy(MethodConfiguratorPolicies...)
     }
 }
 
+/**
+Configurator policy that applies field configurator policies on all public methods of a component
+**/
 struct FieldScanningConfiguratorPolicy(FieldConfiguratorPolicies...)
     if (allSatisfy!(isFieldConfiguratorPolicy, FieldConfiguratorPolicies)) {
 
-    static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Apply a set of field configurator policies on all public fields of component Z
+
+    Params:
+        Z = component which will have it's methods scanned, including overloads.
+        instantiator = Z component factory
+        locator = locator used by method configurator policies
+    **/
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         foreach (member; __traits(allMembers, Z)) {
             static if (isField!(Z, member) && (getProtection!(Z, member) == "public")) {
                 foreach (fieldConfigurer; FieldConfiguratorPolicies) {
@@ -219,9 +339,21 @@ struct FieldScanningConfiguratorPolicy(FieldConfiguratorPolicies...)
     }
 }
 
+/**
+Method configurator policy that scans only constructors for @constructor annotation, for using them to instantiate component Z
+**/
 struct ConstructorMethodConfiguratorPolicy {
 
-    static auto configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Checks if scanned method is a constructor and has @constructor annotation, and sets it to be used to construct component if so.
+
+    Params:
+        Z = component type
+        member = member that should be scanned, only constructors are taken into account
+        instantiator = Z component factory, which policy will set constructor to be used to construct component if possible
+        locator = locator used to supply dependencies into constructor of component
+    **/
+    static void configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         static if (member == "__ctor") {
             foreach (overload; __traits(getOverloads, Z, member)) {
@@ -233,7 +365,7 @@ struct ConstructorMethodConfiguratorPolicy {
                 );
 
                 foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-                    debug pragma(msg, "Found elaborate constructor for ", Z, " provisioning with ", toType!Configurer);
+                    debug(annotationScanDebug) pragma(msg, "Found elaborate constructor for ", Z, " provisioning with ", toType!Configurer);
                     instantiator.setInstanceFactory(
                         constructorBasedFactory!Z(Configurer.args.expand)
                     );
@@ -243,8 +375,21 @@ struct ConstructorMethodConfiguratorPolicy {
     }
 }
 
+/**
+Method policy that scans constructors for @autowired annotation to use them to construct component with dependencies identified by their type.
+**/
 struct AutowiredConstructorMethodConfiguratorPolicy {
-    static auto configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+
+    /**
+    Configures instantiator to use @autowired constructor method, to construct the component.
+
+    Params:
+        Z = component type
+        member = method that is scanned. Only constructors are taken into account
+        instantiator = component constructor
+        locator = locator for component dependencies
+    **/
+    static void configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         static if (member == "__ctor") {
             foreach (overload; __traits(getOverloads, Z, member)) {
@@ -255,7 +400,7 @@ struct AutowiredConstructorMethodConfiguratorPolicy {
                 );
 
                 foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-                    debug pragma(msg, "Autowiring constructor of ", Z, " with arguments ", Parameters!(overload));
+                    debug(annotationScanDebug) pragma(msg, "Autowiring constructor of ", Z, " with arguments ", Parameters!(overload));
                     instantiator.setInstanceFactory(
                         constructorBasedFactory!Z(staticMap!(toLref, Parameters!(overload)))
                     );
@@ -265,9 +410,21 @@ struct AutowiredConstructorMethodConfiguratorPolicy {
     }
 }
 
+/**
+Field configurator policy that will set a field annotated @setter annotation to value contained in it.
+**/
 struct SetterFieldConfiguratorPolicy {
 
-    static auto configureField(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Configures instantiator to inject into field a predefined value or a dependency from @setter annotation
+
+    Params:
+        Z = component type
+        member = field member of component
+        instantiator = component factory
+        locator = locator for component dependencies
+    **/
+    static void configureField(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         alias Configurers = Filter!(
             isSetterAnnotation,
@@ -275,15 +432,27 @@ struct SetterFieldConfiguratorPolicy {
         );
 
         foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-            debug pragma(msg, "Setting field ", member, " of ", Z, " to ", staticMap!(toType, Configurer.args.expand));
+            debug(annotationScanDebug) pragma(msg, "Setting field ", member, " of ", Z, " to ", staticMap!(toType, Configurer.args.expand));
             instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(Configurer.args.expand));
         }
     }
 }
 
+/**
+Field configurator policy that will set a field to value returned by a callback in @callback annotation
+**/
 struct CallbackFieldConfiguratorPolicy {
 
-    static auto configureField(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Configure instantiator to inject return value of callback from @callback annotation into field
+
+    Params:
+        member = field that will be injected
+        Z = component type
+        instantiator = component factory
+        locator = locator for component dependencies
+    **/
+    static void configureField(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         alias Callbacks = Filter!(
             isCallbackConfigurerAnnotation,
@@ -291,15 +460,27 @@ struct CallbackFieldConfiguratorPolicy {
         );
 
         foreach (Callback; tuple(staticMap!(toValue, Callbacks))) {
-            debug pragma(msg, "Calling callback on field ", member, " of ", Z, " to ", staticMap!(toType, Callback.args.expand));
+            debug(annotationScanDebug) pragma(msg, "Calling callback on field ", member, " of ", Z, " to ", staticMap!(toType, Callback.args.expand));
             instantiator.addPropertyConfigurer(callbackConfigurer(Callback.dg, Callback.args.expand));
         }
     }
 }
 
+/**
+Field configurator policy that will try to inject a dependency that matches fields type for fields that are annotated with @autowired annotation
+**/
 struct AutowiredFieldConfiguratorPolicy {
 
-    static auto configureField(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Configure instantiator to inject into field a component identified by field's type if field has @autowired annotation.
+
+    Params:
+        member = field that will be injected
+        Z = component type
+        instantiator = component factory
+        locator = locator for component dependencies
+    **/
+    static void configureField(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         alias Callbacks = Filter!(
             isAutowiredAnnotation,
@@ -307,15 +488,27 @@ struct AutowiredFieldConfiguratorPolicy {
         );
 
         foreach (Callback; tuple(staticMap!(toValue, Callbacks))) {
-            debug pragma(msg, "Autowiring field ", member, " of ", Z, " to ", typeof(getMember!(Z, member)));
+            debug(annotationScanDebug) pragma(msg, "Autowiring field ", member, " of ", Z, " to ", typeof(getMember!(Z, member)));
             instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(toLref!(typeof(getMember!(Z, member)))));
         }
     }
 }
 
+/**
+Method configurator policy that will call a method with resolved arguments from @setter annotation.
+**/
 struct SetterMethodConfiguratorPolicy {
 
-    static auto configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Configure instantiator to call @setter annotated method with arguments from annotation
+
+    Params:
+        Z = component type
+        member = method that would be called by factory
+        instantiator = component factory
+        locator = locator for component dependencies
+    **/
+    static void configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         foreach (overload; __traits(getOverloads, Z, member)) {
 
@@ -325,16 +518,28 @@ struct SetterMethodConfiguratorPolicy {
             );
 
             foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-                debug pragma(msg, "Calling method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args.expand));
+                debug(annotationScanDebug) pragma(msg, "Calling method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args.expand));
                 instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(Configurer.args.expand));
             }
         }
     }
 }
 
+/**
+Method configurator policy that will call callback from @callback annotated methods.
+**/
 struct CallbackMethodConfiguratorPolicy {
 
-    static auto configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Configre instantiator to call callback from @callback annotation with arguments that are stored in annotation
+
+    Params:
+        Z = component type
+        member = method which is annotated with @callback. It is supposed that callback will use it somehow in logic.
+        instantiator = component factory
+        locator = locator for component dependencies
+    **/
+    static void configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         foreach (overload; __traits(getOverloads, Z, member)) {
 
@@ -344,16 +549,28 @@ struct CallbackMethodConfiguratorPolicy {
             );
 
             foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-                debug pragma(msg, "Calling callback on method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args.expand));
+                debug(annotationScanDebug) pragma(msg, "Calling callback on method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args.expand));
                 instantiator.addPropertyConfigurer(callbackConfigurer(Configurer.dg, Configurer.args.expand));
             }
         }
     }
 }
 
+/**
+Method configurator policy that will call method annotated with @autowire with arguments extracted from locator by their type.
+**/
 struct AutowiredMethodConfiguratorPolicy {
 
-    static auto configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    /**
+    Configure instantiator to call a method annotated with @autowired with arguments extracted from locator
+
+    Params:
+        Z = component type
+        member = method that is annotated with @autowired annotation
+        instantiator = component factory
+        locator = locator for component dependencies
+    **/
+    static void configureMethod(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         static if (member != "__ctor") {
             foreach (overload; __traits(getOverloads, Z, member)) {
 
@@ -364,7 +581,7 @@ struct AutowiredMethodConfiguratorPolicy {
 
                 foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
 
-                    debug pragma(msg, "Calling method ", member, " of ", Z, " with autowired ", Parameters!overload);
+                    debug(annotationScanDebug) pragma(msg, "Calling method ", member, " of ", Z, " with autowired ", Parameters!overload);
                     instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(staticMap!(toLref, Parameters!overload)));
                 }
             }
@@ -372,12 +589,35 @@ struct AutowiredMethodConfiguratorPolicy {
     }
 }
 
-enum bool isTransformer(T, X = Object) = is(T == struct) && is(typeof(&T.transform!X) : void function (Locator!(), Storage!(ObjectFactory, string)));
-enum bool isTransformer(T, X, string member) = is(T == struct) && is(typeof(&T.transform!X) : void function (Locator!(), Storage!(ObjectFactory, string)));
+/**
+Check if a policy implements transformer interface.
 
+A transformer is a policy that takes a type, and optionally a member of it, and transform it
+into a component factory using annotations from component, or member.
+
+Params:
+    T = type to be tested for interface implementation
+    X = a test object that is used to test templated methods of policy
+Returns:
+    true if it implements Transformer interface, false otherwise
+**/
+enum bool isTransformer(T, X = Object) = is(T == struct) && is(typeof(&T.transform!X) : void function (Locator!(), Storage!(ObjectFactory, string)));
+
+/**
+A transformer that creates out of a type a GenericFactory for passed type
+**/
 struct TypeTransformer(FactoryPolicy, ConfigurerPolicy)
     if (isFactoryPolicy!FactoryPolicy && isConfiguratorPolicy!ConfigurerPolicy) {
 
+    /**
+    Transform type T into a GenericFactory!T
+
+    Params:
+        T = type which is transformed into it's factory
+        locator = locator for T's dependencies
+    Returns:
+        instance of GenericFactory!T, or null if T is not transformable into a factory
+    **/
     static auto transform(T)(Locator!() locator)
         if (is(T)) {
         auto instantiator = FactoryPolicy.createFactory!T(locator);
@@ -392,8 +632,20 @@ struct TypeTransformer(FactoryPolicy, ConfigurerPolicy)
     }
 }
 
+/**
+Transformer that wraps results of another transformer in WrappingFactory
+**/
 struct ObjectFactoryTransformer(TransformerPolicy) {
 
+    /**
+    Wrap up results of another transformer into WrappingFactory
+
+    Params:
+        T = type of component that is transformed
+
+    Returns:
+        null if T is not transformable, or instance of WrappingFactory that wraps result of TransformerPolicy
+    **/
     static auto transform(T)(Locator!() locator)
         if (is(T)) {
 
@@ -407,12 +659,55 @@ struct ObjectFactoryTransformer(TransformerPolicy) {
     }
 }
 
+/**
+Check if T implements ContainerAdder interface.
+
+A ContainerAdder is component that is responsible to scan
+a symbol for it's members, transform them using passed Transformers,
+and add them to storage.
+
+Params:
+    T = component that is tested for ContainerAdder interface.
+    X = a dummy symbol used to test templated methods of component
+
+Note:
+    Due to possibility to store any kind of symbol in X (not only types),
+    the use of this checker is limited in use for generic testing.
+    Ex. ContainerAdder for modules and types are technically different interfaces
+    and will fail the checker when are tested both with same X argument
+    (module is not a type), though they are conceptually the same.
+Returns:
+    true if it implements ContainerAdder interface, false otherwise
+**/
+enum bool isContainerAdder(T, alias X = Object) =
+    is(T == struct) &&
+    is(typeof(&T.scan!X) : V function (X, Y), X : Locator!(), Y : Storage!(Factory!Object, string), V);
+
+/**
+ContainerAdder that chains a set of ContainerAdders on a symbol.
+**/
 struct ChainedContainerAdder(ContainerAdderPolicies...) {
     import aermicioi.util.traits;
 
+    /**
+    Check if at least one ContainerAdder supports passed symbol
+
+    Params:
+        T = symbol that at least one ContainerAdder, must know how to scan
+    Returns:
+        true if at least one ContainerAdder knows how to scan symbol, false otherwise
+    **/
     enum bool isSupported(alias T) = anySatisfied!(T, staticMap!(ApplyRight!(getMember, "isSupported"), ContainerAdderPolicies));
 
-    static auto scan(alias T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
+    /**
+    Apply all ContainerAdders that know how to scan T symbol
+
+    Params:
+        T = symbol to be scanned
+        locator = locator of components, used by transformer that is applied on members of scanned T symbol
+        storage = the storage that will store component factories from transformed members of T symbol
+    **/
+    static void scan(alias T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
         if (isSupported!T) {
         foreach (ContainerAdderPolicy; ContainerAdderPolicies) {
 
@@ -423,10 +718,30 @@ struct ChainedContainerAdder(ContainerAdderPolicies...) {
     }
 }
 
+/**
+Applies a transformer on passed symbol if it is a type.
+**/
 struct TypeContainerAdder(TypeTransformerPolicy) {
+
+    /**
+    Check if symbol T is a type definition.
+
+    Params:
+        T = symbol to be tested
+    Returns:
+        true if it is a type, false otherwise
+    **/
     enum bool isSupported(alias T) = is(T);
 
-    static auto scan(T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
+    /**
+    Transform T component into a factory using TypeTransformerPolicy
+
+    Params:
+        T = component type
+        locator = component locator used by transformed component factory
+        storage = storage wich will contain component factory transformed out of T
+    **/
+    static void scan(T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
         if (isSupported!T) {
 
         string identity = fullyQualifiedName!T;
@@ -448,10 +763,31 @@ struct TypeContainerAdder(TypeTransformerPolicy) {
     }
 }
 
+/**
+ContainerAdder that scans a type for inner static types, to transform and store into a storage.
+**/
 struct InnerTypeContainerAdder(ContainerAdderPolicy) {
+
+    /**
+    Check if T symbol is a type
+
+    Params:
+        T = symbol to be tested
+
+    Returns:
+        true if it is a type, false otherwise
+    **/
     enum bool isSupported(alias T) = is(T);
 
-    static auto scan(T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
+    /**
+    Scan type T for inner static types, to transform them and store in storage
+
+    Params:
+        T = type that will be scanned for inner static types
+        locator = locator of components used by transformed component factories
+        storage = storage which will contain transformed component factories
+    **/
+    static void scan(T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
         if(isSupported!T) {
 
         foreach (member; __traits(allMembers, T)) {
@@ -464,10 +800,31 @@ struct InnerTypeContainerAdder(ContainerAdderPolicy) {
     }
 }
 
+/**
+ContainerAdder that will scan a module for it's members, to transform into component factories and add them into a storage
+**/
 struct ModuleContainerAdder(ContainerAdderPolicy) {
-    enum bool isSupported(alias T) = T.stringof.startsWith("module ");
 
-    static auto scan(alias T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
+    /**
+    Check if T symbol is a module.
+
+    Params:
+        T = symbol to be tested
+
+    Returns:
+        true if it is a module, false otherwise
+    **/
+    enum bool isSupported(alias T) = is(typeof({mixin("import " ~ fullyQualifiedName!T ~ ";");}));
+
+    /**
+    Scan module T, transform it's members into component factories, and store them into storage.
+
+    Params:
+        T = module that is scanned
+        locator = locator of components used by transformed component factories
+        storage = storage which will contain component factories
+    **/
+    static void scan(alias T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
         if (isSupported!T) {
 
         foreach (member; __traits(allMembers, T)) {
@@ -479,10 +836,32 @@ struct ModuleContainerAdder(ContainerAdderPolicy) {
     }
 }
 
+/**
+ContainerAdder that will scan a type for it's methods, and use them to create component factories out of their return type
+**/
 struct FactoryMethodContainerAdder(TypeTransformer) {
+
+    /**
+    Check if symbol T is a type
+
+    Params:
+        T = symbol to be tested
+
+    Returns:
+        true if it is a type, false otherwise
+    **/
     enum bool isSupported(alias T) = is(T);
 
-    static auto scan(alias T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
+    /**
+    Scan T's methods, for methods annotated with @component annotation, transform them into component factories
+    that will use them to create components of returned type.
+
+    Params:
+        T = type to be scanned
+        locator = locator of components used by component factories
+        storage = storage which will contain component factories
+    **/
+    static void scan(alias T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
         if (isSupported!T) {
 
         foreach (member; __traits(allMembers, T)) {
@@ -496,7 +875,7 @@ struct FactoryMethodContainerAdder(TypeTransformer) {
                     );
 
                     foreach (FactoryMethod; FactoryMethods) {
-                        debug pragma(msg, "Found factory method ", member, " on component ", T);
+                        debug(annotationScanDebug) pragma(msg, "Found factory method ", member, " on component ", T);
                         auto factory = TypeTransformer.transform!(ReturnType!overload)(locator);
 
                         if (factory !is null) {
@@ -1074,7 +1453,7 @@ alias DefaultContainerAdderPolicy(TransformerPolicy = ObjectWrapperTransformerPo
 
 mixin template Scanner(ContainerAdderPolicy) {
     void scan(alias T)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
-        debug pragma(msg, "Scanning ", T, " for possible components");
+        debug(annotationScanDebug) pragma(msg, "Scanning ", T, " for possible components");
 
         ContainerAdderPolicy.scan!T(locator, storage);
     }

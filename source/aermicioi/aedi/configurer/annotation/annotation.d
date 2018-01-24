@@ -52,19 +52,26 @@ import std.conv : to;
 import std.algorithm;
 import std.experimental.allocator;
 
+/**
+Check if T is instance of ComponentAnnotation
+**/
 enum bool isComponentAnnotation(T) = is(T : ComponentAnnotation);
+
+/**
+ditto
+**/
 enum bool isComponentAnnotation(alias T) = isComponentAnnotation!(toType!T);
 
 /**
-Annotation used to denote an aggregate that should be stored into an container.
+Annotation used to denote a component that should be stored into an container.
 **/
 struct ComponentAnnotation {
 
     /**
-    Constructs a factory for aggregate of type T
+    Constructs a factory for component of type T
 
     Params:
-    	T = the aggregate type
+    	T = the component type
     	locator = locator used to extract needed dependencies for T
 
     Returns:
@@ -76,25 +83,51 @@ struct ComponentAnnotation {
     }
 }
 
+/**
+Check if T is instance of ValueAnnotation
+**/
 enum bool isValueAnnotation(T) = is(T : ValueAnnotation!Value, Value);
+
+/**
+ditto
+**/
 enum bool isValueAnnotation(alias T) = isValueAnnotation!(toType!T);
 
 /**
-Notice:
-beware of dragons, if used with a class instance, the value could be destroyed by container that manages it.
+Construct the instance using value provided in annotation
+
+Params:
+    value = value that should be component created with
+
 **/
 struct ValueAnnotation(Value) {
 
     Value value;
 }
 
+/**
+ditto
+**/
 ValueAnnotation!T value(T)(T value) {
     return ValueAnnotation!T(value);
 }
 
+/**
+Check if T is instance of AllocatorAnnotation
+**/
 enum bool isAllocatorAnnotation(T) = is(T : AllocatorAnnotation!X, X);
+
+/**
+ditto
+**/
 enum bool isAllocatorAnnotation(alias T) = isAllocatorAnnotation!(toType!T);
 
+/**
+Use allocator to allocate component.
+
+Params:
+    allocator = allocator used to allocate the component
+**/
 struct AllocatorAnnotation(T = IAllocator) {
 
     T allocator;
@@ -110,6 +143,9 @@ struct AllocatorAnnotation(T = IAllocator) {
     }
 }
 
+/**
+ditto
+**/
 AllocatorAnnotation!T allocator(T)(T allocator) {
     return AllocatorAnnotation!T(allocator);
 }
@@ -119,10 +155,17 @@ ditto
 **/
 alias component = ComponentAnnotation;
 
+/**
+Check if T is instance of ConstructorAnnotation
+**/
 enum bool isConstructorAnnotation(T) = is(T : ConstructorAnnotation!Z, Z...);
+
+/**
+ditto
+**/
 enum bool isConstructorAnnotation(alias T) = isConstructorAnnotation!(toType!T);
 /**
-Annotation used to mark a constructor to be used for aggregate instantiation.
+Annotation used to mark a constructor to be used for component instantiation.
 
 Params:
     Args = tuple of argument types for arguments to be passed into a constructor.
@@ -134,7 +177,7 @@ struct ConstructorAnnotation(Args...) {
     Constructor accepting a list of arguments, that will be passed to constructor.
 
     Params:
-    	args = arguments passed to aggregate's constructor
+    	args = arguments passed to component's constructor
     **/
     this(Args args) {
         this.args = args;
@@ -148,7 +191,14 @@ auto constructor(Args...)(Args args) {
     return ConstructorAnnotation!Args(args);
 }
 
+/**
+Check if T is instance of SetterAnnotation
+**/
 enum bool isSetterAnnotation(T) = is(T : SetterAnnotation!Z, Z...);
+
+/**
+ditto
+**/
 enum bool isSetterAnnotation(alias T) = isSetterAnnotation!(toType!T);
 /**
 Annotation used to mark a member to be called or set (in case of fields), with args passed to setter.
@@ -166,7 +216,7 @@ struct SetterAnnotation(Args...) {
     Constructor accepting a list of arguments, that will be passed to method, or set to a field.
 
     Params:
-    	args = arguments passed to aggregate's constructor
+    	args = arguments passed to component's constructor
     **/
     this(Args args) {
         this.args = args;
@@ -180,13 +230,20 @@ auto setter(Args...)(Args args) {
     return SetterAnnotation!Args(args);
 }
 
+/**
+Check if T is instance of CallbackFactoryAnnotation
+**/
 enum bool isCallbackFactoryAnnotation(T) = is(T : CallbackFactoryAnnotation!Z, Z...);
+
+/**
+ditto
+**/
 enum bool isCallbackFactoryAnnotation(alias T) = isCallbackFactoryAnnotation!(toType!T);
 /**
-Annotation that specifies a delegate to be used to instantiate aggregate.
+Annotation that specifies a delegate to be used to instantiate component.
 
 Params:
-	Z = the type of aggregate that will be returned by the delegate
+	Z = the type of component that will be returned by the delegate
 	Args = type tuple of args that can be passed to delegate.
 **/
 struct CallbackFactoryAnnotation(Z, Dg, Args...)
@@ -198,7 +255,7 @@ struct CallbackFactoryAnnotation(Z, Dg, Args...)
     Constructor accepting a factory delegate, and it's arguments.
 
     Params:
-    	dg = delegate that will factory an aggregate
+    	dg = delegate that will factory a component
     	args = list of arguments passed to delegate.
     **/
     this(Dg dg, ref Args args) {
@@ -221,13 +278,20 @@ auto fact(T, Args...)(T function(IAllocator, Locator!(), Args) dg, Args args) {
     return CallbackFactoryAnnotation!(T, T function(IAllocator, Locator!(), Args), Args)(dg, args);
 }
 
+/**
+Check if T is instance of CallbackConfigurerAnnotation
+**/
 enum bool isCallbackConfigurerAnnotation(T) = is(T : CallbackConfigurerAnnotation!Z, Z...);
+
+/**
+ditto
+**/
 enum bool isCallbackConfigurerAnnotation(alias T) = isCallbackConfigurerAnnotation!(toType!T);
 /**
-Annotation that specifies a delegate to be used to configure aggregate somehow.
+Annotation that specifies a delegate to be used to configure component somehow.
 
 Params:
-	Z = the type of aggregate that will be returned by the delegate
+	Z = the type of component that will be returned by the delegate
 	Args = type tuple of args that can be passed to delegate.
 **/
 struct CallbackConfigurerAnnotation(Z, Dg, Args...)
@@ -244,7 +308,7 @@ struct CallbackConfigurerAnnotation(Z, Dg, Args...)
     Constructor accepting a configurer delegate, and it's arguments.
 
     Params:
-    	dg = delegate that will be used to configure an aggregate
+    	dg = delegate that will be used to configure a component
     	args = list of arguments passed to delegate.
     **/
     this(Dg dg, ref Args args) {
@@ -281,8 +345,16 @@ auto callback(T, Args...)(void function (Locator!(), T, Args) dg, Args args) {
     return CallbackConfigurerAnnotation!(T, void function (Locator!(), T, Args), Args)(dg, args);
 }
 
+/**
+Check if T is instance of AutowiredAnnotation
+**/
 enum bool isAutowiredAnnotation(T) = is(T : AutowiredAnnotation);
+
+/**
+ditto
+**/
 enum bool isAutowiredAnnotation(alias T) = isAutowiredAnnotation!(toType!T);
+
 /**
 Annotation used to mark constructor or method for auto wiring.
 
@@ -302,7 +374,14 @@ ditto
 **/
 alias autowired = AutowiredAnnotation;
 
+/**
+Check if T is instance of QualifierAnnotation
+**/
 enum bool isQualifierAnnotation(T) = is(T : QualifierAnnotation);
+
+/**
+ditto
+**/
 enum bool isQualifierAnnotation(alias T) = isQualifierAnnotation!(toType!T);
 /**
 An annotation used to provide custom identity for an object in container.
@@ -342,17 +421,24 @@ QualifierAnnotation qualifier(I)() {
     return QualifierAnnotation(name!I);
 }
 
+/**
+Check if T is instance of ContainedAnnotation
+**/
 enum bool isContainedAnnotation(T) = is(T : ContainedAnnotation);
+
+/**
+ditto
+**/
 enum bool isContainedAnnotation(alias T) = isContainedAnnotation!(toType!T);
 /**
-When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
+When objects are registered into a component container, this annotation marks in which sub-container it is required to store.
 **/
 struct ContainedAnnotation {
     string id;
 }
 
 /**
-When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
+When objects are registered into a component container, this annotation marks in which sub-container it is required to store.
 
 This function is a convenince function to automatically infer required types for underlying annotation.
 
@@ -363,38 +449,60 @@ auto contained(string id) {
     return ContainedAnnotation(id);
 }
 
-
-enum bool isDefaultDestructor(T) = is(T) && is(T == DefaultDestructor);
-enum bool isDefaultDestructor(alias T) = is(typeof(T));
-
-struct DefaultDestructor {
-
-}
-
-DefaultDestructor defaultDestructor() {
-    return DefaultDestructor();
-}
-
+/**
+Check if T is instance of CallbackDestructor
+**/
 enum bool isCallbackDestructor(T) = is(T) && is(T == DefaultDestructor);
+
+/**
+ditto
+**/
 enum bool isCallbackDestructor(alias T) = is(typeof(T));
 
+/**
+Use callback stored in annotation to destroy a component of type T
+
+Params:
+    dg = callback used to destroy the component
+    args = arguments passed to callback to destroy the component
+**/
 struct CallbackDestructor(T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...) {
     Dg dg;
     Args args;
 }
 
+/**
+ditto
+**/
 CallbackDestructor callbackDestructor(T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...)(Dg dg, Args args) {
     return CallbackDestructor(dg, args);
 }
 
+/**
+Check if T is instance of DestructorMethod
+**/
 enum bool isDestructorMethod(T) = is(T) && is(T == DefaultDestructor);
+
+/**
+ditto
+**/
 enum bool isDestructorMethod(alias T) = is(typeof(T));
 
+/**
+Use method from instance of type T to destroy a component of type Z
+
+Params:
+    method = method used to destroy component of type Z
+
+**/
 struct DestructorMethod(string method, T, Z, Args...) {
     Dg dg;
     Args args;
 }
 
-CallbackDestructor destructorMethod(string method, T, Z, Args...)(Dg dg, Args args) {
+/**
+ditto
+**/
+CallbackDestructor destructorMethod(string method, T, Z, Args...)() {
     return DestructorMethod(dg, args);
 }

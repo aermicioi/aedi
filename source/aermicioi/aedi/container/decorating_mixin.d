@@ -217,17 +217,17 @@ mixin template FactoryLocatorMixin(T : FactoryLocator!W, W) {
     import std.range.interfaces : InputRange;
     import std.typecons : Tuple;
     /**
-    Get factory for constructed data identified by identity.
+    Get factory for constructed component identified by identity.
 
-    Get factory for constructed data identified by identity.
+    Get factory for constructed component identified by identity.
     Params:
-        identity = the identity of data that factory constructs.
+        identity = the identity of component that factory constructs.
 
     Throws:
         NotFoundException when factory for it is not found.
 
     Returns:
-        ObjectFactory the factory for constructed data.
+        ObjectFactory the factory for constructed component.
     **/
     W getFactory(string identity)
     {

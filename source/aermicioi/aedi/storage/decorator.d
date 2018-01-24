@@ -60,7 +60,7 @@ interface MutableDecorator(T) : Decorator!T {
             Set the decorated object for decorator.
 
             Params:
-                decorated = decorated data
+                decorated = decorated component
 
             Returns:
             	this

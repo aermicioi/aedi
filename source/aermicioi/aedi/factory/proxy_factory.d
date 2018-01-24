@@ -87,7 +87,7 @@ class ProxyFactory(T) : Factory!T
 		Instantiates component of type T.
 
 		Returns:
-			T instantiated data of type T.
+			T instantiated component of type T.
 		**/
         Proxy!T factory() {
             auto proxy = this.allocator.make!(Proxy!T);
@@ -410,7 +410,7 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Prox
             Set the decorated object for decorator.
 
             Params:
-                decorated = decorated data
+                decorated = decorated component
 
             Returns:
             	this

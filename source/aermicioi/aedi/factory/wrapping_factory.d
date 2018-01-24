@@ -99,7 +99,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
             Set the decorated object for decorator.
 
             Params:
-                decorated = decorated data
+                decorated = decorated component
 
             Returns:
             	this

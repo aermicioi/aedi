@@ -119,7 +119,7 @@ class HardenedPaper : Paper {
 }
 
 @component
-@contained("prototype") // If di container consists of more than one container, use contained to denote which sub-container should manage/contian component.
+@contained("prototype") // If di container consists of more than one container, use contained to denote which sub-container should manage/contain component.
 class Page {
     private {
         Paper paper_;
@@ -259,7 +259,7 @@ class Bookshelf {
 }
 
 /**
-Example using object storage to store different data, with reference behavior or value behavior.
+Example using object storage to store different component, with reference behavior or value behavior.
 **/
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();

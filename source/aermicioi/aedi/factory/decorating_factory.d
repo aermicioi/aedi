@@ -87,7 +87,7 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
             Set the decorated object for decorator.
 
             Params:
-                decorated = decorated data
+                decorated = decorated component
 
             Returns:
             	this
@@ -143,7 +143,7 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
 		Instantiates something of type T.
 
 		Returns:
-			T instantiated data of type T.
+			T instantiated component of type T.
 		**/
         T factory() {
             return this.decorated.factory();
@@ -236,7 +236,7 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
             Set the decorated object for decorator.
 
             Params:
-                decorated = decorated data
+                decorated = decorated component
 
             Returns:
             	this
@@ -343,7 +343,7 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
 		Instantiates something of type T.
 
 		Returns:
-			T instantiated data of type T.
+			T instantiated component of type T.
 		**/
         T factory() {
             return this.decorated.factory;
@@ -510,7 +510,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
     		AediException when another exception occurred during construction
 
 		Returns:
-			T instantiated data of type T.
+			T instantiated component of type T.
 		**/
         T factory() {
 

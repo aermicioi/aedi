@@ -56,7 +56,7 @@ The function will attempt to find at least one construct that
 can accept passed argument list. If it fails, compiler will
 produce error, with respective problems.
 The argument list can contain beside simple values, references
-to other data in locator. Arguments that are references to other data
+to other components in locator. Arguments that are references to other components
 won't be type checked.
 
 Params:
@@ -145,12 +145,12 @@ Set component's public field to passed arg.
 
 Configures component's factory to set specified field to passed arg.
 The function will check if passed argument is type compatible with specified field.
-The argument can be a reference as well. In case of argument being reference to another data
+The argument can be a reference as well. In case of argument being reference to another component
 in container, no type compatiblity checking will be done.
 
 Params
     factory = the factory which will be configured to set property.
-	arg = the value of property to be set, or reference to data in container.
+	arg = the value of property to be set, or reference to component in container.
 
 Returns:
 	Z.
@@ -193,7 +193,7 @@ auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T function(IAll
 }
 
 /**
-Call dg on an component that is in configuration phase.
+Call dg on a component that is in configuration phase.
 
 Call dg on component to perform some modifications, using args as input.
 
@@ -309,13 +309,13 @@ auto parent(Z : InstanceFactoryAware!T, T, X : Factory!W, W : T)(Z factory, X de
 }
 
 /**
-Move constructed data from one container to another one.
+Move constructed component from one container to another one.
 
-Move constructed data from one container to another one.
+Move constructed component from one container to another one.
 Description
 
 Params:
-	factory = factory for constructed data
+	factory = factory for constructed component
 	storage = new location for factory
 
 Returns:
@@ -345,13 +345,13 @@ auto container(Z : ConfigurationContextFactory!T, T)(Z factory, string storageId
 }
 
 /**
-Tag constructed data with some information.
+Tag constructed component with some information.
 
-Tag constructed data with some information.
+Tag constructed component with some information.
 Description
 
 Params:
-	factory = factory for constructed data
+	factory = factory for constructed component
 	tag = tag with which to tag factory.
 
 Returns:

@@ -286,17 +286,17 @@ template TypeBasedContainer(T) {
 
             static if (is(T : FactoryLocator!ObjectFactory)) {
                 /**
-                Get factory for constructed data identified by identity.
+                Get factory for constructed component identified by identity.
 
-                Get factory for constructed data identified by identity.
+                Get factory for constructed component identified by identity.
                 Params:
-                	identity = the identity of data that factory constructs.
+                	identity = the identity of component that factory constructs.
 
                 Throws:
                 	NotFoundException when factory for it is not found.
 
                 Returns:
-                	ObjectFactory the factory for constructed data.
+                	ObjectFactory the factory for constructed component.
                 **/
                 ObjectFactory getFactory(string identity) {
                     return this.decorated.getFactory(identity);

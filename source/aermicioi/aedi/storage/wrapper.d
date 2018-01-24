@@ -49,10 +49,10 @@ interface Castable(T) {
 }
 
 /**
-Wrapper over some data of type T.
+Wrapper over some component of type T.
 
 Wraps up a value of type T, and aliases itself to it. This object is used
-wrap any data that is not of reference type (class or interface),
+wrap any component that is not of reference type (class or interface),
 in order to be saveable into an object storage.
 Also thanks to alias value this semantics, in D is possible to do automatic
 unboxing of values, just like Java does with simple values :P.
