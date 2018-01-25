@@ -105,6 +105,73 @@ struct GenericFactoryPolicy {
 }
 
 /**
+A factory policy that uses annotations implementing factory policy interface on component to instantiate the component.
+**/
+struct GenericFactoryAnnotationPolicy {
+
+    private alias getGenericFactoryPolicies(T, X) = Filter!(
+        chain!(
+            ApplyRight!(isFactoryPolicy, X),
+            toType
+        ),
+        allUDAs!T
+    );
+
+    /**
+    Create a component factory for T using annotations on it that implement factory policy interface.
+
+    Params:
+        locator = locator of components used by component factory
+
+    Returns:
+        A component factory
+    **/
+    static GenericFactory!T createFactory(T)(Locator!() locator) {
+
+        alias FactoryPolicies = getGenericFactoryPolicies!(T, T);
+
+        foreach (FactoryPolicy; tuple(FactoryPolicies)) {
+            auto factory = FactoryPolicy.createFactory!T(locator);
+
+            if (factory !is null) {
+                return factory;
+            }
+        }
+
+        return null;
+    }
+}
+
+/**
+A factory policy that applies in order a set of factory policies to create component factory.
+**/
+struct FallbackFactoryPolicy(FactoryPolicies...)
+    if (allSatisfy!(isFactoryPolicy, FactoryPolicies)) {
+
+    /**
+    Create component factory using one of supplied factory policies
+
+    Params:
+        locator = locator of components used by component factory
+
+    Returns:
+        A component factory, from the first factory policy that returned an instance
+    **/
+    static GenericFactory!T createFactory(T)(Locator!() locator) {
+
+        foreach (FactoryPolicy; FactoryPolicies) {
+            auto factory = FactoryPolicy.createFactory!T(locator);
+
+            if (factory !is null) {
+                return factory;
+            }
+        }
+
+        return null;
+    }
+}
+
+/**
 Chain a set of configurator policies.
 **/
 struct ChainedConfiguratorPolicy(ConfiguratorPolicies...)
@@ -684,6 +751,72 @@ enum bool isContainerAdder(T, alias X = Object) =
     is(typeof(&T.scan!X) : V function (X, Y), X : Locator!(), Y : Storage!(Factory!Object, string), V);
 
 /**
+Check if T implements component storing interface.
+
+The responsibility of component storing policy is to
+store component's factory into appropiate storage,
+by apropiate identity, using information about type T.
+
+Params:
+    T = type that is tested for interface compliance
+    X = component type against which T's templates are tested to comply to interface
+Returns:
+    true if it implements the interface, false otherwise
+**/
+enum bool isComponentStoringPolicy(T, X = Object) =
+    is(T == struct) &&
+    is(
+        typeof(&T.store!X) : void function (F, Locator!(), S),
+        F : Factory!Z,
+        Z,
+        S : Storage!(Factory!Z, string)
+    );
+
+
+/**
+A default implementation of component storing policy that looks for @qualifier and @contained annotations to store component factory.
+**/
+struct ComponentStoringPolicyImpl {
+
+    /**
+    Store component factory into storage.
+
+    Store component factory into storage. The storage where component is stored
+    on presence of @contained annotation on T, will be extracted from locator, otherwise
+    storage passed as argument is used. The identity of component by default is
+    it's type FQN, but is overriden by @qualifier annotation.
+
+    Params:
+        factory = component factory to be stored
+        locator = locator that is used to fetch storage in case of @contained annotation
+        storage = storage were component is stored when no @contained annotation is provided
+    **/
+    static void store(T)(Factory!Object factory, Locator!() locator, Storage!(Factory!Object, string) storage) {
+
+        string identity = fullyQualifiedName!T;
+        alias Qualifiers = Filter!(
+            isQualifierAnnotation,
+            allUDAs!T
+        );
+
+        foreach (Qualifier; Qualifiers) {
+            identity = Qualifier.id;
+        }
+
+        alias ContainedAnnotations = Filter!(
+            isContainedAnnotation,
+            allUDAs!T
+        );
+
+        foreach (ContainedAnnotation; ContainedAnnotations) {
+            storage = locator.locate!(Storage!(Factory!Object, string))(ContainedAnnotation.id);
+        }
+
+        storage.set(factory, identity);
+    }
+}
+
+/**
 ContainerAdder that chains a set of ContainerAdders on a symbol.
 **/
 struct ChainedContainerAdder(ContainerAdderPolicies...) {
@@ -721,7 +854,8 @@ struct ChainedContainerAdder(ContainerAdderPolicies...) {
 /**
 Applies a transformer on passed symbol if it is a type.
 **/
-struct TypeContainerAdder(TypeTransformerPolicy) {
+struct TypeContainerAdder(TypeTransformerPolicy, ComponentStoringPolicy = ComponentStoringPolicyImpl)
+    if (isComponentStoringPolicy!ComponentStoringPolicy) {
 
     /**
     Check if symbol T is a type definition.
@@ -744,22 +878,13 @@ struct TypeContainerAdder(TypeTransformerPolicy) {
     static void scan(T)(Locator!() locator, Storage!(ObjectFactory, string) storage)
         if (isSupported!T) {
 
-        string identity = fullyQualifiedName!T;
-        alias Qualifiers = Filter!(
-            isQualifierAnnotation,
-            allUDAs!T
-        );
-
-        foreach (Qualifier; Qualifiers) {
-            identity = Qualifier.id;
-        }
-
         auto transformed = TypeTransformerPolicy.transform!T(locator);
 
         if (transformed is null) {
             return;
         }
-        storage.set(transformed, identity);
+
+        ComponentStoringPolicy.store!T(transformed, locator, storage);
     }
 }
 
@@ -839,7 +964,8 @@ struct ModuleContainerAdder(ContainerAdderPolicy) {
 /**
 ContainerAdder that will scan a type for it's methods, and use them to create component factories out of their return type
 **/
-struct FactoryMethodContainerAdder(TypeTransformer) {
+struct FactoryMethodContainerAdder(TypeTransformer, ComponentStoringPolicy = ComponentStoringPolicyImpl)
+    if (isComponentStoringPolicy!ComponentStoringPolicy) {
 
     /**
     Check if symbol T is a type
@@ -893,7 +1019,7 @@ struct FactoryMethodContainerAdder(TypeTransformer) {
                                 factory.setInstanceFactory = instanceFactory;
                             }
 
-                            storage.set(factory, fullyQualifiedName!(ReturnType!overload));
+                            ComponentStoringPolicy.store!(ReturnType!overload)(factory, locator, storage);
                         }
                     }
                 }
@@ -1409,65 +1535,109 @@ auto componentScan(R : Locator!())(R locator)
     }
 }
 
-alias TypedComponentTransformer =
-    TypeTransformer!(
-        GenericFactoryPolicy,
-        ChainedConfiguratorPolicy!(
-            FieldScanningConfiguratorPolicy!(
-                SetterFieldConfiguratorPolicy,
-                CallbackFieldConfiguratorPolicy,
-                AutowiredFieldConfiguratorPolicy
-            ),
-            MethodScanningConfiguratorPolicy!(
-                ConstructorMethodConfiguratorPolicy,
-                AutowiredConstructorMethodConfiguratorPolicy,
-                SetterMethodConfiguratorPolicy,
-                CallbackMethodConfiguratorPolicy,
-                AutowiredMethodConfiguratorPolicy
-            ),
+/**
+Implementation of field scanning configurator policy, with built in field configurators.
+**/
+alias FieldScanningConfiguratorPolicyImpl = FieldScanningConfiguratorPolicy!(
+        SetterFieldConfiguratorPolicy,
+        CallbackFieldConfiguratorPolicy,
+        AutowiredFieldConfiguratorPolicy
+    );
+
+/**
+Implementation of method scanning configurator policy, with built in method configurators.
+**/
+alias MethodScanningConfiguratorPolicyImpl = MethodScanningConfiguratorPolicy!(
+        ConstructorMethodConfiguratorPolicy,
+        AutowiredConstructorMethodConfiguratorPolicy,
+        SetterMethodConfiguratorPolicy,
+        CallbackMethodConfiguratorPolicy,
+        AutowiredMethodConfiguratorPolicy
+    );
+
+/**
+Implementation of configurator policy, with built in configurators
+**/
+alias ConfiguratorPolicyImpl = ChainedConfiguratorPolicy!(
+            FieldScanningConfiguratorPolicyImpl,
+            MethodScanningConfiguratorPolicyImpl,
             AllocatorConfiguratorPolicy,
             CallbackFactoryConfiguratorPolicy,
             ValueFactoryConfiguratorPolicy,
             GenericConfigurerConfiguratorPolicy
+        );
+
+/**
+Implementation of factory policy, with built in factory creators
+**/
+alias FactoryPolicyImpl = FallbackFactoryPolicy!(
+    GenericFactoryPolicy,
+    GenericFactoryAnnotationPolicy
+);
+
+/**
+Implementation of type to type factory transformer, with built in funcionality
+**/
+alias TypeTransformerImpl = TypeTransformer!(
+        FactoryPolicyImpl,
+        ConfiguratorPolicyImpl
+    );
+
+/**
+Implementation of object wrapping factory wrapping TypeTransformerImpl
+**/
+alias ObjectFactoryTransformerImpl =
+    ObjectFactoryTransformer!(
+        TypeTransformerImpl
+    );
+
+/**
+Implementation of module container adder, featuring built in scanners
+**/
+alias ModuleContainerAdderImpl(TransformerPolicy = ObjectFactoryTransformerImpl) = ModuleContainerAdder!(
+        ChainedContainerAdder!(
+            TypeContainerAdder!TransformerPolicy,
+            InnerTypeContainerAdder!(TypeContainerAdder!TransformerPolicy),
+            FactoryMethodContainerAdder!TransformerPolicy,
         )
     );
 
-alias ObjectWrapperTransformerPolicy =
-    ObjectFactoryTransformer!(
-        TypedComponentTransformer
-    );
-
-alias DefaultContainerAdderPolicy(TransformerPolicy = ObjectWrapperTransformerPolicy) =
-    ChainedContainerAdder!(
+/**
+Customizable implementation of container adder, with built in functionality
+**/
+alias ContainerAdderImpl(TransformerPolicy = ObjectFactoryTransformerImpl) = ChainedContainerAdder!(
         TypeContainerAdder!TransformerPolicy,
         InnerTypeContainerAdder!(TypeContainerAdder!TransformerPolicy),
         FactoryMethodContainerAdder!TransformerPolicy,
-        ModuleContainerAdder!(
-            ChainedContainerAdder!(
-                TypeContainerAdder!TransformerPolicy,
-                InnerTypeContainerAdder!(TypeContainerAdder!TransformerPolicy),
-                FactoryMethodContainerAdder!TransformerPolicy,
-            )
-        ),
+        ModuleContainerAdderImpl!TransformerPolicy
     );
 
+/**
+Template for defining scanning functions instantiated with particular container adder policy.
+
+The functions defined in this template mixin are the entry point for running scans over symbols that
+are desired to be added into a container. The template will instantiate $(D_INLINECODE scan) family of functions
+that will use passed container adder policy to scan symbols passed to them. It is advised to define your own
+set of scanning methods in case when additional scanning and transformation logic is expected.
+**/
 mixin template Scanner(ContainerAdderPolicy) {
+
+    /**
+    Scan symbol T for possible components using ContainerAdderPolicy
+
+    Params:
+        storage = storage that will contain component factories
+        locator = locator of components used to by component factories
+    **/
     void scan(alias T)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
         debug(annotationScanDebug) pragma(msg, "Scanning ", T, " for possible components");
 
         ContainerAdderPolicy.scan!T(locator, storage);
     }
 
-    void scan(alias T)(string storage, Locator!() locator) {
-
-        scan!T(locator.locate!(Storage!(ObjectFactory, string))(storage), locator);
-    }
-
-    void scan(alias T, St : Storage!(ObjectFactory, string) = Storage!(ObjectFactory, string))(Locator!() locator) {
-
-        scan!T(locator.locate!St, locator);
-    }
-
+    /**
+    ditto
+    **/
     void scan(alias T, X...)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
 
         scan!T(storage, locator);
@@ -1478,20 +1648,41 @@ mixin template Scanner(ContainerAdderPolicy) {
         }
     }
 
+    /**
+    Scan symbol T for possible components using ContainerAdderPolicy
+
+    Params:
+        storage = identity by which to search storage in locator, that will be used to store components
+        locator = locator of components used to by component factories
+    **/
+    void scan(alias T)(string storage, Locator!() locator) {
+
+        scan!T(locator.locate!(Storage!(ObjectFactory, string))(storage), locator);
+    }
+
+    /**
+    ditto
+    **/
     void scan(alias T, X...)(string storage, Locator!() locator) {
 
         scan!(T, X)(locator.locate!(Storage!(ObjectFactory, string))(storage), locator);
     }
 
-    void scan(alias T, X...)(Locator!() locator) {
-        scan!T(locator);
+    /**
+    Scan symbol T for possible components using ContainerAdderPolicy
 
-        static if (X.length > 0) {
+    Params:
+        St = interface by which to search storage in locator, that will be used to store components
+        locator = locator of components used to by component factories
+    **/
+    void scan(alias T, St : Storage!(ObjectFactory, string) = Storage!(ObjectFactory, string))(Locator!() locator) {
 
-            scan!X(locator);
-        }
+        scan!T(locator.locate!St, locator);
     }
 
+    /**
+    ditto
+    **/
     void scan(alias T, St : Storage!(ObjectFactory, string), X...)(Locator!() locator) {
 
         scan!(T, St)(locator);
@@ -1501,14 +1692,29 @@ mixin template Scanner(ContainerAdderPolicy) {
             scan!X(locator);
         }
     }
+
+    /**
+    ditto
+    **/
+    void scan(alias T, X...)(Locator!() locator) {
+        scan!T(locator);
+
+        static if (X.length > 0) {
+
+            scan!X(locator);
+        }
+    }
 }
 
-mixin Scanner!(DefaultContainerAdderPolicy!ObjectWrapperTransformerPolicy);
+/**
+Default implementation of $(D_INLINECODE scan) family of functions featuring all scanning features provided by library.
+**/
+mixin Scanner!(ContainerAdderImpl!());
 
 // deprecated
 auto componentScanImpl(T)(Locator!() locator) {
 
-    return TypedComponentTransformer.transform!T(locator);
+    return TypeTransformerImpl.transform!T(locator);
 }
 
 private template isQualifier(alias T) {

@@ -412,7 +412,7 @@ unittest {
     ObjectStorage!() locator = new ObjectStorage!();
     SingletonContainer container = new SingletonContainer();
 
-    DefaultContainerAdderPolicy!().scan!(aermicioi.aedi.test.configurer.annotation.component_scan)(locator, container);
+    ContainerAdderImpl!().scan!(aermicioi.aedi.test.configurer.annotation.component_scan)(locator, container);
 
     assert(container.locate!(ValueComponentAddedMock) !is null);
     assert(container.locate!(ValueComponentAddedMock).i == 10);
@@ -476,7 +476,7 @@ unittest {
     storage.set(new MethodFactoryComponent, fullyQualifiedName!MethodFactoryComponent);
     storage.set(new WrapperImpl!int(10), fullyQualifiedName!int);
 
-    FactoryMethodContainerAdder!ObjectWrapperTransformerPolicy.scan!MethodFactoryComponent(storage, container);
+    FactoryMethodContainerAdder!ObjectFactoryTransformerImpl.scan!MethodFactoryComponent(storage, container);
     assert(container.locate!FactoryMethodCreatedMock.property == 10);
     assert(container.locate!StaticFactoryMethodCreatedMock.property == int.max);
 }
@@ -556,7 +556,7 @@ struct MockAnnotationConfigurer {
 }
 
 @MockAnnotationConfigurer()
-class DummyGenericAnnotation {
+class GenericConfigurerAnnotatedComponent {
 
 }
 
@@ -564,9 +564,57 @@ unittest {
     scope(exit) MockAnnotationConfigurer.run = false;
 
     ObjectStorage!() storage = new ObjectStorage!();
-    GenericFactoryImpl!DummyGenericAnnotation mock = new GenericFactoryImpl!DummyGenericAnnotation(storage);
+    GenericFactoryImpl!GenericConfigurerAnnotatedComponent mock = new GenericFactoryImpl!GenericConfigurerAnnotatedComponent(storage);
 
     GenericConfigurerConfiguratorPolicy.configure(mock, storage);
 
     assert(MockAnnotationConfigurer.run);
+}
+
+struct MockAnnotationFactory {
+
+    static bool run;
+
+    static GenericFactory!T createFactory(T)(Locator!() locator) {
+        run = true;
+
+        return new GenericFactoryImpl!T(locator);
+    }
+}
+
+@MockAnnotationFactory()
+@component
+class GenericFactoryAnnotatedComponent {
+
+}
+
+@component
+@MockAnnotationFactory()
+class GenericFactoryAnnotatedComponentReversed {
+
+}
+
+unittest {
+    scope(exit) MockAnnotationFactory.run = false;
+
+    ObjectStorage!() storage = new ObjectStorage!();
+
+    assert(GenericFactoryAnnotationPolicy.createFactory!GenericFactoryAnnotatedComponent(storage) !is null);
+
+    assert(MockAnnotationFactory.run);
+}
+
+unittest {
+    scope(exit) MockAnnotationFactory.run = false;
+
+    ObjectStorage!() storage = new ObjectStorage!();
+
+    alias FallbackFactoryPolicyImpl = FallbackFactoryPolicy!(
+        GenericFactoryPolicy,
+        GenericFactoryAnnotationPolicy
+    );
+
+    assert(FallbackFactoryPolicyImpl.createFactory!GenericFactoryAnnotatedComponentReversed(storage) !is null);
+
+    assert(!MockAnnotationFactory.run);
 }

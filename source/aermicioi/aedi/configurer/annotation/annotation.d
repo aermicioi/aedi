@@ -67,21 +67,12 @@ Annotation used to denote a component that should be stored into an container.
 **/
 struct ComponentAnnotation {
 
-    /**
-    Constructs a factory for component of type T
-
-    Params:
-    	T = the component type
-    	locator = locator used to extract needed dependencies for T
-
-    Returns:
-    	GenericFactory!T for objects
-    	GenericFactory!(Wrapper!T) for structs
-    **/
-    GenericFactory!T factory(T)(Locator!() locator) {
-        return new GenericFactoryImpl!(T)(locator);
-    }
 }
+
+/**
+ditto
+**/
+alias component = ComponentAnnotation;
 
 /**
 Check if T is instance of ValueAnnotation
@@ -149,11 +140,6 @@ ditto
 AllocatorAnnotation!T allocator(T)(T allocator) {
     return AllocatorAnnotation!T(allocator);
 }
-
-/**
-ditto
-**/
-alias component = ComponentAnnotation;
 
 /**
 Check if T is instance of ConstructorAnnotation
