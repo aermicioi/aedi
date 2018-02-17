@@ -213,7 +213,7 @@ struct AllocatorConfiguratorPolicy {
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         static foreach (Allocator; getAllocators!Z) {
-            debug(annotationScanDebug) pragma(msg, "Found custom allocator for ", Z, " provisioning with ", toType!(Allocator.allocator));
+            debug(annotationScanDebug) pragma(msg, "Found custom allocator for ", Z, " provisioning with ", typeof(Allocator.allocator));
             instantiator.allocator = Allocator.iallocator;
         }
     }
