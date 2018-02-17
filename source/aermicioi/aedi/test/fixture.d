@@ -267,7 +267,7 @@ class MockFactory(T) : ObjectFactory {
         }
 
         @property {
-            TypeInfo type() @safe nothrow {
+            TypeInfo type() @safe nothrow const {
             	return typeid(T);
             }
 
@@ -299,7 +299,7 @@ class MockFailingFactory(T) : ObjectFactory {
         }
 
         @property {
-            TypeInfo type() @safe nothrow {
+            TypeInfo type() @safe nothrow const {
             	return typeid(T);
             }
 
@@ -345,7 +345,7 @@ class MockValueFactory(T) : Factory!T {
         }
 
         @property {
-            TypeInfo type() @safe nothrow {
+            TypeInfo type() @safe nothrow const {
             	return typeid(T);
             }
 
@@ -379,7 +379,7 @@ class CircularFactoryMock(T) : MockFactory!T, Factory!T {
 
         alias destruct = MockFactory!T.destruct;
 
-        override TypeInfo type() @safe nothrow {
+        override TypeInfo type() @safe nothrow const {
             return typeid(T);
         }
 

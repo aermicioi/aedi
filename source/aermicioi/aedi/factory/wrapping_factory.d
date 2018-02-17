@@ -75,7 +75,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(IAllocator allocator) @safe nothrow pure
+            typeof(this) allocator(IAllocator allocator) @safe nothrow
             in {
                 assert(allocator !is null);
             }
@@ -92,7 +92,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
             Returns:
                 IAllocator
             **/
-            IAllocator allocator() @safe nothrow pure {
+            IAllocator allocator() @safe nothrow {
                 return this.allocator_;
             }
             /**
@@ -120,7 +120,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
             Returns:
             	T decorated object
             **/
-        	T decorated() @safe nothrow {
+        	inout(T) decorated() @safe nothrow inout {
         		return this.decorated_;
         	}
 
@@ -130,7 +130,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
     		Returns:
     			TypeInfo object of created component.
     		**/
-        	TypeInfo type() {
+        	TypeInfo type() @safe nothrow const {
         	    return this.decorated.type;
         	}
 
@@ -279,7 +279,7 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(IAllocator allocator) @safe nothrow pure {
+            typeof(this) allocator(IAllocator allocator) @safe nothrow {
                 this.allocator_ = allocator;
                 this.decorated.allocator = allocator;
 
@@ -292,7 +292,7 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
             Returns:
                 IAllocator
             **/
-            IAllocator allocator() @safe nothrow pure {
+            IAllocator allocator() @safe nothrow {
                 return this.allocator_;
             }
             /**
@@ -326,7 +326,7 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
     		Returns:
     			TypeInfo object of created component.
     		**/
-        	TypeInfo type() {
+        	TypeInfo type() @safe nothrow const {
         	    return this.decorated.type;
         	}
 

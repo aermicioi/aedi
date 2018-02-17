@@ -234,7 +234,7 @@ class LoggingFactory(T) : Factory!T {
             Returns:
                 IAllocator
             **/
-            IAllocator allocator() @safe nothrow pure {
+            inout(IAllocator) allocator() @safe nothrow pure inout {
                 return this.allocator_;
             }
         }
@@ -265,7 +265,7 @@ class LoggingFactory(T) : Factory!T {
             }
         }
 
-        TypeInfo type() {
+        TypeInfo type() const {
             return typeid(T);
         }
 

@@ -79,42 +79,12 @@ template AliasingContainer(T) {
     **/
     class AliasingContainer : InheritanceSet {
         private {
-            T decorated_;
-
             string[const(string)] aliasings;
         }
 
         public {
-            @property {
-
-                /**
-                Set the decorated decorated
-
-                Params:
-                    decorated = decorated to be decorated
-
-                Returns:
-                    AliasingContainer!T decorating decorated.
-                **/
-                AliasingContainer!T decorated(T decorated) @safe nothrow {
-                	this.decorated_ = decorated;
-
-                	return this;
-                }
-
-
-                /**
-                Get the decorated decorated.
-
-                Get the decorated decorated.
-
-                Returns:
-                	T decorated decorated
-                **/
-                T decorated() @safe nothrow {
-                	return this.decorated_;
-                }
-            }
+            import aermicioi.aedi.storage.decorator : MutableDecoratorMixin;
+            mixin MutableDecoratorMixin!T;
 
             alias decorated this;
 

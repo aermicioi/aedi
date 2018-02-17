@@ -49,7 +49,7 @@ interface AllocatorAware(AllocatorType = IAllocator) {
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(AllocatorType allocator) @safe nothrow pure;
+            typeof(this) allocator(AllocatorType allocator) @safe nothrow;
         }
     }
 }
@@ -81,7 +81,7 @@ mixin template AllocatorAwareMixin(Z) {
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(Z allocator) @safe nothrow pure
+            typeof(this) allocator(Z allocator) @safe nothrow
             in {
                 static if (is(Z == class) || is(Z == interface)) {
 
@@ -100,7 +100,7 @@ mixin template AllocatorAwareMixin(Z) {
             Returns:
                 Z
             **/
-            Z allocator() @safe nothrow pure
+            inout(Z) allocator() @safe nothrow inout
             out(allocator) {
                 assert(allocator !is null);
             }
@@ -131,7 +131,7 @@ mixin template AllocatorAwareDecoratorMixin(T : AllocatorAware!Z, Z)
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(Z allocator) @safe nothrow pure {
+            typeof(this) allocator(Z allocator) @safe nothrow {
                 this.decorated.allocator = allocator;
 
                 return this;
@@ -150,7 +150,7 @@ mixin template AllocatorAwareDecoratorMixin(T : AllocatorAware!Z, Z)
                 Returns:
                     IAllocator
                 **/
-                Z allocator() @safe nothrow pure {
+                inout(Z) allocator() @safe nothrow inout {
                     return this.decorated.allocator;
                 }
             }

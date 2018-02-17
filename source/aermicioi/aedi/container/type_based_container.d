@@ -95,8 +95,6 @@ template TypeBasedContainer(T) {
     class TypeBasedContainer : InheritanceSet {
 
         private {
-            T decorated_;
-
             ObjectStorage!(RedBlackTree!(string), string) candidates;
         }
 
@@ -105,17 +103,7 @@ template TypeBasedContainer(T) {
                 this.candidates = new ObjectStorage!(RedBlackTree!string, string);
             }
 
-            @property {
-            	TypeBasedContainer decorated(T decorated) @safe nothrow {
-            		this.decorated_ = decorated;
-
-            		return this;
-            	}
-
-            	T decorated() @safe nothrow {
-            		return this.decorated_;
-            	}
-            }
+            mixin MutableDecoratorMixin!T;
 
             import aermicioi.aedi.container.decorating_mixin : ContainerMixin;
             mixin ContainerMixin!(typeof(this));

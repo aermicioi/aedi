@@ -48,7 +48,7 @@ interface LocatorAware(Type = Object, KeyType = string) {
 		Returns:
 			LocatorAware.
 		**/
-		@property LocatorAware locator(Locator!(Type, KeyType) locator);
+		@property LocatorAware locator(Locator!(Type, KeyType) locator) @safe nothrow;
 	}
 }
 
@@ -104,7 +104,7 @@ mixin template LocatorAwareMixin(Type = Object, KeyType = string) {
         Returns:
             Locator!(Type, KeyType)
         **/
-        Locator!(Type, KeyType) locator() {
+        inout(Locator!(Type, KeyType)) locator() @safe nothrow inout {
             return this.locator_;
         }
     }

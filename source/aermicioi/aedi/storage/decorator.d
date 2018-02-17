@@ -43,7 +43,7 @@ interface Decorator(T) {
             Returns:
             	T decorated object
             **/
-        	T decorated() @safe nothrow pure;
+        	inout(T) decorated() @safe nothrow inout;
         }
     }
 }
@@ -65,7 +65,7 @@ interface MutableDecorator(T) : Decorator!T {
             Returns:
             	this
             **/
-        	typeof(this) decorated(T decorated) @safe nothrow pure;
+        	typeof(this) decorated(T decorated) @safe nothrow;
         }
     }
 }
@@ -127,7 +127,7 @@ mixin template MutableDecoratorMixin(T) {
 		Returns:
 			T
 		**/
-		T decorated() @safe nothrow pure {
+		inout(T) decorated() @safe nothrow pure inout {
 			return this.decorated_;
 		}
 	}

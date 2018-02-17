@@ -44,7 +44,7 @@ interface Wrapper(T) {
         Returns:
             T the wrapped value
         **/
-        @property ref T value();
+        @property ref inout(T) value() inout;
 
         /**
         Alias wrapper to T for automatic unboxing of values.
@@ -65,7 +65,7 @@ interface Castable(T) {
         Returns:
             T component transformed into T component.
         **/
-        @property T casted();
+        @property inout(T) casted() inout;
 
         /**
         Alias casted type for automatic casting of component.
@@ -117,7 +117,7 @@ private {
                 this.value_ = value;
             }
 
-            @property ref T value() {
+            @property ref inout(T) value() inout {
                 return this.value_;
             }
         }
@@ -129,8 +129,8 @@ private {
 
     mixin template CastableMixin(Type) {
         @property {
-            Type casted() {
-                return cast(Type) this.value;
+            inout(Type) casted() inout {
+                return cast(inout(Type)) this.value;
             }
         }
     }

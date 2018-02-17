@@ -35,6 +35,7 @@ import aermicioi.aedi.factory.decorating_factory;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.allocator_aware;
+import aermicioi.aedi.storage.decorator : MutableDecoratorMixin;
 
 /**
 A decorating factory that detects circular reference insantiations.
@@ -45,11 +46,12 @@ class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
     mixin DestructDecoratorMixin!(typeof(this));
 
     private {
-        ObjectFactory decorated_;
         bool inProcess;
     }
 
     public {
+        mixin MutableDecoratorMixin!(ObjectFactory);
+
         /**
          * Default constructor for InProcessObjectFactoryDecorator
         **/
@@ -69,34 +71,12 @@ class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
 
         @property {
             /**
-            Get the decorated object.
-
-            Returns:
-            	T decorated object
-            **/
-            InProcessObjectFactoryDecorator decorated(ObjectFactory decorated) @safe nothrow {
-            	this.decorated_ = decorated;
-
-            	return this;
-            }
-
-            /**
-             * Get decorated
-             *
-             * Returns:
-             * 	ObjectFactory
-            **/
-            ObjectFactory decorated() @safe nothrow {
-            	return this.decorated_;
-            }
-
-            /**
              * Get type of created object
              *
              * Returns:
              * 	TypeInfo
             **/
-            TypeInfo type() {
+            TypeInfo type() const {
             	return this.decorated.type();
             }
 
@@ -152,11 +132,12 @@ class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
     mixin DestructDecoratorMixin!(typeof(this));
 
     private {
-        ObjectFactory decorated_;
         string id_;
     }
 
     public {
+        mixin MutableDecoratorMixin!(ObjectFactory);
+
         /**
          * Default constructor for ExceptionChainingObjectFactory
         **/
@@ -202,36 +183,12 @@ class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
             }
 
             /**
-             * Set decorated
-             *
-             * Params:
-             * 	decorated = the factory that is to be decorated
-             * Returns:
-             * 	typeof(this)
-            **/
-            ExceptionChainingObjectFactory decorated(ObjectFactory decorated) @safe nothrow {
-            	this.decorated_ = decorated;
-
-            	return this;
-            }
-
-            /**
-             * Get decorated
-             *
-             * Returns:
-             * 	ObjectFactory
-            **/
-            ObjectFactory decorated() @safe nothrow {
-            	return this.decorated_;
-            }
-
-            /**
              * Get type of created object
              *
              * Returns:
              * 	TypeInfo
             **/
-            TypeInfo type() {
+            TypeInfo type() const {
             	return this.decorated.type();
             }
 

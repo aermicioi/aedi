@@ -204,7 +204,7 @@ class ProxyFactory(T) : Factory!T
     		Returns:
     			TypeInfo object of created component.
     		**/
-            TypeInfo type() @safe nothrow {
+            TypeInfo type() @safe nothrow const {
                 return typeid(Proxy!T);
             }
 
@@ -406,30 +406,7 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Prox
             	return this.decorated.source;
             }
 
-            /**
-            Set the decorated object for decorator.
-
-            Params:
-                decorated = decorated component
-
-            Returns:
-            	this
-            **/
-            ProxyObjectWrappingFactory!T decorated(ProxyFactory!T decorated) @safe nothrow {
-            	this.decorated_ = decorated;
-
-            	return this;
-            }
-
-            /**
-            Get the decorated object.
-
-            Returns:
-            	T decorated object
-            **/
-            ProxyFactory!T decorated() @safe nothrow {
-            	return this.decorated_;
-            }
+            mixin MutableDecoratorMixin!(ProxyFactory!T);
 
             /**
             Set a locator to object.
@@ -462,7 +439,7 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Prox
     		Returns:
     			TypeInfo object of created component.
     		**/
-            TypeInfo type() {
+            TypeInfo type() @safe nothrow const {
                 return this.decorated.type;
             }
         }

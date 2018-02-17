@@ -109,7 +109,7 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
             Returns:
             	GenericFactory!T decorated object
             **/
-        	GenericFactory!T decorated() @safe nothrow {
+        	inout(GenericFactory!T) decorated() @safe nothrow inout {
         		return this.decorated_;
         	}
 
@@ -160,7 +160,7 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
 		Returns:
 			TypeInfo object of created object.
 		**/
-        TypeInfo type() {
+        TypeInfo type() @safe nothrow const {
             return this.decorated.type();
         }
 
@@ -229,38 +229,13 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
     mixin DestructDecoratorMixin!(typeof(this));
 
     private {
-        Factory!T decorated_;
-
         Z[] tags_;
     }
 
     public {
         @property {
 
-			/**
-            Set the decorated object for decorator.
-
-            Params:
-                decorated = decorated component
-
-            Returns:
-            	this
-            **/
-        	TaggableFactoryDecorator!(T, Z) decorated(Factory!T decorated) @safe nothrow {
-            	this.decorated_ = decorated;
-
-            	return this;
-            }
-
-			/**
-            Get the decorated object.
-
-            Returns:
-            	GenericFactory!T decorated object
-            **/
-            Factory!T decorated() @safe nothrow {
-            	return this.decorated_;
-            }
+			mixin MutableDecoratorMixin!(Factory!T);
 
 			/**
 				Set tags
@@ -306,7 +281,7 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
 			Returns:
 				TypeInfo object of created object.
 			**/
-            TypeInfo type() {
+            TypeInfo type() @safe nothrow const {
                 return this.decorated.type;
             }
         }
@@ -393,8 +368,6 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
 
 	private {
 
-        Factory!T decorated_;
-
         string file_;
         size_t line_;
     }
@@ -453,30 +426,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
         		return this.line_;
         	}
 
-        	/**
-            Set the decorated factory for decorator.
-
-            Params:
-                decorated = decorated factory
-
-            Returns:
-            	this
-            **/
-        	RegistrationAwareDecoratingFactory!T decorated(Factory!T decorated) @safe nothrow {
-        		this.decorated_ = decorated;
-
-        		return this;
-        	}
-
-        	/**
-            Get the decorated object.
-
-            Returns:
-            	Factory!T decorated factory
-            **/
-        	Factory!T decorated() @safe nothrow {
-        		return this.decorated_;
-        	}
+        	mixin MutableDecoratorMixin!(Factory!T);
 
         	/**
     		Get the type info of T that is created.
@@ -484,7 +434,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
     		Returns:
     			TypeInfo object of created object.
     		**/
-        	TypeInfo type() {
+        	TypeInfo type() @safe nothrow const {
         	    return this.decorated.type;
         	}
 

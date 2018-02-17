@@ -431,7 +431,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
                 Returns:
                     typeof(this)
             **/
-            GenericFactory!T locator(Locator!() locator) {
+            GenericFactory!T locator(Locator!() locator) @safe nothrow {
                 this.locator_ = locator;
 
                 this.factory_.locator = this.locator;
@@ -450,7 +450,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
                 Returns:
                     Locator!()
             **/
-            Locator!() locator() {
+            Locator!() locator() @safe nothrow {
                 return this.locator_;
             }
 
@@ -463,7 +463,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(IAllocator allocator) @safe nothrow pure {
+            typeof(this) allocator(IAllocator allocator) @safe nothrow {
                 this.allocator_ = allocator;
 
                 this.factory_.allocator = this.allocator;
@@ -478,7 +478,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
             Returns:
                 IAllocator
             **/
-            IAllocator allocator() @safe nothrow pure {
+            IAllocator allocator() @safe nothrow {
                 return this.allocator_;
             }
 
@@ -488,7 +488,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
     		Returns:
     			TypeInfo object of created object.
     		**/
-    		TypeInfo type() {
+    		TypeInfo type() @safe nothrow const {
     		    return typeid(T);
     		}
         }
@@ -1353,32 +1353,7 @@ class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!
             this.decorated = factory;
         }
 
-        @property {
-            /**
-            Set the decorated object for decorator.
-
-            Params:
-                decorated = decorated component
-
-            Returns:
-            	this
-            **/
-        	DelegatingInstanceFactory!(T, X) decorated(Factory!X decorated) @safe nothrow {
-        		this.decorated_ = decorated;
-
-        		return this;
-        	}
-
-        	/**
-            Get the decorated object.
-
-            Returns:
-            	T decorated object
-            **/
-        	Factory!X decorated() @safe nothrow {
-        		return this.decorated_;
-        	}
-        }
+        mixin MutableDecoratorMixin!(Factory!X);
 
         /**
         Create a new instance of object of type T.

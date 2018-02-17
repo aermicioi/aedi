@@ -69,7 +69,7 @@ interface Factory(T) : LocatorAware!(), AllocatorAware!() {
     		Returns:
     			TypeInfo object of created component.
     		**/
-    		TypeInfo type();
+    		TypeInfo type() @safe nothrow const;
 		}
 	}
 }
