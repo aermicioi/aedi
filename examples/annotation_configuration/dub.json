@@ -11,5 +11,8 @@
 		"aedi" : {
 			"path" : "../../"
 		}
-	}
+	},
+	"debugVersions": [
+		"annotationScanDebug"
+	]
 }

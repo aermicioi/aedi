@@ -535,7 +535,14 @@ struct DefferredConfigurationContext(
 ) {
     public {
 
+        /**
+        Identity of deffered executioner used for deffering construction, in case as circular reference error.
+        **/
         string executionerIdentity;
+
+        /**
+        Underlying configuration context to which actual registration is deffered.
+        **/
         R context;
 
         alias context this;
@@ -624,7 +631,13 @@ struct DefferredConfigurationContext(
     public {
         import aermicioi.aedi.configurer.register.factory_configurer : defferredConfiguration;
 
+        /**
+        Identity of deffered executioner used for deffering construction, in case as circular reference error.
+        **/
         string executionerIdentity;
+        /**
+        Underlying configuration context to which actual registration is deffered.
+        **/
         R context;
 
         alias context this;
@@ -764,7 +777,14 @@ struct DefferredConstructionContext(
     public {
         import aermicioi.aedi.configurer.register.factory_configurer : defferredConstruction;
 
+        /**
+        Identity of deffered executioner used for deffering construction, in case as circular reference error.
+        **/
         string executionerIdentity;
+
+        /**
+        Underlying configuration context to which actual registration is deffered.
+        **/
         R context;
 
         alias context this;

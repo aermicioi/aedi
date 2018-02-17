@@ -185,7 +185,7 @@ struct ChainedConfiguratorPolicy(ConfiguratorPolicies...)
         locator = locator used by factory
 
     **/
-    static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         foreach (policy; ConfiguratorPolicies) {
             policy.configure(instantiator, locator);
@@ -210,7 +210,7 @@ struct AllocatorConfiguratorPolicy {
         instantiator = factory which is set allocator from @allocator annotation
         locator = locator used by factory
     **/
-    static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
         static foreach (Allocator; getAllocators!Z) {
             debug(annotationScanDebug) pragma(msg, "Found custom allocator for ", Z, " provisioning with ", toType!(Allocator.allocator));
@@ -235,7 +235,7 @@ struct CallbackFactoryConfiguratorPolicy {
         instantiator = factory which is set callback instance factory from @callback annotation
         locator = locator used by factory
     **/
-    static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         import std.experimental.allocator;
 
         foreach (CallbackFactory; tuple(getCallbackFactories!Z).expand) {
@@ -269,7 +269,7 @@ struct ValueFactoryConfiguratorPolicy {
         instantiator = factory which is set value instance factory from @value annotation
         locator = locator used by factory
     **/
-    static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         import std.experimental.allocator;
 
         foreach (ValueAnnotation; tuple(getValueFactories!Z).expand) {
@@ -303,10 +303,39 @@ struct GenericConfigurerConfiguratorPolicy {
         instantiator = factory upon which isConfigurerPolicy annotations are applied
         locator = locator used by factory
     **/
-    static auto configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
         foreach (Generic; tuple(getGenerics!(Z, T)).expand) {
             debug(annotationScanDebug) pragma(msg, "Found annotation implementing configurer annotation contract ", typeof(Generic), " applying to ", Z, " factory");
             Generic.configure!(T)(instantiator, locator);
+        }
+    }
+}
+
+/**
+A policy that configures factory to use callback to destroy created components.
+**/
+struct CallbackDestructorConfigurerPolicy {
+    private alias getCallbackDestructors(alias T, X) = Filter!(
+        chain!(
+            ApplyRight!(isCallbackDestructor, X),
+            toType
+        ),
+        allUDAs!T
+    );
+
+    /**
+    Configure instantiator to use callback for destruction of components
+
+    Params:
+        instantiator = component factory
+        locator = container for component's dependencies
+        Z = type of component created
+    **/
+    static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+
+        foreach (CallbackDestructor; tuple!(getCallbackDestructors!(Z, T)).expand) {
+            debug(annotationsScanDebug) pragma(msg, "Found callback destructor for " ~ fullyQualifiedName!Z);
+            instantiator.setInstanceDestructor(callbackDestructor(CallbackDestructor.dg, CallbackDestructor.args));
         }
     }
 }
@@ -316,6 +345,9 @@ A dummy structure that is providing a simple field for isFieldConfiguratorPolicy
 **/
 struct ConfiguredFieldTester {
 
+    /**
+    Dummy field
+    **/
     int field;
 }
 
@@ -324,6 +356,9 @@ A dummy structure that is providing a simple method for isMethodConfiguratorPoli
 **/
 struct ConfiguredMethodTester {
 
+    /**
+    Dummy method
+    **/
     void method(int x) {}
 }
 
@@ -528,7 +563,7 @@ struct CallbackFieldConfiguratorPolicy {
 
         foreach (Callback; tuple(staticMap!(toValue, Callbacks))) {
             debug(annotationScanDebug) pragma(msg, "Calling callback on field ", member, " of ", Z, " to ", staticMap!(toType, Callback.args.expand));
-            instantiator.addPropertyConfigurer(callbackConfigurer(Callback.dg, Callback.args.expand));
+            instantiator.addPropertyConfigurer(callbackConfigurer!Z(Callback.dg, Callback.args.expand));
         }
     }
 }
@@ -617,7 +652,7 @@ struct CallbackMethodConfiguratorPolicy {
 
             foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
                 debug(annotationScanDebug) pragma(msg, "Calling callback on method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args.expand));
-                instantiator.addPropertyConfigurer(callbackConfigurer(Configurer.dg, Configurer.args.expand));
+                instantiator.addPropertyConfigurer(callbackConfigurer!Z(Configurer.dg, Configurer.args.expand));
             }
         }
     }
@@ -800,6 +835,7 @@ struct ComponentStoringPolicyImpl {
         );
 
         foreach (Qualifier; Qualifiers) {
+            debug(annotationScanDebug) pragma(msg, "Found custom identity for ", fullyQualifiedName!T, " ", Qualifier.id);
             identity = Qualifier.id;
         }
 
@@ -809,6 +845,7 @@ struct ComponentStoringPolicyImpl {
         );
 
         foreach (ContainedAnnotation; ContainedAnnotations) {
+            debug(annotationScanDebug) pragma(msg, "Found custom storage to be used to store component ", fullyQualifiedName!T, " ", ContainedAnnotation.id);
             storage = locator.locate!(Storage!(Factory!Object, string))(ContainedAnnotation.id);
         }
 
@@ -964,7 +1001,7 @@ struct ModuleContainerAdder(ContainerAdderPolicy) {
 /**
 ContainerAdder that will scan a type for it's methods, and use them to create component factories out of their return type
 **/
-struct FactoryMethodContainerAdder(TypeTransformer, ComponentStoringPolicy = ComponentStoringPolicyImpl)
+struct FactoryMethodContainerAdder(ComponentStoringPolicy = ComponentStoringPolicyImpl)
     if (isComponentStoringPolicy!ComponentStoringPolicy) {
 
     /**
@@ -1002,7 +1039,9 @@ struct FactoryMethodContainerAdder(TypeTransformer, ComponentStoringPolicy = Com
 
                     foreach (FactoryMethod; FactoryMethods) {
                         debug(annotationScanDebug) pragma(msg, "Found factory method ", member, " on component ", T);
-                        auto factory = TypeTransformer.transform!(ReturnType!overload)(locator);
+                        auto factory = new WrappingFactory!(GenericFactoryImpl!(ReturnType!overload))(
+                            new GenericFactoryImpl!(ReturnType!overload)(locator)
+                        );
 
                         if (factory !is null) {
                             static if (__traits(isStaticFunction, overload)) {
@@ -1040,7 +1079,7 @@ Params:
     locator = the locator used to find object dependencies
     id = identity by which object will be stored in storage
 **/
-// deprecated
+deprecated
 auto componentScan(T)(Storage!(ObjectFactory, string) storage, Locator!() locator, string id) {
     auto factory = componentScanImpl!T(locator);
 
@@ -1098,7 +1137,7 @@ Params:
     T = type of object to be registered
     storage = the storage where to register the object
 **/
-// deprecated
+deprecated
 auto componentScan(T)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
 
     alias qualifiers = Filter!(isQualifier, allUDAs!T);
@@ -1113,7 +1152,7 @@ auto componentScan(T)(Storage!(ObjectFactory, string) storage, Locator!() locato
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(T)(ConfigurableContainer storage) {
 
     return storage.componentScan!T(storage);
@@ -1130,7 +1169,7 @@ Params:
     T = type of object to be registered
     storage = the storage where to register the object
 **/
-// deprecated
+deprecated
 auto componentScan(I, T)(Storage!(ObjectFactory, string) storage, Locator!() locator)
     if (is(I == interface) && is(T == class) && is(T : I)) {
 
@@ -1149,7 +1188,7 @@ auto componentScan(I, T)(Storage!(ObjectFactory, string) storage, Locator!() loc
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(I, T)(ConfigurableContainer storage)
     if (is(I == interface) && is(T == class) && is(T : I)) {
 
@@ -1168,7 +1207,7 @@ Params:
     T = type of object to be registered
     storage = the storage where to register the object
 **/
-// deprecated
+deprecated
 auto componentScan(T, V...)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
     storage.componentScan!T(locator);
     return storage.componentScan!V(locator);
@@ -1177,7 +1216,7 @@ auto componentScan(T, V...)(Storage!(ObjectFactory, string) storage, Locator!() 
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(T, V...)(ConfigurableContainer storage) {
 
     return storage.componentScan!(T, V)(storage);
@@ -1186,7 +1225,7 @@ auto componentScan(T, V...)(ConfigurableContainer storage) {
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(I, T, V...)(Storage!(ObjectFactory, string) storage, Locator!() locator)
     if (is(I == interface) && is(T == class) && is(T : I)) {
     storage.componentScan!(I, T)(locator);
@@ -1197,7 +1236,7 @@ auto componentScan(I, T, V...)(Storage!(ObjectFactory, string) storage, Locator!
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(I, T, V...)(ConfigurableContainer storage)
     if (is(I == interface) && is(T == class) && is(T : I)) {
 
@@ -1215,7 +1254,7 @@ Params:
     storage = the storage where to register the object
     locator = the locator used to fetch registered object's dependencies.
 **/
-// deprecated
+deprecated
 auto componentScan(alias Module)(Storage!(ObjectFactory, string) storage, Locator!() locator)
     if (startsWith(Module.stringof, "module ")) {
 
@@ -1260,7 +1299,7 @@ auto componentScan(alias Module)(Storage!(ObjectFactory, string) storage, Locato
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(alias M)(ConfigurableContainer storage)
     if (startsWith(M.stringof, "module")) {
 
@@ -1281,7 +1320,7 @@ Params:
     storage = the storage where to register the object
     locator = the locator used to fetch registered object's dependencies.
 **/
-// deprecated
+deprecated
 auto componentScan(alias M, V...)(Storage!(ObjectFactory, string) storage, Locator!() locator)
     if (startsWith(M.stringof, "module")) {
     storage.componentScan!M(locator);
@@ -1291,7 +1330,7 @@ auto componentScan(alias M, V...)(Storage!(ObjectFactory, string) storage, Locat
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(alias M, V...)(ConfigurableContainer storage)
     if (startsWith(M.stringof, "module")) {
 
@@ -1310,7 +1349,7 @@ Params:
     locator = locator used to find dependencies for object
     id = identity by which object will be stored in storage
 **/
-// deprecated
+deprecated
 auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator, string id)
     if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -1341,7 +1380,7 @@ auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator, stri
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(T, R : Locator!())(R locator, string id)
     if (!is(R : Storage!(ObjectFactory, string))) {
     return locator.componentScan!T(locator, id);
@@ -1350,7 +1389,7 @@ auto componentScan(T, R : Locator!())(R locator, string id)
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator)
     if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -1369,7 +1408,7 @@ auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator)
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(T, R : Locator!())(R locator)
     if (!is(R : Storage!(ObjectFactory, string))) {
     return locator.componentScan!T(locator);
@@ -1384,7 +1423,7 @@ template componentScan(T, V...)
     /**
     ditto
     **/
-    // deprecated
+    deprecated
 auto componentScan(R : Locator!())(R storageLocator, Locator!() locator)
         if (!is(R : Storage!(ObjectFactory, string))) {
         .componentScan!T(storageLocator, locator);
@@ -1395,7 +1434,7 @@ auto componentScan(R : Locator!())(R storageLocator, Locator!() locator)
     /**
     ditto
     **/
-    // deprecated
+    deprecated
 auto componentScan(R : Locator!())(R locator)
         if (!is(R : Storage!(ObjectFactory, string))) {
         .componentScan!T(locator, locator);
@@ -1416,7 +1455,7 @@ Params:
     storageLocator = locator used to find storage for object
     locator = locator used to find dependencies for object
 **/
-// deprecated
+deprecated
 auto componentScan(I, T, R : Locator!())(R storageLocator, Locator!() locator)
     if (is (I == interface) && is (T == class) && is (T : I) && !is(R : Storage!(ObjectFactory, string))) {
     alias qualifiers = Filter!(
@@ -1434,7 +1473,7 @@ auto componentScan(I, T, R : Locator!())(R storageLocator, Locator!() locator)
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(I, T, R : Locator!())(R locator)
     if (is (I == interface) && is (T == class) && is (T : I) && !is(R : Storage!(ObjectFactory, string))) {
 
@@ -1450,7 +1489,7 @@ template componentScan(I, T, V...)
     /**
     ditto
     **/
-    // deprecated
+    deprecated
 auto componentScan(R : Locator!())(R storageLocator, Locator!() locator)
         if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -1462,7 +1501,7 @@ auto componentScan(R : Locator!())(R storageLocator, Locator!() locator)
     /**
     ditto
     **/
-    // deprecated
+    deprecated
 auto componentScan(R : Locator!())(R locator)
         if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -1483,7 +1522,7 @@ Params:
     storageLocator = locator used to find storage for objects
     locator = locator used to find object dependencies
 **/
-// deprecated
+deprecated
 auto componentScan(alias M, R : Locator!())(R storageLocator, Locator!() locator)
     if (M.stringof.startsWith("module ") && !is(R : Storage!(ObjectFactory, string)))  {
 
@@ -1497,7 +1536,7 @@ auto componentScan(alias M, R : Locator!())(R storageLocator, Locator!() locator
 /**
 ditto
 **/
-// deprecated
+deprecated
 auto componentScan(alias M, R : Locator!())(R locator)
     if (M.stringof.startsWith("module ") && !is(R : Storage!(ObjectFactory, string)))  {
 
@@ -1515,7 +1554,7 @@ template componentScan(alias M, V...)
     /**
     ditto
     **/
-    // deprecated
+    deprecated
 auto componentScan(R : Locator!())(R locatorStorage, Locator!() locator)
         if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -1526,7 +1565,7 @@ auto componentScan(R : Locator!())(R locatorStorage, Locator!() locator)
     /**
     ditto
     **/
-    // deprecated
+    deprecated
 auto componentScan(R : Locator!())(R locator)
         if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -1598,7 +1637,7 @@ alias ModuleContainerAdderImpl(TransformerPolicy = ObjectFactoryTransformerImpl)
         ChainedContainerAdder!(
             TypeContainerAdder!TransformerPolicy,
             InnerTypeContainerAdder!(TypeContainerAdder!TransformerPolicy),
-            FactoryMethodContainerAdder!TransformerPolicy,
+            FactoryMethodContainerAdder!(),
         )
     );
 
@@ -1608,7 +1647,7 @@ Customizable implementation of container adder, with built in functionality
 alias ContainerAdderImpl(TransformerPolicy = ObjectFactoryTransformerImpl) = ChainedContainerAdder!(
         TypeContainerAdder!TransformerPolicy,
         InnerTypeContainerAdder!(TypeContainerAdder!TransformerPolicy),
-        FactoryMethodContainerAdder!TransformerPolicy,
+        FactoryMethodContainerAdder!(),
         ModuleContainerAdderImpl!TransformerPolicy
     );
 
@@ -1630,7 +1669,7 @@ mixin template Scanner(ContainerAdderPolicy) {
         locator = locator of components used to by component factories
     **/
     void scan(alias T)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
-        debug(annotationScanDebug) pragma(msg, "Scanning ", T, " for possible components");
+        debug(annotationScanDebug) pragma(msg, "Scanning ", fullyQualifiedName!T, " for possible components");
 
         ContainerAdderPolicy.scan!T(locator, storage);
     }
@@ -1672,9 +1711,14 @@ mixin template Scanner(ContainerAdderPolicy) {
     Scan symbol T for possible components using ContainerAdderPolicy
 
     Params:
-        St = interface by which to search storage in locator, that will be used to store components
-        locator = locator of components used to by component factories
+        container = container where to store and from which to locate dependencies for components
     **/
+    void scan(alias T)(ConfigurableContainer container) {
+
+        scan!T(container, container);
+    }
+
+
     void scan(alias T, St : Storage!(ObjectFactory, string) = Storage!(ObjectFactory, string))(Locator!() locator) {
 
         scan!T(locator.locate!St, locator);
@@ -1711,7 +1755,7 @@ Default implementation of $(D_INLINECODE scan) family of functions featuring all
 **/
 mixin Scanner!(ContainerAdderImpl!());
 
-// deprecated
+deprecated
 auto componentScanImpl(T)(Locator!() locator) {
 
     return TypeTransformerImpl.transform!T(locator);

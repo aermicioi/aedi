@@ -307,43 +307,6 @@ Params:
 auto parent(Z : InstanceFactoryAware!T, T, X : Factory!W, W : T)(Z factory, X delegated) {
     return factory.setInstanceFactory(new DelegatingInstanceFactory!(T, W)(delegated));
 }
-
-/**
-Move constructed component from one container to another one.
-
-Move constructed component from one container to another one.
-Description
-
-Params:
-	factory = factory for constructed component
-	storage = new location for factory
-
-Returns:
-	factory
-**/
-auto container(Z : ConfigurationContextFactory!T, T)(Z factory, Storage!(ObjectFactory, string) storage) {
-    if (factory.storage !is null) {
-        factory.storage.remove(factory.identity);
-    }
-
-    factory.storage = storage;
-    factory.storage.set(factory.wrapper, factory.identity);
-
-    return factory;
-}
-
-/**
-ditto
-**/
-auto container(Z : ConfigurationContextFactory!T, T)(Z factory, string storageId) {
-    import std.algorithm;
-
-    auto storage = factory.locator.locate!(Storage!(ObjectFactory, string))(storageId);
-
-    factory.storageIdentity = storageId;
-    return factory.container(storage);
-}
-
 /**
 Tag constructed component with some information.
 
@@ -387,8 +350,8 @@ Returns:
 	factory
 **/
 auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) {
-    import aermicioi.aedi.factory.proxy_factory;
-    import aermicioi.aedi.container.proxy_container;
+    import aermicioi.aedi.factory.proxy_factory : ProxyFactory, ProxyObjectFactory;
+    import aermicioi.aedi.container.proxy_container : ProxyContainer;
 
     auto proxyAware = cast(ProxyContainer) factory.storage;
     if (proxyAware !is null) {
@@ -403,9 +366,20 @@ auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) {
     return factory;
 }
 
-auto destruct(Z : InstanceDestructorAware!T, T, Dg : void delegate(ref T, Args), Args...)(
+/**
+Use delegate T for destruction of component.
+
+Params:
+    factory = component factory which will use delegate to destroy component
+    dg = destruction delegate
+    args = optional arguments to delegate
+
+Returns:
+    factory
+**/
+auto destructor(Z : InstanceDestructorAware!T, T, Args...)(
     Z factory,
-    Dg dg,
+    void delegate(IAllocator, ref T, Args) dg,
     Args args
 ) {
     factory.setInstanceDestructor(callbackInstanceDestructor!T(dg, args));
@@ -413,25 +387,57 @@ auto destruct(Z : InstanceDestructorAware!T, T, Dg : void delegate(ref T, Args),
     return factory;
 }
 
-auto destruct(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
+/**
+Use method of destructor to destroy component.
+
+Use method of destructor to destroy component. By convention it is assumed that first argument is destroyed compnent followed by
+optional arguments.
+
+Params:
+    method = destructor's method used to destroy component
+    factory = component factory
+    destructor = actual destructor that will destroy object
+    args = arguments passed to destructor
+Returns:
+    factory
+**/
+auto destructor(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
     Z factory,
     X destructor,
     Args args
 ) {
-    factory.setInstanceDestructor(factoryMethodInstanceDestructor!(X, method, T, Args)(destructor, args));
+    factory.setInstanceDestructor(factoryMethodInstanceDestructor!(T, method, X, Args)(destructor, args));
+
+    return factory;
 }
 
-auto destruct(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
+/**
+ditto
+**/
+auto destructor(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
     Z factory,
     Args args
 ) {
-    factory.setInstanceDestructor(factoryMethodInstanceDestructor!(X, method, T, Args)(args));
+    factory.setInstanceDestructor(factoryMethodInstanceDestructor!(T, method, X, Args)(args));
+
+    return factory;
 }
 
-auto defferedConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory) {
-    return factory.defferredConfiguration(fullyQualifiedName!DefferredExecutioner);
-}
+/**
+Configure factory to defer configuration for later time using deffered executioner stored in locator by defferedExecutionerIdentity or
+by DefferedExecutioner interface.
 
+Configure factory to defer configuration for later time using deffered executioner stored in locator by defferedExecutionerIdentity.
+Factory has to implement DefferredExecutionerAware interface in order for it to be configured with deffered executioner, otherwise
+the factory will be ignored.
+
+Params:
+    factory = factory that will defer configuration.
+    defferedExecutionerIdentity = identity of executioner that will execute deffered actions.
+
+Returns:
+    factory
+**/
 auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) {
     auto defferedExecutioinerAware = cast(DefferredExecutionerAware) factory.decorated;
     if ((defferedExecutioinerAware !is null) && (factory.locator.has(defferedExecutionerIdentity))) {
@@ -442,10 +448,28 @@ auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, str
     return factory;
 }
 
-auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory) {
+/**
+ditto
+**/
+auto defferedConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory) {
     return factory.defferredConfiguration(fullyQualifiedName!DefferredExecutioner);
 }
 
+/**
+Configure factory to defer construction for later time using deffered executioner stored in locator by defferedExecutionerIdentity or
+by DefferedExecutioner interface.
+
+Configure factory to defer construction for later time using deffered executioner stored in locator by defferedExecutionerIdentity or
+by DefferedExecutioner interface. Any factory will be wrapped in DefferedProxyWrapper factory that will supply proxy component instead of
+original and defer construction of component, in case when component is possible to construct.
+
+Params:
+    factory = factory that will defer construction.
+    defferedExecutionerIdentity = identity of executioner that will execute deffered actions.
+
+Returns:
+    factory
+**/
 auto defferredConstruction(Z : ConfigurationContextFactory!T, T : Object)(Z factory, string defferedExecutionerIdentity) {
     if (factory.locator.has(defferedExecutionerIdentity)) {
 
@@ -457,6 +481,16 @@ auto defferredConstruction(Z : ConfigurationContextFactory!T, T : Object)(Z fact
     return factory;
 }
 
+/**
+ditto
+**/
+auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory) {
+    return factory.defferredConfiguration(fullyQualifiedName!DefferredExecutioner);
+}
+
+/**
+ditto
+**/
 auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) {
 
     return factory;

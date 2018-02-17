@@ -242,7 +242,7 @@ and exception chain contains a CircularReferenceException. Due to providing a pr
 usage of this factory wrapper should be considered in cases when performance is not of first priority.
 **/
 class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecorator!T, DefferredExecutionerAware {
-    import aermicioi.aedi.exception;
+    import aermicioi.aedi.exception : AediException, CircularReferenceException;
     import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin, theAllocator;
 
     mixin MutableDecoratorMixin!T;
@@ -379,6 +379,8 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
                                 return proxy;
                             }
                         }
+
+                        current = current.next;
                     }
                 }
 
@@ -445,7 +447,7 @@ string __how(C, alias fun)() {
 }
 
 string __method(C, alias fun)() {
-    string stmt = null;
+    string stmt;
     static if (!is(ReturnType!fun == void)) {
 
         stmt ~= q{return };

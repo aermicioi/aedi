@@ -111,7 +111,7 @@ class PrototypeContainer : ConfigurableContainer {
 
                 Object obj = this.factories.get(key).factory();
 
-                Object[] proxies = null;
+                Object[] proxies;
 
                 if (this.proxies.has(key)) {
                     proxies = this.proxies.get(key);
@@ -154,7 +154,7 @@ class PrototypeContainer : ConfigurableContainer {
         by it.
         **/
         PrototypeContainer terminate() {
-            import std.algorithm;
+            import std.algorithm : each;
 
             foreach (pair; this.proxies.contents.byKeyValue) {
                 pair.value.each!((proxy) => this.factories.get(pair.key).destruct(proxy));
@@ -236,7 +236,7 @@ class PrototypeContainer : ConfigurableContainer {
         	InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
         **/
         InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
-            import std.algorithm;
+            import std.algorithm : map;
 
             return this.factories.contents.byKeyValue.map!(
                 a => tuple(a.value, a.key)

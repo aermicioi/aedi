@@ -32,7 +32,9 @@ module aermicioi.aedi.storage.allocator_aware;
 public import std.experimental.allocator : IAllocator, make, dispose, theAllocator;
 import aermicioi.aedi.storage.decorator : MutableDecorator, Decorator;
 
-
+/**
+Interface for components that are aware of a memory allocator and are using it for some purpose, such as allocating storage for other components, or data.
+**/
 interface AllocatorAware(AllocatorType = IAllocator) {
 
     public {
@@ -52,10 +54,16 @@ interface AllocatorAware(AllocatorType = IAllocator) {
     }
 }
 
+/**
+Convienience mixin that implmenets allocator aware interface by delegating it to decorated AllocatorAware component.
+**/
 mixin template AllocatorAwareMixin(T : AllocatorAware!Z, Z) {
     mixin AllocatorAwareMixin!Z;
 }
 
+/**
+ditto
+**/
 mixin template AllocatorAwareMixin(Z) {
     import std.experimental.allocator : IAllocator, make, theAllocator;
     private {

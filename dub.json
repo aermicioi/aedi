@@ -3,7 +3,17 @@
 	"description" : "A dependency injection container",
 	"authors" : [ "Alexandru Ermicioi" ],
 	"license" : "BSL-1.0",
-	"targetType" : "sourceLibrary",
-	"dependencies" : {
-	}
+	"configurations": [
+		{
+			"name": "library",
+			"targetType": "sourceLibrary"
+		},
+		{
+			"name": "unittest",
+			"targetType": "library",
+			"debugVersions": [
+				"annotationScanDebug"
+			]
+		}
+	]
 }

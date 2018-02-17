@@ -76,6 +76,9 @@ interface Factory(T) : LocatorAware!(), AllocatorAware!() {
 
 alias ObjectFactory = Factory!Object;
 
+/**
+A mixin that implements a destruct delegating mechanism to decorated factory
+**/
 mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
 
     /**
@@ -90,6 +93,9 @@ mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
     }
 }
 
+/**
+A mixin that implements a factory delegating mechanism to decorated factory
+**/
 mixin template FactoryDecoratorMixin(T : Factory!Z, Z) {
 
     /**

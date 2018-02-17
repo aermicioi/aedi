@@ -113,20 +113,19 @@ $(UL
     $(LI $(D_INLINECODE @autowired ) (on constructors) - annotates component with it's construction dependencies automatically )
     $(LI $(D_INLINECODE @callback ) (not on constructors) - annotates component with a custom function used to configure component )
     $(LI $(D_INLINECODE @callback ) (on constructors) - annotates component with a custom function used to create component )
-    $(LI $(D_INLINECODE @factoryMethod) (anywhere) - annotates component with information about factory used to construct it )
     $(LI $(D_INLINECODE @contained) (on component) - annotates component with information about container that manages it in a composite/joint container)
  )
 
 Though annotations provide information about a component for framework, it does not
 automatically register them into container. To add annotated components to a container
-use $(D_INLINECODE componentScan ) family of functions. Example below shows how it is
+use $(D_INLINECODE scan ) family of functions. Example below shows how it is
 possible to register an entire module using just one line of code:
 
 -------------------
-container.componentScan!(app); // load all annotated components from module "app"
+container.scan!(app); // load all annotated components from module "app"
 -------------------
 
-Other forms of componentScan exists. Check api documentation to see alternatives of module
+Other forms of scan exists. Check api documentation to see alternatives of module
 based component registration if needed.
 
 The result of running example, will yield into following output:
@@ -444,7 +443,7 @@ class Car {
             }
 
             @callback(
-                function (Locator!() locator, ref Car configured) {
+                function (Locator!() locator, Car configured) {
                     configured.frontRight = locator.locate!Tire;
                 }
             ) // Use a callback to configure the property, or entire object. Can be attached anywhere on component
@@ -496,14 +495,32 @@ class Car {
     }
 }
 
+class ManufacturedCar : Car {
+        /**
+        Constructor of car.
+
+        Constructs a car with a set of sizes. A car cannot of course have
+        undefined sizes, so we should provide it during construction.
+
+        Params:
+            size = size of a car.
+        **/
+        @constructor(lref!Size, lref!Engine) // Construct this component using arguments passed to constructor annotation
+        this(Size size, Engine engine) {
+            super(size, engine);
+        }
+}
+
 /**
 A manufacturer of cars.
 **/
+@component
 class CarManufacturer {
 
     public {
-        Car manufacture(Size size) {
-            return new Car(size, new DieselEngine()); // Manufacture a car.
+        @component
+        ManufacturedCar manufacture(Size size) {
+            return new ManufacturedCar(size, new DieselEngine()); // Manufacture a car.
         }
     }
 }
@@ -521,26 +538,27 @@ void drive(Car car, string name) {
 
 void main() {
     auto container = aggregate( // Create a joint container hosting other two containers
-        singleton(), "singleton", // Create singleton container, and store it in joint container by "singleton" identity
+        singleton(), name!(Storage!(ObjectFactory, string)), // Create singleton container, and store it in joint container by "singleton" identity
+        singleton(), "singleton",
         prototype(), "prototype", // Create prototype container, and store it in joint container by "prototype" identity
         values(), "parameters"  // Create value container, and store it in joint container by "prototype" identity
     );
     scope(exit) container.terminate();
 
-    container.componentScan!(app); // load all annotated components from module "app"
+    container.scan!(app); // load all annotated components from module "app"
 
-    with (container.configure("singleton")) {
+    with (container.configure("singleton")) { // add components that have custom identity
 
         register(Color(0, 255, 0), "color.green");
         register("divine tire", "tire.vendor");
     }
 
-    with (container.locate!ValueContainer("parameters").configure) {
+    with (container.locate!ValueContainer("parameters").configure) { // add instantiated components
 
-        values.register(Size(200, 150, 300), "size.smarty");
+        register(Size(200, 150, 300), "size.smarty");
     }
 
-    container.instantiate(); // Boot container (or prepare managed code/data).
+    container.instantiate(); // Boot containers.
 
-    container.locate!Car("custom.identity").drive("Electric car");
+    container.locate!Car("custom.identity").drive("Electric car"); // drive the car
 }

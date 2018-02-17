@@ -244,7 +244,7 @@ class SingletonContainer : ConfigurableContainer {
         	InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
         **/
         InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
-            import std.algorithm;
+            import std.algorithm : map;
 
             return this.factories.contents.byKeyValue.map!(
                 a => tuple(a.value, a.key)

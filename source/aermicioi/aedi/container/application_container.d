@@ -55,9 +55,19 @@ class ApplicationContainer : AggregateContainer {
 		 * Default constructor for ApplicationContainer
 		**/
         this() {
-            this.set(new SingletonContainer, "singleton");
-            this.set(new PrototypeContainer, "prototype");
-            this.set(new ValueContainer, "parameters");
+			import std.traits : fullyQualifiedName;
+			import aermicioi.aedi.factory.factory : ObjectFactory;
+			auto singleton = new SingletonContainer;
+			auto prototype = new PrototypeContainer;
+			auto parameters = new ValueContainer;
+
+            this.set(singleton, "singleton");
+			this.set(singleton, fullyQualifiedName!(Storage!(ObjectFactory, string)));
+			this.set(singleton, fullyQualifiedName!SingletonContainer);
+            this.set(prototype, "prototype");
+			this.set(prototype, fullyQualifiedName!PrototypeContainer);
+            this.set(parameters, "parameters");
+			this.set(parameters, fullyQualifiedName!ValueContainer);
         }
     }
 }

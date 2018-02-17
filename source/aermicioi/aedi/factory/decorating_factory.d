@@ -67,8 +67,13 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
 				Returns:
 					typeof(this)
 			**/
-        	DecoratableGenericFactory!T locator(Locator!() locator) @safe nothrow {
+        	DecoratableGenericFactory!T locator(Locator!() locator) {
         		this.locator_ = locator;
+
+				if (this.decorated !is null) {
+
+					this.decorated.locator = locator;
+				}
 
         		return this;
         	}
@@ -517,7 +522,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
             try {
                 return this.decorated.factory;
             } catch (Exception e) {
-                import std.conv;
+                import std.conv : to;
                 throw new AediException(
                     "An error occured during instantiation of component registered in file: " ~
                     this.file ~
@@ -542,7 +547,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
 
 				this.decorated.destruct(component);
 			} catch (Exception e) {
-				import std.conv;
+				import std.conv : to;
 
 				throw new AediException(
                     "An error occured during destruction of component registered in file: " ~

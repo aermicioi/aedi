@@ -15,7 +15,7 @@ import aermicioi.util.traits;
 
 /**
 Decorating container that executes deffered tasks after a request is served from exterior.
-This decorated will inherit following interfaces only and only if the 
+This decorated will inherit following interfaces only and only if the
 T also implements them:
   $(OL
       $(LI Storage!(ObjectFactory, string))
@@ -92,22 +92,22 @@ template DefferedContainer(T)
             {
                 /**
                 Set executioner
-                
-                Params: 
+
+                Params:
                     executioner = the executioner that stores and executed deffered actions.
-                
+
                 Returns:
                     typeof(this)
                 **/
                 typeof(this) executioner(DefferredExecutioner executioner) @safe nothrow pure {
                     this.executioner_ = executioner;
-                
+
                     return this;
                 }
-                
+
                 /**
                 Get executioner
-                
+
                 Returns:
                     DefferredExecutioner
                 **/
@@ -117,22 +117,22 @@ template DefferedContainer(T)
 
                 /**
                 Set identity
-                
-                Params: 
+
+                Params:
                     identity = identity of executioner identified in container.
-                
+
                 Returns:
                     typeof(this)
                 **/
                 typeof(this) identity(string identity) @safe nothrow pure {
                     this.identity_ = identity;
-                
+
                     return this;
                 }
-                
+
                 /**
                 Get identity
-                
+
                 Returns:
                     string
                 **/
@@ -149,7 +149,7 @@ template DefferedContainer(T)
             }
 
             static if (is(T : AliasAware!(X), X)) {
-                
+
                 mixin AliasAwareMixin!(typeof(this));
             }
 
@@ -160,7 +160,7 @@ template DefferedContainer(T)
 
             /**
             Get object created by a factory identified by key
-           
+
             Params:
                 key = identity of factory
             Returns:
@@ -185,8 +185,8 @@ template DefferedContainer(T)
 
             /**
             Check if an object factory for it exists in container.
-           
-            Params: 
+
+            Params:
                 key = identity of factory
             Returns:
                 bool

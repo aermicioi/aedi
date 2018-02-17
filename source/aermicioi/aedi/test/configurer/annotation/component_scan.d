@@ -476,7 +476,7 @@ unittest {
     storage.set(new MethodFactoryComponent, fullyQualifiedName!MethodFactoryComponent);
     storage.set(new WrapperImpl!int(10), fullyQualifiedName!int);
 
-    FactoryMethodContainerAdder!ObjectFactoryTransformerImpl.scan!MethodFactoryComponent(storage, container);
+    FactoryMethodContainerAdder!().scan!MethodFactoryComponent(storage, container);
     assert(container.locate!FactoryMethodCreatedMock.property == 10);
     assert(container.locate!StaticFactoryMethodCreatedMock.property == int.max);
 }

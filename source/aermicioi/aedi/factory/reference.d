@@ -261,6 +261,29 @@ auto anonymous(ObjectFactory factory) {
     return anonymous;
 }
 
+/**
+Reference that defaults to alternate component in case that original one is not fetchable from container
+
+Params:
+    original = original reference to a component that is attempted to be fetched.
+    alternate = reference to alternate component that is meant to substitute original component in case of some failure.
+Throws:
+
+Returns:
+    AlternateReference
+**/
+AlternateReference alternate(RuntimeReference original, RuntimeReference alternate) {
+    AlternateReference reference = new AlternateReference();
+
+    reference.original = original;
+    reference.alternative = alternate;
+
+    return reference;
+}
+
+/**
+ditto
+**/
 class AlternateReference : RuntimeReference {
     private {
         RuntimeReference original_;
@@ -340,15 +363,6 @@ class AlternateReference : RuntimeReference {
             }
         }
     }
-}
-
-AlternateReference alternate(RuntimeReference original, RuntimeReference alternate) {
-    AlternateReference reference = new AlternateReference();
-
-    reference.original = original;
-    reference.alternative = alternate;
-
-    return reference;
 }
 
 /**

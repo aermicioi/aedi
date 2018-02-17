@@ -87,6 +87,5 @@ public import aermicioi.aedi.storage.decorator;
 public import aermicioi.aedi.storage.locator;
 public import aermicioi.aedi.storage.locator_aware;
 public import aermicioi.aedi.storage.object_storage;
-public import aermicioi.aedi.storage.parent_aware;
 public import aermicioi.aedi.storage.storage;
 public import aermicioi.aedi.storage.wrapper;

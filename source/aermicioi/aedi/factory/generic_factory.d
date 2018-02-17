@@ -279,7 +279,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
                 locator = the locator used by constructor to fetch dependencies of the created object
         **/
         this(Locator!() locator) {
-            import std.experimental.allocator;
+            import std.experimental.allocator : theAllocator;
 
             static if (hasDefaultCtor!T) {
                 this.setInstanceFactory(new DefaultInstanceFactory!T);
@@ -1174,12 +1174,14 @@ Params:
     T = the component
     Args = type tuple of arguments used by delegate for customization.
 **/
-class CallbackConfigurer(T, Dg, Args...) : PropertyConfigurer!T
+class CallbackConfigurer(T, X, Dg, Args...) : PropertyConfigurer!T
     if (
-        is(Dg == void delegate (Locator!(), T, Args)) ||
-        is(Dg == void function (Locator!(), T, Args)) ||
-        is(Dg == void delegate (Locator!(), ref T, Args)) ||
-        is(Dg == void function (Locator!(), ref T, Args))
+        is(T : X) && (
+            is(Dg : void delegate (Locator!(), X, Args)) ||
+            is(Dg : void function (Locator!(), X, Args)) ||
+            is(Dg : void delegate (Locator!(), ref X, Args)) ||
+            is(Dg : void function (Locator!(), ref X, Args))
+        )
     ) {
 
     mixin ParameterHolder!Args;
@@ -1223,32 +1225,32 @@ class CallbackConfigurer(T, Dg, Args...) : PropertyConfigurer!T
 /**
 ditto
 **/
-auto callbackConfigurer(T, Args...)(void delegate(Locator!(), T, Args) dg, auto ref Args args) {
-    auto constr = new CallbackConfigurer!(T, void delegate(Locator!(), T, Args), Args)(dg, args);
+auto callbackConfigurer(T, X, Args...)(void delegate(Locator!(), X, Args) dg, auto ref Args args) if (is(T : X)) {
+    auto constr = new CallbackConfigurer!(T, X, void delegate(Locator!(), X, Args), Args)(dg, args);
     return constr;
 }
 
 /**
 ditto
 **/
-auto callbackConfigurer(T, Args...)(void function(Locator!(), T, Args) dg, auto ref Args args) {
-    auto constr = new CallbackConfigurer!(T, void function(Locator!(), T, Args), Args)(dg, args);
+auto callbackConfigurer(T, X, Args...)(void function(Locator!(), X, Args) dg, auto ref Args args) if (is(T : X))  {
+    auto constr = new CallbackConfigurer!(T, X, void function(Locator!(), X, Args), Args)(dg, args);
     return constr;
 }
 
 /**
 ditto
 **/
-auto callbackConfigurer(T, Args...)(void delegate(Locator!(), ref T, Args) dg, auto ref Args args) {
-    auto constr = new CallbackConfigurer!(T, void delegate(Locator!(), ref T, Args), Args)(dg, args);
+auto callbackConfigurer(T, X, Args...)(void delegate(Locator!(), ref X, Args) dg, auto ref Args args) if (is(T : X))  {
+    auto constr = new CallbackConfigurer!(T, X, void delegate(Locator!(), ref X, Args), Args)(dg, args);
     return constr;
 }
 
 /**
 ditto
 **/
-auto callbackConfigurer(T, Args...)(void function(Locator!(), ref T, Args) dg, auto ref Args args) {
-    auto constr = new CallbackConfigurer!(T, void function(Locator!(), ref T, Args), Args)(dg, args);
+auto callbackConfigurer(T, X, Args...)(void function(Locator!(), ref X, Args) dg, auto ref Args args) if (is(T : X))  {
+    auto constr = new CallbackConfigurer!(T, X, void function(Locator!(), ref X, Args), Args)(dg, args);
     return constr;
 }
 

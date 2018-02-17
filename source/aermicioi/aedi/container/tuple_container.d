@@ -45,8 +45,14 @@ It delegates the task of serving an object to contained containers.
 class TupleContainer(T...) : Container {
 
     public {
+        /**
+        List of containers that Tuple container uses.
+        **/
         T containers;
 
+        /**
+        Aliasing to containers for unboxing and index based access.
+        **/
         alias containers this;
 
         /**

@@ -15,5 +15,6 @@ out/
 __test__library__
 *.lst
 aedi-test-library
+aedi-test-unittest
 .vscode/
 ./aedi

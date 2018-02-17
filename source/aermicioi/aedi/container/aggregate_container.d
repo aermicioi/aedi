@@ -199,7 +199,7 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
         	InputRange!(Tuple!(Locator!(Object, string), string)) a range of container => identity
         **/
         InputRange!(Tuple!(Locator!(Object, string), string)) getLocators() {
-            import std.algorithm;
+            import std.algorithm : map;
 
             return this.containers.contents.byKeyValue.map!(
                 a => tuple(cast(Locator!()) a.value, a.key)

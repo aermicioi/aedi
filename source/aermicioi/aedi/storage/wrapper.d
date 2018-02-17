@@ -32,18 +32,44 @@ module aermicioi.aedi.storage.wrapper;
 import std.traits;
 import std.meta : staticMap;
 
+/**
+Interface for components that wrap a component of type T. Provides boxing and automatic unboxing of wrapped values.
+**/
 interface Wrapper(T) {
     public {
+
+        /**
+        Get wrapped value out of wrapper.
+
+        Returns:
+            T the wrapped value
+        **/
         @property ref T value();
 
+        /**
+        Alias wrapper to T for automatic unboxing of values.
+        **/
         alias value this;
     }
 }
 
+/**
+Interface for components that denotes tha ability to be casted to a particular type T.
+**/
 interface Castable(T) {
     public {
+
+        /**
+        Get a representation of current component in type T.
+
+        Returns:
+            T component transformed into T component.
+        **/
         @property T casted();
 
+        /**
+        Alias casted type for automatic casting of component.
+        **/
         alias casted this;
     }
 }

@@ -38,7 +38,7 @@ public {
 
     enum bool isHashable(T) = isBasicType!(T) || hasMember!(T, "toHash") || is(T == string) || is(T == enum);
     enum bool isPublic(alias T) = __traits(getProtection, T) == "public";
-    enum bool isPublic(alias T, string member) = isPublic!(__traits(getMember, T, member));
+    enum bool isPublic(alias T, string member) = getProtection!(T, member) == "public";
     enum bool isMethod(alias T, string member) = isSomeFunction!(__traits(getMember, T, member));
     enum bool evaluateMember(alias pred, T, string member) = pred!(__traits(getMember, T, member));
     enum bool isPropertyGetter(alias func) = (variadicFunctionStyle!func == Variadic.no) && (arity!func == 0) && (functionAttributes!func & FunctionAttribute.property);

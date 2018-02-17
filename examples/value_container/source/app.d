@@ -438,7 +438,7 @@ void main() {
 
     with (container.locate!ValueContainer("parameters").configure) {
 
-        values.register(Size(200, 150, 300), "size.smarty");
+        register(Size(200, 150, 300), "size.smarty");
     }
 
     container.instantiate(); // Boot container (or prepare managed code/data).

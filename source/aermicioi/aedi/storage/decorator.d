@@ -96,6 +96,9 @@ Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) {
     return needle;
 }
 
+/**
+Mixin implementing MutableDecorator for a decorated element of T.
+**/
 mixin template MutableDecoratorMixin(T) {
 
 	private {

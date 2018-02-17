@@ -70,8 +70,8 @@ interface ConfigurableContainer : Container, Storage!(ObjectFactory, string), Al
 Provide an interface for accessing factories used by containers to instantiate component.
 **/
 interface FactoryLocator(T : Factory!Z, Z) {
-    import std.range.interfaces;
-    import std.typecons;
+    import std.range.interfaces : InputRange;
+    import std.typecons : Tuple;
 
     public {
 

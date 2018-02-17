@@ -1,4 +1,4 @@
-/**
+/++
 Aedi, a dependency injection framework.
 
 Aedi is a dependency injection framework. It does provide a set of containers that do
@@ -13,78 +13,142 @@ The process of configuring components using Aedi consists of following steps:
 
 $(UL
     $(LI Create a container )
-    $(LI Register an application component. Any data (struct, object, union, etc) is treated as application component. )
-    $(LI Write a wiring configuration )
+    $(LI Register an application component. )
+    $(LI Bind dependencies to it. )
     $(LI Repeat process for other components. )
-    $(LI Boot container )
+    $(LI Boot container, and use components from it )
+    $(LI Shutdown container )
 )
 
-Following code example shows the fastest way to create and use an IoC container.
+Following code example shows how can a IoC container be configured and used:
 
 -------------------
+module app;
+
 import aermicioi.aedi;
 import std.stdio;
 
-/++
+/**
 A struct that should be managed by container.
-++/
+**/
+@component
 struct Color {
+    @setter(cast(ubyte) 255)
     ubyte r;
+
+    @setter(cast(ubyte) 10)
     ubyte g;
+
+    @setter(cast(ubyte) 10)
     ubyte b;
 }
 
-/++
+/**
 Size of a car.
-++/
+**/
+@component // Register component using annotations
 struct Size {
 
+    @setter(200UL) // Set property to specific value
     ulong width;
+
+    @setter(150UL)
     ulong height;
+
+    @setter(500UL)
     ulong length;
 }
 
-/++
+/**
 A class representing a car.
-++/
+**/
+@component
 class Car {
 
+    private {
+        Color color_; // Car color
+        Size size_; // Car size
+    }
+
     public {
-        Color color; // Car color
-        Size size; // Car size
+
+        @constructor(lref!Size) // Construct component using Size component from IoC container.
+        this(Size size) {
+            this.size_ = size;
+        }
+
+        @property {
+
+            @autowired // Autowire property with a component from IoC container
+            Car color(Color color) @safe nothrow {
+            	this.color_ = color;
+
+            	return this;
+            }
+
+            inout(Color) color() @safe nothrow pure inout {
+                return this.color_;
+            }
+
+            inout(Size) size() @safe nothrow pure inout {
+                return this.size_;
+            }
+        }
+    }
+}
+
+class Mercedes : Car {
+    this(Size s) {
+        super(s);
+    }
+}
+
+class Volkswagen : Car {
+    this(Size s) {
+        super(s);
+    }
+}
+
+@component // Configuration component that creates components managed by container.
+class Manufacturer {
+
+    public {
+        @component // Add component to container that is constructed by Manufacturer.
+        Mercedes makeMercedes() {
+            return new Mercedes(Size(201, 150, 501));
+        }
     }
 }
 
 void print(Car car) {
-    "You bought a new car with following specs:".writeln;
-    writeln("Size:\t", car.size;
-    writeln("Color:\t", car.color);
+    writeln("You bought a new ", car.classinfo.name, " with following specs:");
+    writeln("Size:\t", car.size());
+    writeln("Color:\t", car.color());
 }
 
 void main() {
-    SingletonContainer container = singleton(); // 1. Create a container.
-    scope(exit) container.terminate(); // 6. Finish and cleanup container. Always call it at the end of application.
+    auto container = singleton(); // 1. Create container that will manage a color
+    scope(exit) container.terminate(); // 6. Shutdown the container
 
     with (container.configure) {
 
-        register!Car // 2. Register an application component.
-            .construct(lref!Size) // 3. Bind dependencies to it.
-            .set!"color"(lref!Color);
+        register!Volkswagen // 2. Register color into container.
+            .construct(Size(100, 200, 500))
+            .set!"color"("blue".lref); // 3. Bind blue color from container
 
-        register!Color // 4. Repeat process for other components.
+        register!Color("blue")
             .set!"r"(cast(ubyte) 0)
-            .set!"g"(cast(ubyte) 255)
-            .set!"b"(cast(ubyte) 0);
-
-        register!Size
-            .set!"width"(200UL)
-            .set!"height"(150UL)
-            .set!"length"(500UL);
+            .set!"g"(cast(ubyte) 0)
+            .set!"b"(cast(ubyte) 255);
     }
 
-    container.instantiate(); // 5. Boot container.
+    container.scan!app; // 4. Scan app module, and register all annotated components.
 
-    container.locate!Car.print; // 5. Start using registered components.
+    container.instantiate(); // 5. Start the IoC container.
+
+    container.locate!Car.print; // 5. Use component from IoC container.
+    container.locate!Mercedes.print;
+    container.locate!Volkswagen.print;
 }
 -------------------
 
@@ -115,7 +179,8 @@ License:
 
 Authors:
 	aermicioi
-**/
+++/
+
 module app;
 
 import aermicioi.aedi;
@@ -124,29 +189,122 @@ import std.stdio;
 /**
 A struct that should be managed by container.
 **/
+@component
 struct Color {
+    @setter(cast(ubyte) 255)
     ubyte r;
+
+    @setter(cast(ubyte) 10)
     ubyte g;
+
+    @setter(cast(ubyte) 10)
     ubyte b;
 }
 
-void print(Color color) {
-    writeln("Color is:\t", color);
+/**
+Size of a car.
+**/
+@component // Register component using annotations
+struct Size {
+
+    @setter(200UL) // Set property to specific value
+    ulong width;
+
+    @setter(150UL)
+    ulong height;
+
+    @setter(500UL)
+    ulong length;
+}
+
+/**
+A class representing a car.
+**/
+@component
+class Car {
+
+    private {
+        Color color_; // Car color
+        Size size_; // Car size
+    }
+
+    public {
+
+        @constructor(lref!Size) // Construct component using Size component from IoC container.
+        this(Size size) {
+            this.size_ = size;
+        }
+
+        @property {
+
+            @autowired // Autowire property with a component from IoC container
+            Car color(Color color) @safe nothrow {
+            	this.color_ = color;
+
+            	return this;
+            }
+
+            inout(Color) color() @safe nothrow pure inout {
+                return this.color_;
+            }
+
+            inout(Size) size() @safe nothrow pure inout {
+                return this.size_;
+            }
+        }
+    }
+}
+
+class Mercedes : Car {
+    this(Size s) {
+        super(s);
+    }
+}
+
+class Volkswagen : Car {
+    this(Size s) {
+        super(s);
+    }
+}
+
+@component // Configuration component that creates components managed by container.
+class Manufacturer {
+
+    public {
+        @component // Add component to container that is constructed by Manufacturer.
+        Mercedes makeMercedes() {
+            return new Mercedes(Size(201, 150, 501));
+        }
+    }
+}
+
+void print(Car car) {
+    writeln("You bought a new ", car.classinfo.name, " with following specs:");
+    writeln("Size:\t", car.size());
+    writeln("Color:\t", car.color());
 }
 
 void main() {
-    SingletonContainer container = singleton(); // Creating container that will manage a color
-    scope(exit) container.terminate(); // Destruction and deallocation of components managed by container.
+    auto container = singleton(); // 1. Create container that will manage a color
+    scope(exit) container.terminate(); // 6. Shutdown the container
 
     with (container.configure) {
 
-        register!Color // Register color into container.
-            .set!"r"(cast(ubyte) 250) // Set red color to 250
-            .set!"g"(cast(ubyte) 210) // Set green color to 210
-            .set!"b"(cast(ubyte) 255); // Set blue color to 255
+        register!Volkswagen // 2. Register color into container.
+            .construct(Size(100, 200, 500))
+            .set!"color"("blue".lref); // 3. Bind blue color from container
+
+        register!Color("blue")
+            .set!"r"(cast(ubyte) 0)
+            .set!"g"(cast(ubyte) 0)
+            .set!"b"(cast(ubyte) 255);
     }
 
-    container.instantiate(); // Boot container (or prepare managed code/data).
+    container.scan!app; // 4. Scan app module, and register all annotated components.
 
-    container.locate!Color.print; // Get color from container and print it.
+    container.instantiate(); // 5. Start the IoC container.
+
+    container.locate!Car.print; // 5. Use component from IoC container.
+    container.locate!Mercedes.print;
+    container.locate!Volkswagen.print;
 }

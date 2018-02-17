@@ -164,8 +164,8 @@ template GcRegisteringContainer(T)
 }
 
 private class GcRegisteringFactoryDecorator : Factory!Object {
-    import aermicioi.aedi.storage.locator_aware;
-    import aermicioi.aedi.storage.allocator_aware;
+    import aermicioi.aedi.storage.locator_aware : LocatorAwareMixin;
+    import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
 
     mixin LocatorAwareMixin!GcRegisteringFactoryDecorator;
     mixin AllocatorAwareMixin!GcRegisteringFactoryDecorator;
@@ -183,7 +183,7 @@ private class GcRegisteringFactoryDecorator : Factory!Object {
 			Object instantiated component.
 		**/
 		Object factory() {
-            import core.memory;
+            import core.memory : GC;
 
             Object object = this.decorated.factory();
             GC.addRange(cast(void*) object, this.type.initializer.length, object.classinfo);
@@ -198,7 +198,7 @@ private class GcRegisteringFactoryDecorator : Factory!Object {
             component = component that is to ve destroyed.
         **/
         void destruct(ref Object component) {
-            import core.memory;
+            import core.memory : GC;
             GC.removeRange(cast(void*) component);
 
             this.decorated.destruct(component);

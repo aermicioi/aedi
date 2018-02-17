@@ -1,6 +1,8 @@
 /**
 Provides an interface for registering components into containers.
 
+Note: methods from this module are deprecated see aermicioi.aedi.configurer.context module for new api.
+
 License:
 	Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -55,6 +57,7 @@ Params:
 Returns:
 	GenericFactory implementation for further configuration.
 **/
+deprecated
 auto register(Type)(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, string id) {
     auto fact = new GenericFactoryImpl!Type(locator);
     auto configurable = new ConfigurationContextFactory!Type();
@@ -72,6 +75,7 @@ auto register(Type)(Storage!(ObjectFactory, string) storage, Locator!(Object, st
 /**
 ditto
 **/
+deprecated
 auto register(Type)(ConfigurableContainer storage, string id) {
     return register!Type(storage, storage, id);
 }
@@ -87,6 +91,7 @@ Params:
 Returns:
 	GenericFactory implementation for further configuration.
 **/
+deprecated
 auto register(Type)(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator) {
     return storage.register!(Type)(locator, name!Type);
 }
@@ -94,6 +99,7 @@ auto register(Type)(Storage!(ObjectFactory, string) storage, Locator!(Object, st
 /**
 ditto
 **/
+deprecated
 auto register(Type)(ConfigurableContainer storage) {
     return register!Type(storage, storage);
 }
@@ -110,6 +116,7 @@ Params:
 Returns:
 	GenericFactory implementation for further configuration.
 **/
+deprecated
 auto register(Interface, Type)(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator)
 	if (is(Type : Interface) && isReferenceType!Type) {
 
@@ -119,6 +126,7 @@ auto register(Interface, Type)(Storage!(ObjectFactory, string) storage, Locator!
 /**
 ditto
 **/
+deprecated
 auto register(Interface, Type)(ConfigurableContainer storage) {
     return register!(Interface, Type)(storage, storage);
 }
@@ -139,9 +147,9 @@ Throws:
 Returns:
     storageLocator for further configuration
 **/
+deprecated
 auto register(Type, R : Locator!())(R storageLocator, Locator!() locator, string id, string storageId = "singleton")
     if (!is(R : Storage!(ObjectFactory, string))) {
-    import std.algorithm;
 
     return storageLocator
         .locate!(Storage!(ObjectFactory, string))(storageId)
@@ -151,6 +159,7 @@ auto register(Type, R : Locator!())(R storageLocator, Locator!() locator, string
 /**
 ditto
 **/
+deprecated
 auto registerInto(Type, R : Locator!())(R storageLocator, Locator!() locator, string storageId = "singleton")
     if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -160,6 +169,7 @@ auto registerInto(Type, R : Locator!())(R storageLocator, Locator!() locator, st
 /**
 ditto
 **/
+deprecated
 auto register(Type, R : Locator!())(R locator, string id, string storageId = "singleton")
     if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -169,6 +179,7 @@ auto register(Type, R : Locator!())(R locator, string id, string storageId = "si
 /**
 ditto
 **/
+deprecated
 auto registerInto(Type, R : Locator!())(R locator, string storageId = "singleton")
     if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -191,6 +202,7 @@ Throws:
 Returns:
     storageLocator for further configuration
 **/
+deprecated
 auto register(Interface, Type, R : Locator!())(R storageLocator, Locator!() locator, string storageId = "singleton")
     if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -200,6 +212,7 @@ auto register(Interface, Type, R : Locator!())(R storageLocator, Locator!() loca
 /**
 ditto
 **/
+deprecated
 auto register(Interface, Type, R : Locator!())(R locator, string storageId = "singleton")
     if (!is(R : Storage!(ObjectFactory, string))) {
 
@@ -221,6 +234,7 @@ Params:
 Returns:
     the storage were component was saved.
 **/
+deprecated
 auto register(Type)(Storage!(Object, string) storage, Type data, string id) {
     import aermicioi.aedi.storage.wrapper : WrapperImpl;
 
@@ -249,6 +263,7 @@ Params:
 Returns:
     the storage were component was saved.
 **/
+deprecated
 auto register(Type)(Storage!(Object, string) storage, Type data) {
     return storage.register!Type(data, name!Type);
 }
@@ -267,6 +282,7 @@ Params:
 Returns:
     the storage were component was saved.
 **/
+deprecated
 auto register(Interface, Type)(Storage!(Object, string) storage, Type data)
     if (is(Type : Interface) && !is(Type == Interface)) {
 
@@ -283,6 +299,7 @@ Params:
     id = the id by which component will be identified
     storageId = identity of storage in locator
 **/
+deprecated
 auto register(Type, R : Locator!())(R locator, Type data, string id, string storageId = "parameters")
     if (!is(R : Storage!(Object, string))) {
     import aermicioi.aedi.storage.wrapper : Wrapper;
@@ -297,6 +314,7 @@ auto register(Type, R : Locator!())(R locator, Type data, string id, string stor
 /**
 ditto
 **/
+deprecated
 auto registerInto(Type, R : Locator!())(R locator, Type data, string storageId = "parameters")
     if (!is(R : Storage!(Object, string))) {
 
@@ -306,6 +324,7 @@ auto registerInto(Type, R : Locator!())(R locator, Type data, string storageId =
 /**
 ditto
 **/
+deprecated
 auto register(Interface, Type, R : Locator!())(R storage, Type object, string storageId = "parameters")
     if (is(Type : Interface) && !is(R : Storage!(Object, string)) && !is(Type == Interface)) {
     return storage.register!Type(object, name!Interface, storageId);
