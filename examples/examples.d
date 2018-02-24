@@ -3,18 +3,18 @@ This package contains tutorials for most of functionality provided by aedi frame
 See source code as well for runnable examples.
 
 $(OL
-    $(LI $(LINK2 /examples/minimal.html, minimal))
-    $(LI $(LINK2 /examples/dependencies.html, dependencies))
-    $(LI $(LINK2 /examples/named_dependencies.html, named_dependencies))
-    $(LI $(LINK2 /examples/configuration_primitives.html, configuration_primitives))
-    $(LI $(LINK2 /examples/multiple_containers.html, multiple_containers))
-    $(LI $(LINK2 /examples/value_container.html, value_container))
-    $(LI $(LINK2 /examples/memory_management.html, memory_management))
-    $(LI $(LINK2 /examples/annotation_configuration.html, annotation_configuration))
-    $(LI $(LINK2 /examples/decorating_containers.html, decorating_containers))
-    $(LI $(LINK2 /examples/extending_containers.html, extending_containers))
-    $(LI $(LINK2 /examples/extending_factory.html, extending_factory))
-    $(LI $(LINK2 /examples/extending_generic_factory.html, extending_generic_factory))
+    $(LI $(LINK2 /aedi/examples/minimal.html, minimal))
+    $(LI $(LINK2 /aedi/examples/dependencies.html, dependencies))
+    $(LI $(LINK2 /aedi/examples/named_dependencies.html, named_dependencies))
+    $(LI $(LINK2 /aedi/examples/configuration_primitives.html, configuration_primitives))
+    $(LI $(LINK2 /aedi/examples/multiple_containers.html, multiple_containers))
+    $(LI $(LINK2 /aedi/examples/value_container.html, value_container))
+    $(LI $(LINK2 /aedi/examples/memory_management.html, memory_management))
+    $(LI $(LINK2 /aedi/examples/annotation_configuration.html, annotation_configuration))
+    $(LI $(LINK2 /aedi/examples/decorating_containers.html, decorating_containers))
+    $(LI $(LINK2 /aedi/examples/extending_containers.html, extending_containers))
+    $(LI $(LINK2 /aedi/examples/extending_factory.html, extending_factory))
+    $(LI $(LINK2 /aedi/examples/extending_generic_factory.html, extending_generic_factory))
 )
 License:
     Boost Software License - Version 1.0 - August 17th, 2003
