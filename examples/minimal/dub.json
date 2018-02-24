@@ -3,9 +3,18 @@
 	"description" : "Introduction example, to aedi library. The most simplistic usecase.",
 	"authors" : [ "Alexandru Ermicioi" ],
 	"license" : "BSL-1.0",
-	"targetType" : "executable",
 	"importPaths" : [
 		"./source"
+	],
+	"configurations": [
+		{
+			"name": "executable",
+			"targetType": "executable"
+		},
+		{
+			"name": "library",
+			"targetType": "sourceLibrary"
+		}
 	],
 	"dependencies" : {
 		"aedi" : {

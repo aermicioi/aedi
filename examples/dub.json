@@ -1,0 +1,48 @@
+{
+	"name": "examples",
+	"authors": [
+		"Alexandru Ermicioi"
+	],
+	"description": "Examples provided by aedi framework with tutorials",
+	"copyright": "Copyright © 2018, Alexandru Ermicioi",
+	"license": "BSL-1.0",
+	"sourceFiles": [
+		"examples.d"
+	],
+	"targetType": "executable",
+	"dflags": [
+		"-o-",
+		"-X",
+		"-Xfdocs.json"
+	],
+
+	"dependencies": {
+		"examples:annotation_configuration" : "*",
+		"examples:configuration_primitives" : "*",
+		"examples:decorating_containers" : "*",
+		"examples:dependencies" : "*",
+		"examples:extending_containers" : "*",
+		"examples:extending_factory" : "*",
+		"examples:extending_generic_factory" : "*",
+		"examples:memory_management" : "*",
+		"examples:minimal" : "*",
+		"examples:multiple_containers" : "*",
+		"examples:named_dependencies" : "*",
+		"examples:value_container" : "*"
+	},
+
+	"subPackages": [
+		"annotation_configuration",
+		"configuration_primitives",
+		"decorating_containers",
+		"dependencies",
+		"extending_containers",
+		"extending_factory",
+		"extending_generic_factory",
+		"memory_management",
+		"minimal",
+		"multiple_containers",
+		"named_dependencies",
+		"value_container"
+	]
+}
