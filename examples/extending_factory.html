@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>Module extending_factory</title>
+		<link rel="stylesheet" href="./css/style.min.css"/>
+		<script type="text/javascript" src="./js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="./symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "./";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">aermicioi
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi.html">aedi</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi/configurer.html">configurer</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi/configurer/annotation.html">annotation</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/configurer/annotation/annotation.html">annotation</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi/configurer/register.html">register</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/configurer/register/configuration_context_factory.html">configuration_context_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/configurer/register/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/configurer/register/context.html">context</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/configurer/register/factory_configurer.html">factory_configurer</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/configurer/register/register.html">register</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi/container.html">container</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/aliasing_container.html">aliasing_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/application_container.html">application_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/decorating_mixin.html">decorating_mixin</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/gc_registering_container.html">gc_registering_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/prototype_container.html">prototype_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/proxy_container.html">proxy_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/singleton_container.html">singleton_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/subscribable_container.html">subscribable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/switchable_container.html">switchable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/tuple_container.html">tuple_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/type_based_container.html">type_based_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/container/value_container.html">value_container</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi/exception.html">exception</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/circular_reference_exception.html">circular_reference_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/di_exception.html">di_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/instance_factory_exception.html">instance_factory_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/invalid_cast_exception.html">invalid_cast_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/in_progress_exception.html">in_progress_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/in_use_exception.html">in_use_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/not_found_exception.html">not_found_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/exception/property_configurer_exception.html">property_configurer_exception</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi/factory.html">factory</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/factory/decorating_factory.html">decorating_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/factory/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/factory/generic_factory.html">generic_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/factory/proxy_factory.html">proxy_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/factory/reference.html">reference</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/factory/wrapping_factory.html">wrapping_factory</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/aedi/storage.html">storage</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/aggregate_locator.html">aggregate_locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/alias_aware.html">alias_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/allocator_aware.html">allocator_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/decorator.html">decorator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/locator.html">locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/locator_aware.html">locator_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/object_storage.html">object_storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/storage.html">storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/storage/wrapper.html">wrapper</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">test
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">configurer
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">register
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/configurer/register/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/configurer/register/context.html">context</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">container
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/application_container.html">application_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/prototype_container.html">prototype_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/proxy_container.html">proxy_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/singleton_container.html">singleton_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/subscribable_container.html">subscribable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/switchable_container.html">switchable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/tuple_container.html">tuple_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/type_based_container.html">type_based_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/value_container.html">value_container</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">exception
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/exception/exception.html">exception</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">factory
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/factory/decorating_factory.html">decorating_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/factory/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/factory/generic_factory.html">generic_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/factory/proxy_factory.html">proxy_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/factory/reference.html">reference</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/factory/wrapping_factory.html">wrapping_factory</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">storage
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/storage/aggregate_locator.html">aggregate_locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/storage/locator.html">locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/storage/object_storage.html">object_storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/storage/storage.html">storage</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/factory_configurer.html">factory_configurer</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/fixture.html">fixture</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/fixture_second.html">fixture_second</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">util
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./aermicioi/util/traits.html">traits</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/util/traits/enforce.html">enforce</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/util/traits/partial.html">partial</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/util/traits/traits.html">traits</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./annotation_configuration.html">annotation_configuration</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./configuration_primitives.html">configuration_primitives</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./decorating_containers.html">decorating_containers</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./dependencies.html">dependencies</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./examples.html">examples</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./extending_containers.html">extending_containers</a>
+						</div>
+					</li>
+					<li>
+						<div class="module selected">
+							<a href="./extending_factory.html">extending_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./extending_generic_factory.html">extending_generic_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./memory_management.html">memory_management</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./minimal.html">minimal</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./multiple_containers.html">multiple_containers</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./named_dependencies.html">named_dependencies</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./value_container.html">value_container</a>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>Module extending_factory</h1><p>Aedi, a dependency injection library.
+</p><section><p>Aedi is a dependency injection library. It does provide a set of containers that do
+IoC, and an interface to configure application components (structs, objects, etc.)
+</p>
+</section>
+
+				<section><section><h2>Aim</h2>
+<p>The aim of library is to provide a dependency injection solution that is
+feature rich, easy to use, easy to learn, and easy to extend up to your needs.
+</p>
+</section>
+<section><h2>Usage</h2>
+<p>For an end consumer of Aedi library, it is rarely needed to extend it's logic
+with something new. But for a developer that wants to integrate Aedi library
+with his/her framework, sometimes it is required to extend library to integrate it
+with rest of framework. Aedi was designed with purpose of extending it in two directions:
+</p>
+
+<p><ol>    <li>Containers -&gt; responsible for created components. </li>
+    <li>Component factories -&gt; responsible for creating components </li>
+    </ol>
+</p>
+
+<p>A component factory, as name states is responsible for creation and assembly of components
+registered in container, as well as destroying them. Containers are using them to instantiate components,
+that are requested. In all tutorials up to this registering a component, was equivalent to creating a
+factory for it, and registering it in container. Afterwards factory was returned to the client code, were it was
+further configured, with construction and setter injections by code.
+</p>
+
+<p>When the default features of framework are not enough, it is possible to extend it, in several
+directions mentioned above. For defining a new way of creating components, a factory interface
+in listing below is shown, which is minimal requirement for having the custom factories useable by
+containers. A factory encapsulates the logic required as to create and destroy a component.
+</p>
+
+<pre class="code"><code class="lang-d"><span class="kwd">interface </span><span class="typ">Factory</span><span class="pun">(</span><span class="pln">T</span><span class="pun">) : </span><span class="typ">LocatorAware</span><span class="pun">!(), </span><span class="typ">AllocatorAware</span><span class="pun">!() {
+
+	</span><span class="kwd">public </span><span class="pun">{
+
+		</span><span class="pln">T factory</span><span class="pun">();
+        </span><span class="typ">void </span><span class="pln">destruct</span><span class="pun">(</span><span class="kwd">ref </span><span class="pln">T component</span><span class="pun">);
+
+		</span><span class="kwd">@property </span><span class="pun">{
+    		</span><span class="typ">TypeInfo </span><span class="pln">type</span><span class="pun">();
+		}
+	}
+}</span></code></pre>
+
+<p>For example purposes, during development of car simulation app, logging of car assembly
+should be done. Example below shows a simple logging component factory that creates components
+using zero argument constructor, and logs the construction using default logging facilities present in
+D programming language.
+</p>
+
+<pre class="code"><code class="lang-d"><span class="kwd">class </span><span class="typ">LoggingFactory</span><span class="pun">(</span><span class="pln">T</span><span class="pun">) : </span><span class="typ">Factory</span><span class="pun">!</span><span class="pln">T </span><span class="pun">{
+    </span><span class="kwd">private </span><span class="pun">{
+        </span><span class="typ">Locator</span><span class="pun">!() </span><span class="pln">locator_</span><span class="pun">;
+        </span><span class="typ">IAllocator </span><span class="pln">allocator_</span><span class="pun">;
+    }
+
+    </span><span class="kwd">public </span><span class="pun">{
+        </span><span class="kwd">@property </span><span class="pun">{
+            </span><span class="kwd">typeof</span><span class="pun">(</span><span class="kwd">this</span><span class="pun">) </span><span class="pln">allocator</span><span class="pun">(</span><span class="typ">IAllocator </span><span class="pln">allocator</span><span class="pun">) </span><span class="kwd">@safe nothrow pure </span><span class="pun">{
+                </span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">allocator_ </span><span class="pun">= </span><span class="pln">allocator</span><span class="pun">;
+
+                </span><span class="kwd">return this</span><span class="pun">;
+            }
+
+            </span><span class="typ">IAllocator </span><span class="pln">allocator</span><span class="pun">() </span><span class="kwd">@safe nothrow pure </span><span class="pun">{
+                </span><span class="kwd">return this<wbr/></span><span class="pun">.</span><span class="pln">allocator_</span><span class="pun">;
+            }
+        }
+
+        </span><span class="pln">T factory</span><span class="pun">() {
+            </span><span class="kwd">import </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">experimental<wbr/></span><span class="pun">.</span><span class="pln">logger</span><span class="pun">;
+
+            </span><span class="pln">info</span><span class="pun">(</span><span class="str">"Creating component"</span><span class="pun">);
+            </span><span class="kwd">static if </span><span class="pun">(</span><span class="kwd">is</span><span class="pun">(</span><span class="pln">T </span><span class="pun">: </span><span class="typ">Object</span><span class="pun">)) {
+                </span><span class="kwd">auto </span><span class="pln">t </span><span class="pun">= </span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">allocator<wbr/></span><span class="pun">.</span><span class="pln">make</span><span class="pun">!</span><span class="pln">T</span><span class="pun">;
+            } </span><span class="kwd">else </span><span class="pun">{
+                </span><span class="kwd">auto </span><span class="pln">t </span><span class="pun">= </span><span class="pln">T</span><span class="pun">();
+            }
+            </span><span class="pln">info</span><span class="pun">(</span><span class="str">"Ended component creation"</span><span class="pun">);
+
+            </span><span class="kwd">return </span><span class="pln">t</span><span class="pun">;
+        }
+
+        </span><span class="typ">void </span><span class="pln">destruct</span><span class="pun">(</span><span class="kwd">ref </span><span class="pln">T component</span><span class="pun">) {
+            </span><span class="kwd">import </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">experimental<wbr/></span><span class="pun">.</span><span class="pln">logger</span><span class="pun">;
+
+            </span><span class="pln">info</span><span class="pun">(</span><span class="str">"Destroying component"</span><span class="pun">);
+            </span><span class="kwd">static if </span><span class="pun">(</span><span class="kwd">is</span><span class="pun">(</span><span class="pln">T </span><span class="pun">: </span><span class="typ">Object</span><span class="pun">)) {
+                </span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">allocator<wbr/></span><span class="pun">.</span><span class="pln">dispose</span><span class="pun">(</span><span class="pln">component</span><span class="pun">);
+                </span><span class="pln">info</span><span class="pun">(</span><span class="str">"Done destroying component"</span><span class="pun">);
+            } </span><span class="kwd">else </span><span class="pun">{
+                </span><span class="pln">info</span><span class="pun">(</span><span class="str">"Value component nothing to destroy"</span><span class="pun">);
+            }
+        }
+
+        </span><span class="typ">TypeInfo </span><span class="pln">type</span><span class="pun">() {
+            </span><span class="kwd">return typeid</span><span class="pun">(</span><span class="pln">T</span><span class="pun">);
+        }
+
+        </span><span class="typ">LoggingFactory</span><span class="pun">!</span><span class="pln">T locator</span><span class="pun">(</span><span class="typ">Locator</span><span class="pun">!() </span><span class="pln">locator</span><span class="pun">) </span><span class="kwd">@safe nothrow </span><span class="pun">{
+        	</span><span class="kwd">this<wbr/></span><span class="pun">.</span><span class="pln">locator_ </span><span class="pun">= </span><span class="pln">locator</span><span class="pun">;
+
+        	</span><span class="kwd">return this</span><span class="pun">;
+        }
+    }
+}</span></code></pre>
+
+<p>A design decision in framework was made, that all containers must store only objects rooted
+in Object class. Since the language in which framework is developed supports not only object, but
+structs, unions and a multitude of value based types, those types should be wrapped into an object
+to be stored into containers. By convention, it is assumed that value based data is wrapped in an
+implementation of <code class="lang-d">Wrapper</code> interface which roots into Object class. Knowing this, factories that
+attempt to supply value based dependencies to components, fetch the wrapped components from
+container, extracts the component from wrapper and pass it to the component.
+</p>
+
+<p>From the constraint that containers apply on accepted types (rooted in Object), the same requirements are propagated
+to component factories which are stored in containers. To leverage this problem, framework
+provides a decorating factory, that wraps up another factory, and exposes an compatible interface
+for containers. It will automatically wrap any component that is not rooted in Object class into a
+<code class="lang-d">Wrapper</code> implementation and give it further to container.
+</p>
+
+<p>For aesthetic purposes it is recommended any creation of a factory to be wrapped in a function,
+which itself can serve as a facade to implementation, and be integrated seamlessly in code api.
+Example below shows an example of such a wrapper, that handles creation of a component factory and
+wrapping it in a compatible interface for containers.
+</p>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">registerLogged</span><span class="pun">(</span><span class="typ">Type</span><span class="pun">)(</span><span class="typ">Storage</span><span class="pun">!(</span><span class="typ">ObjectFactory</span><span class="pun">, </span><span class="typ">string</span><span class="pun">) </span><span class="pln">container</span><span class="pun">, </span><span class="typ">string </span><span class="pln">identity</span><span class="pun">) {
+    </span><span class="kwd">auto </span><span class="pln">factory </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">LoggingFactory</span><span class="pun">!</span><span class="typ">Type</span><span class="pun">;
+    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">set</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">WrappingFactory</span><span class="pun">!(</span><span class="typ">LoggingFactory</span><span class="pun">!</span><span class="typ">Type</span><span class="pun">)(</span><span class="pln">factory</span><span class="pun">), </span><span class="pln">identity</span><span class="pun">);
+
+    </span><span class="kwd">return </span><span class="pln">factory</span><span class="pun">;
+}</span></code></pre>
+
+<p>To test custom component factory example below shows how it can be used seamlessly and
+unknowingly from the point of view of a user of library.
+</p>
+
+<pre class="code"><code class="lang-d"><span class="typ">void </span><span class="pln">main</span><span class="pun">() {
+
+    </span><span class="typ">SingletonContainer </span><span class="pln">container </span><span class="pun">= </span><span class="pln">singleton</span><span class="pun">();
+
+    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerLogged</span><span class="pun">!</span><span class="typ">Tire</span><span class="pun">(</span><span class="str">"logging.tire"</span><span class="pun">);
+    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">registerLogged</span><span class="pun">!</span><span class="typ">int</span><span class="pun">(</span><span class="str">"logging.int"</span><span class="pun">);
+
+    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">instantiate</span><span class="pun">();
+
+    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">Tire</span><span class="pun">(</span><span class="str">"logging.tire"</span><span class="pun">)<wbr/>.</span><span class="pln">writeln</span><span class="pun">;
+    </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">locate</span><span class="pun">!</span><span class="typ">int</span><span class="pun">(</span><span class="str">"logging.int"</span><span class="pun">)<wbr/>.</span><span class="pln">writeln</span><span class="pun">;
+}</span></code></pre>
+
+<p>Running the container we will get following result:
+</p>
+<pre class="code"><code class="lang-d"><span class="lit">2017</span><span class="pun">-</span><span class="lit">03</span><span class="pun">-</span><span class="lit">04</span><span class="pln">T00</span><span class="pun">:</span><span class="lit">34</span><span class="pun">:</span><span class="lit">33.401</span><span class="pun">:</span><span class="pln">app<wbr/></span><span class="pun">.</span><span class="pln">d</span><span class="pun">:</span><span class="pln">factory</span><span class="pun">:</span><span class="lit">161 </span><span class="typ">Creating </span><span class="pln">our little component
+</span><span class="lit">2017</span><span class="pun">-</span><span class="lit">03</span><span class="pun">-</span><span class="lit">04</span><span class="pln">T00</span><span class="pun">:</span><span class="lit">34</span><span class="pun">:</span><span class="lit">33.401</span><span class="pun">:</span><span class="pln">app<wbr/></span><span class="pun">.</span><span class="pln">d</span><span class="pun">:</span><span class="pln">factory</span><span class="pun">:</span><span class="lit">167 </span><span class="typ">Ended </span><span class="pln">creation of component
+</span><span class="lit">2017</span><span class="pun">-</span><span class="lit">03</span><span class="pun">-</span><span class="lit">04</span><span class="pln">T00</span><span class="pun">:</span><span class="lit">34</span><span class="pun">:</span><span class="lit">33.401</span><span class="pun">:</span><span class="pln">app<wbr/></span><span class="pun">.</span><span class="pln">d</span><span class="pun">:</span><span class="pln">factory</span><span class="pun">:</span><span class="lit">161 </span><span class="typ">Creating </span><span class="pln">our little component
+</span><span class="lit">2017</span><span class="pun">-</span><span class="lit">03</span><span class="pun">-</span><span class="lit">04</span><span class="pln">T00</span><span class="pun">:</span><span class="lit">34</span><span class="pun">:</span><span class="lit">33.401</span><span class="pun">:</span><span class="pln">app<wbr/></span><span class="pun">.</span><span class="pln">d</span><span class="pun">:</span><span class="pln">factory</span><span class="pun">:</span><span class="lit">167 </span><span class="typ">Ended </span><span class="pln">creation of component
+</span><span class="typ">Tire</span><span class="pun">(</span><span class="lit">0 </span><span class="pln">inch</span><span class="pun">, </span><span class="pln">nan atm</span><span class="pun">, )
+</span><span class="lit">0</span></code></pre>
+
+<p>As we can see our logging factory is doing designed job.
+Try to implement your own factory, to understand how Aedi works behind the scenes.
+</p>
+</section>
+</section>
+			</div>
+			<footer>
+				<div id="license-info">
+					<p>aermicioi
+</p>
+
+					
+					<p>Boost Software License - Version 1.0 - August 17th, 2003
+</p>
+
+<p>	Permission is hereby granted, free of charge, to any person or organization
+	obtaining a copy of the software and accompanying documentation covered by
+	this license (the "Software") to use, reproduce, display, distribute,
+	execute, and transmit the Software, and to prepare derivative works of the
+	Software, and to permit third-parties to whom the Software is furnished to
+	do so, all subject to the following:
+</p>
+
+<p>	The copyright notices in the Software and this entire statement, including
+	the above license grant, this restriction and the following disclaimer,
+	must be included in all copies of the Software, in whole or in part, and
+	all derivative works of the Software, unless such copies or derivative
+	works are solely in the form of machine-executable object code generated by
+	a source language processor.
+</p>
+
+<p>	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+	SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+	FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+	ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	DEALINGS IN THE SOFTWARE.
+</p>
+
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>
