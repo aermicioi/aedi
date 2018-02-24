@@ -1,21 +1,555 @@
-<!DOCTYPE html><html><head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Function AggregateLocatorImpl.has</title>
-<link rel="stylesheet" href="../../../../css/style.min.css"/>
-<script type="text/javascript" src="../../../../js/script.min.js"></script></head><body onload="setupDdox();"><header></header><nav id="main-nav"><div><noscript><p style="color: red">The search functionality needs JavaScript enabled</p></noscript><div id="symbolSearchPane" style="display: none"><form action="#" method="GET">
-<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/></form><ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
-document.getElementById('symbolSearchPane').style.display = 'block';</script></div><ul class="tree-view"><li class="tree-view "><div class="package ">aermicioi</div><ul class="tree-view"><li class="tree-view "><div class="package "><a href="../../../../aermicioi/aedi.html">aedi</a></div><ul class="tree-view"><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/configurer.html">configurer</a></div><ul class="tree-view"><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/configurer/annotation.html">annotation</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/annotation/annotation.html">annotation</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/annotation/component_scan.html">component_scan</a></div></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/configurer/register.html">register</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/configuration_context_factory.html">configuration_context_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/container.html">container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/context.html">context</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/factory_configurer.html">factory_configurer</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/register.html">register</a></div></li></ul></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/container.html">container</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/container/aggregate_container.html">aggregate_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/aliasing_container.html">aliasing_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/application_container.html">application_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/container.html">container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/prototype_container.html">prototype_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/proxy_container.html">proxy_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/singleton_container.html">singleton_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/subscribable_container.html">subscribable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/switchable_container.html">switchable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/tuple_container.html">tuple_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/type_based_container.html">type_based_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/value_container.html">value_container</a></div></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/exception.html">exception</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/exception/circular_reference_exception.html">circular_reference_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/di_exception.html">di_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/instance_factory_exception.html">instance_factory_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/invalid_cast_exception.html">invalid_cast_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/in_progress_exception.html">in_progress_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/not_found_exception.html">not_found_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/property_configurer_exception.html">property_configurer_exception</a></div></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/factory.html">factory</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/factory/decorating_factory.html">decorating_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/generic_factory.html">generic_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/proxy_factory.html">proxy_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/reference.html">reference</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/wrapping_factory.html">wrapping_factory</a></div></li></ul></li><li class="tree-view "><div class="package "><a href="../../../../aermicioi/aedi/storage.html">storage</a></div><ul class="tree-view"><li><div class="module selected"><a href="../../../../aermicioi/aedi/storage/aggregate_locator.html">aggregate_locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/alias_aware.html">alias_aware</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/container.html">container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/decorator.html">decorator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/locator.html">locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/locator_aware.html">locator_aware</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/object_storage.html">object_storage</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/parent_aware.html">parent_aware</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/storage.html">storage</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/wrapper.html">wrapper</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">test</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">configurer</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">register</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/configurer/register/context.html">context</a></div></li></ul></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/configurer/annotation.html">annotation</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/configurer/configurer.html">configurer</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">container</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/application_container.html">application_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/prototype_container.html">prototype_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/singleton_container.html">singleton_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/subscribable_container.html">subscribable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/switchable_container.html">switchable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/tuple_container.html">tuple_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/type_based_container.html">type_based_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/value_container.html">value_container</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">exception</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/exception/exception.html">exception</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">factory</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/decorating_factory.html">decorating_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/generic_factory.html">generic_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/reference.html">reference</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/wrapping_factory.html">wrapping_factory</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">storage</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/aggregate_locator.html">aggregate_locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/locator.html">locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/object_storage.html">object_storage</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/storage.html">storage</a></div></li></ul></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/example.html">example</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/fixture.html">fixture</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/fixture_second.html">fixture_second</a></div></li></ul></li></ul></li><li class="tree-view collapsed"><div class="package ">aermicioi</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">aedi</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">test</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aermicioi/aedi/test/factory_configurer.html">factory_configurer</a></div></li></ul></li></ul></li></ul></li><li class="tree-view collapsed"><div class="package ">util</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/util/traits.html">traits</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/util/traits/enforce.html">enforce</a></div></li><li><div class="module "><a href="../../../../aermicioi/util/traits/partial.html">partial</a></div></li><li><div class="module "><a href="../../../../aermicioi/util/traits/traits.html">traits</a></div></li></ul></li></ul></li></ul></li></ul></div><p id="main-nav-footer">Built with
-<a href="https://github.com/MartinNowak/scod">scod</a></p></nav><div id="main-contents"><div><h1>Function AggregateLocatorImpl.has</h1><p>Check if an element is present in Locator by key id.
-</p><div class="prototype"><code class="lang-d"><div class="single-prototype">
-<span class="kwd">inout </span><span class="typ">bool</span> <span class="pln">has</span>
-<span class="pun">(</span>
-<br/>
-&nbsp;&nbsp;<span class="kwd">in </span><span class="typ">KeyType</span> <span class="pln">identity</span>
-<br/>
-<span class="pun">)</span><span class="pun">;</span></div></code></div><section></section>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>Function AggregateLocatorImpl.has</title>
+		<link rel="stylesheet" href="../../../../css/style.min.css"/>
+		<script type="text/javascript" src="../../../../js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">aermicioi
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi.html">aedi</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/configurer.html">configurer</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/configurer/annotation.html">annotation</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/annotation/annotation.html">annotation</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/configurer/register.html">register</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/configuration_context_factory.html">configuration_context_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/context.html">context</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/factory_configurer.html">factory_configurer</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/register.html">register</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/container.html">container</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/aliasing_container.html">aliasing_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/application_container.html">application_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/decorating_mixin.html">decorating_mixin</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/gc_registering_container.html">gc_registering_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/prototype_container.html">prototype_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/proxy_container.html">proxy_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/singleton_container.html">singleton_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/subscribable_container.html">subscribable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/switchable_container.html">switchable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/tuple_container.html">tuple_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/type_based_container.html">type_based_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/value_container.html">value_container</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/exception.html">exception</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/circular_reference_exception.html">circular_reference_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/di_exception.html">di_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/instance_factory_exception.html">instance_factory_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/invalid_cast_exception.html">invalid_cast_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/in_progress_exception.html">in_progress_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/in_use_exception.html">in_use_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/not_found_exception.html">not_found_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/property_configurer_exception.html">property_configurer_exception</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/factory.html">factory</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/decorating_factory.html">decorating_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/generic_factory.html">generic_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/proxy_factory.html">proxy_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/reference.html">reference</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/wrapping_factory.html">wrapping_factory</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/storage.html">storage</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module selected">
+							<a href="../../../../aermicioi/aedi/storage/aggregate_locator.html">aggregate_locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/alias_aware.html">alias_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/allocator_aware.html">allocator_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/decorator.html">decorator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/locator.html">locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/locator_aware.html">locator_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/object_storage.html">object_storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/storage.html">storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/wrapper.html">wrapper</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">test
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">configurer
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">register
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/configurer/register/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/configurer/register/context.html">context</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">container
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/application_container.html">application_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/prototype_container.html">prototype_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/proxy_container.html">proxy_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/singleton_container.html">singleton_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/subscribable_container.html">subscribable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/switchable_container.html">switchable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/tuple_container.html">tuple_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/type_based_container.html">type_based_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/value_container.html">value_container</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">exception
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/exception/exception.html">exception</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">factory
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/decorating_factory.html">decorating_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/generic_factory.html">generic_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/proxy_factory.html">proxy_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/reference.html">reference</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/wrapping_factory.html">wrapping_factory</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">storage
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/aggregate_locator.html">aggregate_locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/locator.html">locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/object_storage.html">object_storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/storage.html">storage</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory_configurer.html">factory_configurer</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/fixture.html">fixture</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/fixture_second.html">fixture_second</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">util
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/util/traits.html">traits</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/util/traits/enforce.html">enforce</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/util/traits/partial.html">partial</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/util/traits/traits.html">traits</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>Function AggregateLocatorImpl.has</h1><p>Check if an element is present in Locator by key id.
+</p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="kwd">inout </span><span class="typ">bool</span> <span class="pln">has</span>
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">in </span><span class="typ">KeyType</span> <span class="pln">identity</span>
+				<br/>
+				<span class="pun">)</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				<section></section>
 
-<section><h2>Note</h2>
+				<section><h2>Note</h2>
 <p>This check should be done for elements that locator actually contains, and
         	not in chained locator (when locator is also a DelegatingLocator) for example.
 </p>
@@ -29,11 +563,15 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script></d
 <p>bool true if an element by key is present in Locator.
 </p>
 </section>
-</div><footer><div id="license-info"><p>Alexandru Ermicioi
+
+			</div>
+			<footer>
+				<div id="license-info">
+					<p>Alexandru Ermicioi
 </p>
 
-
-<p>Boost Software License - Version 1.0 - August 17th, 2003
+					
+					<p>Boost Software License - Version 1.0 - August 17th, 2003
 </p>
 
 <p>    Permission is hereby granted, free of charge, to any person or organization
@@ -60,4 +598,9 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script></d
     ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 </p>
-</div></footer></div></body></html>
+
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>

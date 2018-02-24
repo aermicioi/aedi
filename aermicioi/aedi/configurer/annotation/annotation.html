@@ -1,42 +1,949 @@
-<!DOCTYPE html><html><head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Module aermicioi.aedi.configurer.annotation.annotation</title>
-<link rel="stylesheet" href="../../../../css/style.min.css"/>
-<script type="text/javascript" src="../../../../js/script.min.js"></script></head><body onload="setupDdox();"><header></header><nav id="main-nav"><div><noscript><p style="color: red">The search functionality needs JavaScript enabled</p></noscript><div id="symbolSearchPane" style="display: none"><form action="#" method="GET">
-<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/></form><ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
-document.getElementById('symbolSearchPane').style.display = 'block';</script></div><ul class="tree-view"><li class="tree-view "><div class="package ">aermicioi</div><ul class="tree-view"><li class="tree-view "><div class="package "><a href="../../../../aermicioi/aedi.html">aedi</a></div><ul class="tree-view"><li class="tree-view "><div class="package "><a href="../../../../aermicioi/aedi/configurer.html">configurer</a></div><ul class="tree-view"><li class="tree-view "><div class="package "><a href="../../../../aermicioi/aedi/configurer/annotation.html">annotation</a></div><ul class="tree-view"><li><div class="module selected"><a href="../../../../aermicioi/aedi/configurer/annotation/annotation.html">annotation</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/annotation/component_scan.html">component_scan</a></div></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/configurer/register.html">register</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/configuration_context_factory.html">configuration_context_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/container.html">container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/context.html">context</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/factory_configurer.html">factory_configurer</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/configurer/register/register.html">register</a></div></li></ul></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/container.html">container</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/container/aggregate_container.html">aggregate_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/aliasing_container.html">aliasing_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/application_container.html">application_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/container.html">container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/prototype_container.html">prototype_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/proxy_container.html">proxy_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/singleton_container.html">singleton_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/subscribable_container.html">subscribable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/switchable_container.html">switchable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/tuple_container.html">tuple_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/type_based_container.html">type_based_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/container/value_container.html">value_container</a></div></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/exception.html">exception</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/exception/circular_reference_exception.html">circular_reference_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/di_exception.html">di_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/instance_factory_exception.html">instance_factory_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/invalid_cast_exception.html">invalid_cast_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/in_progress_exception.html">in_progress_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/not_found_exception.html">not_found_exception</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/exception/property_configurer_exception.html">property_configurer_exception</a></div></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/factory.html">factory</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/factory/decorating_factory.html">decorating_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/generic_factory.html">generic_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/proxy_factory.html">proxy_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/reference.html">reference</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/factory/wrapping_factory.html">wrapping_factory</a></div></li></ul></li><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/aedi/storage.html">storage</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/storage/aggregate_locator.html">aggregate_locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/alias_aware.html">alias_aware</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/container.html">container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/decorator.html">decorator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/locator.html">locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/locator_aware.html">locator_aware</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/object_storage.html">object_storage</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/parent_aware.html">parent_aware</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/storage.html">storage</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/storage/wrapper.html">wrapper</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">test</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">configurer</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">register</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/configurer/register/context.html">context</a></div></li></ul></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/configurer/annotation.html">annotation</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/configurer/configurer.html">configurer</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">container</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/application_container.html">application_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/prototype_container.html">prototype_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/singleton_container.html">singleton_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/subscribable_container.html">subscribable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/switchable_container.html">switchable_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/tuple_container.html">tuple_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/type_based_container.html">type_based_container</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/container/value_container.html">value_container</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">exception</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/exception/exception.html">exception</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">factory</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/decorating_factory.html">decorating_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/factory.html">factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/generic_factory.html">generic_factory</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/reference.html">reference</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/factory/wrapping_factory.html">wrapping_factory</a></div></li></ul></li><li class="tree-view collapsed"><div class="package ">storage</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/aggregate_locator.html">aggregate_locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/locator.html">locator</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/object_storage.html">object_storage</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/storage/storage.html">storage</a></div></li></ul></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/example.html">example</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/fixture.html">fixture</a></div></li><li><div class="module "><a href="../../../../aermicioi/aedi/test/fixture_second.html">fixture_second</a></div></li></ul></li></ul></li><li class="tree-view collapsed"><div class="package ">aermicioi</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">aedi</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package ">test</div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/aermicioi/aedi/test/factory_configurer.html">factory_configurer</a></div></li></ul></li></ul></li></ul></li><li class="tree-view collapsed"><div class="package ">util</div><ul class="tree-view"><li class="tree-view collapsed"><div class="package "><a href="../../../../aermicioi/util/traits.html">traits</a></div><ul class="tree-view"><li><div class="module "><a href="../../../../aermicioi/util/traits/enforce.html">enforce</a></div></li><li><div class="module "><a href="../../../../aermicioi/util/traits/partial.html">partial</a></div></li><li><div class="module "><a href="../../../../aermicioi/util/traits/traits.html">traits</a></div></li></ul></li></ul></li></ul></li></ul></div><p id="main-nav-footer">Built with
-<a href="https://github.com/MartinNowak/scod">scod</a></p></nav><div id="main-contents"><div><h1>Module aermicioi.aedi.configurer.annotation.annotation</h1><p>This module implements annotation based configuration of containers.
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>Module aermicioi.aedi.configurer.annotation.annotation</title>
+		<link rel="stylesheet" href="../../../../css/style.min.css"/>
+		<script type="text/javascript" src="../../../../js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">aermicioi
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi.html">aedi</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/configurer.html">configurer</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/configurer/annotation.html">annotation</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module selected">
+							<a href="../../../../aermicioi/aedi/configurer/annotation/annotation.html">annotation</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/configurer/register.html">register</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/configuration_context_factory.html">configuration_context_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/context.html">context</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/factory_configurer.html">factory_configurer</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/configurer/register/register.html">register</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/container.html">container</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/aliasing_container.html">aliasing_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/application_container.html">application_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/decorating_mixin.html">decorating_mixin</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/gc_registering_container.html">gc_registering_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/prototype_container.html">prototype_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/proxy_container.html">proxy_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/singleton_container.html">singleton_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/subscribable_container.html">subscribable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/switchable_container.html">switchable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/tuple_container.html">tuple_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/type_based_container.html">type_based_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/container/value_container.html">value_container</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/exception.html">exception</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/circular_reference_exception.html">circular_reference_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/di_exception.html">di_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/instance_factory_exception.html">instance_factory_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/invalid_cast_exception.html">invalid_cast_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/in_progress_exception.html">in_progress_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/in_use_exception.html">in_use_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/not_found_exception.html">not_found_exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/exception/property_configurer_exception.html">property_configurer_exception</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/factory.html">factory</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/decorating_factory.html">decorating_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/generic_factory.html">generic_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/proxy_factory.html">proxy_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/reference.html">reference</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/factory/wrapping_factory.html">wrapping_factory</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/aedi/storage.html">storage</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/aggregate_locator.html">aggregate_locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/alias_aware.html">alias_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/allocator_aware.html">allocator_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/decorator.html">decorator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/locator.html">locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/locator_aware.html">locator_aware</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/object_storage.html">object_storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/storage.html">storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/storage/wrapper.html">wrapper</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">test
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">configurer
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">register
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/configurer/register/container.html">container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/configurer/register/context.html">context</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">container
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/application_container.html">application_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/prototype_container.html">prototype_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/proxy_container.html">proxy_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/singleton_container.html">singleton_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/subscribable_container.html">subscribable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/switchable_container.html">switchable_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/tuple_container.html">tuple_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/type_based_container.html">type_based_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/container/value_container.html">value_container</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">exception
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/exception/exception.html">exception</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">factory
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/decorating_factory.html">decorating_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/generic_factory.html">generic_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/proxy_factory.html">proxy_factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/reference.html">reference</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory/wrapping_factory.html">wrapping_factory</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">storage
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/aggregate_locator.html">aggregate_locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/locator.html">locator</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/object_storage.html">object_storage</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/storage/storage.html">storage</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/factory_configurer.html">factory_configurer</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/fixture.html">fixture</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/aedi/test/fixture_second.html">fixture_second</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">util
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../../../aermicioi/util/traits.html">traits</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/util/traits/enforce.html">enforce</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/util/traits/partial.html">partial</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../aermicioi/util/traits/traits.html">traits</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+				</ul>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>Module aermicioi.aedi.configurer.annotation.annotation</h1><p>This module implements annotation based configuration of containers.
 </p><section></section>
 
-<section></section><section><h2>Functions</h2><table>
-<col class="caption"/>
-<tr><th>Name</th><th>Description</th></tr><tr><td><code><a id="callback" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/callback.html">callback</a><span class="decoration">(dg, args)</span></code></td><td>Annotation that specifies a delegate to be used to configure aggregate somehow.
-</td></tr><tr><td><code><a id="constructor" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/constructor.html">constructor</a><span class="decoration">(args)</span></code></td><td>Annotation used to mark a constructor to be used for aggregate instantiation.
-</td></tr><tr><td><code><a id="contained" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/contained.html">contained</a><span class="decoration">(id)</span></code></td><td>When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
-</td></tr><tr><td><code><a id="fact" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/fact.html">fact</a><span class="decoration">(dg, args)</span></code></td><td>Annotation that specifies a delegate to be used to instantiate aggregate.
-</td></tr><tr><td><code><a id="qualifier" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/qualifier.html">qualifier</a><span class="decoration">(id)</span></code></td><td>An annotation used to provide custom identity for an object in container.
-</td></tr><tr><td><code><a id="qualifier" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/qualifier.html">qualifier</a><span class="decoration">()</span></code></td><td>An annotation used to provide custom identity for an object in container by some interface.
-</td></tr><tr><td><code><a id="setter" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/setter.html">setter</a><span class="decoration">(args)</span></code></td><td>Annotation used to mark a member to be called or set (in case of fields), with args passed to setter.
-</td></tr></table></section><section><h2>Structs</h2><table>
-<col class="caption"/>
-<tr><th>Name</th><th>Description</th></tr><tr><td><code><a id="AutowiredAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/AutowiredAnnotation.html">AutowiredAnnotation</a></code></td><td>Annotation used to mark constructor or method for auto wiring.
-</td></tr><tr><td><code><a id="CallbackConfigurerAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/CallbackConfigurerAnnotation.html">CallbackConfigurerAnnotation</a></code></td><td>Annotation that specifies a delegate to be used to configure aggregate somehow.
-</td></tr><tr><td><code><a id="CallbackFactoryAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/CallbackFactoryAnnotation.html">CallbackFactoryAnnotation</a></code></td><td>Annotation that specifies a delegate to be used to instantiate aggregate.
-</td></tr><tr><td><code><a id="ComponentAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/ComponentAnnotation.html">ComponentAnnotation</a></code></td><td>Annotation used to denote an aggregate that should be stored into an container.
-</td></tr><tr><td><code><a id="ConstructorAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/ConstructorAnnotation.html">ConstructorAnnotation</a></code></td><td>Annotation used to mark a constructor to be used for aggregate instantiation.
-</td></tr><tr><td><code><a id="ContainedAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/ContainedAnnotation.html">ContainedAnnotation</a></code></td><td>When objects are registered into an aggregate container, this annotation marks in which sub-container it is required to store.
-</td></tr><tr><td><code><a id="QualifierAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/QualifierAnnotation.html">QualifierAnnotation</a></code></td><td>An annotation used to provide custom identity for an object in container.
-</td></tr><tr><td><code><a id="SetterAnnotation" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/SetterAnnotation.html">SetterAnnotation</a></code></td><td>Annotation used to mark a member to be called or set (in case of fields), with args passed to setter.
-</td></tr></table></section><section><h2>Aliases</h2><table>
-<col class="caption"/>
-<tr><th>Name</th><th>Type</th><th>Description</th></tr><tr><td><a id="autowired" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/autowired.html"><code>autowired</code></a></td><td><code class="prettyprint lang-d"><a href="../../../../aermicioi/aedi/configurer/annotation/annotation/AutowiredAnnotation.html"><span class="typ">AutowiredAnnotation</span></a></code></td><td>Annotation used to mark constructor or method for auto wiring.
-</td></tr><tr><td><a id="component" class="["public"]" href="../../../../aermicioi/aedi/configurer/annotation/annotation/component.html"><code>component</code></a></td><td><code class="prettyprint lang-d"><a href="../../../../aermicioi/aedi/configurer/annotation/annotation/ComponentAnnotation.html"><span class="typ">ComponentAnnotation</span></a></code></td><td>Annotation used to denote an aggregate that should be stored into an container.
-</td></tr></table></section></div><footer><div id="license-info"><p>Alexandru Ermicioi
+				<section></section>
+				<section>
+					<h2>Functions</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="allocator" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/allocator.html">allocator</a><span class="decoration">(allocator)</span>
+								</code>
+							</td>
+							<td>Use allocator to allocate component.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="callback" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/callback.html">callback</a><span class="decoration">(dg, args)</span>
+								</code>
+							</td>
+							<td>Annotation that specifies a delegate to be used to configure component somehow.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="callbackDestructor" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/callbackDestructor.html">callbackDestructor</a><span class="decoration">(dg, args)</span>
+								</code>
+							</td>
+							<td>Use callback stored in annotation to destroy a component of type T
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="constructor" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/constructor.html">constructor</a><span class="decoration">(args)</span>
+								</code>
+							</td>
+							<td>Annotation used to mark a constructor to be used for component instantiation.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="contained" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/contained.html">contained</a><span class="decoration">(id)</span>
+								</code>
+							</td>
+							<td>When objects are registered into a component container, this annotation marks in which sub-container it is required to store.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="destructorMethod" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/destructorMethod.html">destructorMethod</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td>Use method from instance of type T to destroy a component of type Z
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="fact" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/fact.html">fact</a><span class="decoration">(dg, args)</span>
+								</code>
+							</td>
+							<td>Annotation that specifies a delegate to be used to instantiate component.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="qualifier" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/qualifier.html">qualifier</a><span class="decoration">(id)</span>
+								</code>
+							</td>
+							<td>An annotation used to provide custom identity for an object in container.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="qualifier" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/qualifier.html">qualifier</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td>An annotation used to provide custom identity for an object in container by some interface.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="setter" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/setter.html">setter</a><span class="decoration">(args)</span>
+								</code>
+							</td>
+							<td>Annotation used to mark a member to be called or set (in case of fields), with args passed to setter.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="value" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/value.html">value</a><span class="decoration">(value)</span>
+								</code>
+							</td>
+							<td>Construct the instance using value provided in annotation
+</td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<h2>Structs</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="AllocatorAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/AllocatorAnnotation.html">AllocatorAnnotation</a>
+								</code>
+							</td>
+							<td>Use allocator to allocate component.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="AutowiredAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/AutowiredAnnotation.html">AutowiredAnnotation</a>
+								</code>
+							</td>
+							<td>Annotation used to mark constructor or method for auto wiring.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="CallbackConfigurerAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/CallbackConfigurerAnnotation.html">CallbackConfigurerAnnotation</a>
+								</code>
+							</td>
+							<td>Annotation that specifies a delegate to be used to configure component somehow.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="CallbackDestructor" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/CallbackDestructor.html">CallbackDestructor</a>
+								</code>
+							</td>
+							<td>Use callback stored in annotation to destroy a component of type T
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="CallbackFactoryAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/CallbackFactoryAnnotation.html">CallbackFactoryAnnotation</a>
+								</code>
+							</td>
+							<td>Annotation that specifies a delegate to be used to instantiate component.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="ComponentAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/ComponentAnnotation.html">ComponentAnnotation</a>
+								</code>
+							</td>
+							<td>Annotation used to denote a component that should be stored into an container.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="ConstructorAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/ConstructorAnnotation.html">ConstructorAnnotation</a>
+								</code>
+							</td>
+							<td>Annotation used to mark a constructor to be used for component instantiation.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="ContainedAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/ContainedAnnotation.html">ContainedAnnotation</a>
+								</code>
+							</td>
+							<td>When objects are registered into a component container, this annotation marks in which sub-container it is required to store.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="DestructorMethod" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/DestructorMethod.html">DestructorMethod</a>
+								</code>
+							</td>
+							<td>Use method from instance of type T to destroy a component of type Z
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="QualifierAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/QualifierAnnotation.html">QualifierAnnotation</a>
+								</code>
+							</td>
+							<td>An annotation used to provide custom identity for an object in container.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="SetterAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/SetterAnnotation.html">SetterAnnotation</a>
+								</code>
+							</td>
+							<td>Annotation used to mark a member to be called or set (in case of fields), with args passed to setter.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="ValueAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/ValueAnnotation.html">ValueAnnotation</a>
+								</code>
+							</td>
+							<td>Construct the instance using value provided in annotation
+</td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<h2>Manifest constants</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Type</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a id="isAllocatorAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isAllocatorAnnotation.html">
+									<code>isAllocatorAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of AllocatorAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isAutowiredAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isAutowiredAnnotation.html">
+									<code>isAutowiredAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of AutowiredAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isCallbackConfigurerAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isCallbackConfigurerAnnotation.html">
+									<code>isCallbackConfigurerAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of CallbackConfigurerAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isCallbackDestructor" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isCallbackDestructor.html">
+									<code>isCallbackDestructor</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of CallbackDestructor
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isCallbackFactoryAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isCallbackFactoryAnnotation.html">
+									<code>isCallbackFactoryAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of CallbackFactoryAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isComponentAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isComponentAnnotation.html">
+									<code>isComponentAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of ComponentAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isConstructorAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isConstructorAnnotation.html">
+									<code>isConstructorAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of ConstructorAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isContainedAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isContainedAnnotation.html">
+									<code>isContainedAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of ContainedAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isDestructorMethod" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isDestructorMethod.html">
+									<code>isDestructorMethod</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of DestructorMethod
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isQualifierAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isQualifierAnnotation.html">
+									<code>isQualifierAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of QualifierAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isSetterAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isSetterAnnotation.html">
+									<code>isSetterAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of SetterAnnotation
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isValueAnnotation" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/isValueAnnotation.html">
+									<code>isValueAnnotation</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td>Check if T is instance of ValueAnnotation
+</td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<h2>Aliases</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Type</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a id="autowired" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/autowired.html">
+									<code>autowired</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><a href="../../../../aermicioi/aedi/configurer/annotation/annotation/AutowiredAnnotation.html"><span class="typ">AutowiredAnnotation</span></a></code>
+							</td>
+							<td>Annotation used to mark constructor or method for auto wiring.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a id="component" class="public" href="../../../../aermicioi/aedi/configurer/annotation/annotation/component.html">
+									<code>component</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><a href="../../../../aermicioi/aedi/configurer/annotation/annotation/ComponentAnnotation.html"><span class="typ">ComponentAnnotation</span></a></code>
+							</td>
+							<td>Annotation used to denote a component that should be stored into an container.
+</td>
+						</tr>
+					</table>
+				</section>
+			</div>
+			<footer>
+				<div id="license-info">
+					<p>Alexandru Ermicioi
 </p>
 
-
-<p>Boost Software License - Version 1.0 - August 17th, 2003
+					
+					<p>Boost Software License - Version 1.0 - August 17th, 2003
 </p>
 
 <p>    Permission is hereby granted, free of charge, to any person or organization
@@ -63,4 +970,9 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script></d
     ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 </p>
-</div></footer></div></body></html>
+
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>
