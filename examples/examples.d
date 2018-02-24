@@ -3,18 +3,18 @@ This package contains tutorials for most of functionality provided by aedi frame
 See source code as well for runnable examples.
 
 $(OL
-    $(LI $(LINK2 /minimal, minimal))
-    $(LI $(LINK2 /dependencies, dependencies))
-    $(LI $(LINK2 /named_dependencies, named_dependencies))
-    $(LI $(LINK2 /configuration_primitives, configuration_primitives))
-    $(LI $(LINK2 /multiple_containers, multiple_containers))
-    $(LI $(LINK2 /value_container, value_container))
-    $(LI $(LINK2 /memory_management, memory_management))
-    $(LI $(LINK2 /annotation_configuration, annotation_configuration))
-    $(LI $(LINK2 /decorating_containers, decorating_containers))
-    $(LI $(LINK2 /extending_containers, extending_containers))
-    $(LI $(LINK2 /extending_factory, extending_factory))
-    $(LI $(LINK2 /extending_generic_factory, extending_generic_factory))
+    $(LI $(LINK2 /examples/minimal, minimal))
+    $(LI $(LINK2 /examples/dependencies, dependencies))
+    $(LI $(LINK2 /examples/named_dependencies, named_dependencies))
+    $(LI $(LINK2 /examples/configuration_primitives, configuration_primitives))
+    $(LI $(LINK2 /examples/multiple_containers, multiple_containers))
+    $(LI $(LINK2 /examples/value_container, value_container))
+    $(LI $(LINK2 /examples/memory_management, memory_management))
+    $(LI $(LINK2 /examples/annotation_configuration, annotation_configuration))
+    $(LI $(LINK2 /examples/decorating_containers, decorating_containers))
+    $(LI $(LINK2 /examples/extending_containers, extending_containers))
+    $(LI $(LINK2 /examples/extending_factory, extending_factory))
+    $(LI $(LINK2 /examples/extending_generic_factory, extending_generic_factory))
 )
 License:
     Boost Software License - Version 1.0 - August 17th, 2003

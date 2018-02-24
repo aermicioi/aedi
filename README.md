@@ -184,4 +184,4 @@ void main() {
 All public api documentation is available on [aermicioi.github.io/aedi/](https://aermicioi.github.io/aedi/).
 
 For a more comprehensive understanding of how framework should be used, a set of tutorials are available on
-github [wiki](https://github.com/aermicioi/aedi/wiki).
+github [wiki](https://aermicioi.github.io/aedi/examples/examples).
