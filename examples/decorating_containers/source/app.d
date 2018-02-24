@@ -10,16 +10,114 @@ The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
 Aedi does provide basic containers singleton and prototype, which can be combined into some-
-thing more complex. Yet, in some cases the features they provide is not enough. An example of
-such feature is containers that are enabled only when a specific profile is present. For example, car
-simulation app at start should allow user to select from 3 different cars to simulate. Each of those
-cars have a specific engine:
+thing more complex. Though, on top of their behavior additional one can be built, such as a container
+that can be enabled/disabled, or a container that adds observer pattern. Out of the box framework does provide
+following decorating containers:
 
-$(OL
-    $(LI electric )
-    $(LI gasoline )
-    $(LI diesel )
+$(UL
+    $(LI aliasing - provides aliasing functions)
+    $(LI gc rigistered - registers instantiated components with gc, when other that gc allocator are used)
+    $(LI subscribable - provides observable pattern on container events)
+    $(LI typed - serves components based on their implemented interfaces)
+    $(LI proxy - serves component proxies instead of original ones)
+    $(LI deffered - provides deffered construction of components)
 )
+
+Each decorating container listed below will be explained in detail, followed by a short explanation of what current example does.
+
+Aliasing:
+
+The aliasing container decorator adds ability to add aliases to existing components in container. Therefore
+a "foo" component can have multiple aliases "moo", "boo" etc. Each alias will resolve to same component in container.
+Such feature is useful when an existing component in container for compatibility reasons should have another identity as
+well. To use aliasing container simply wrap any container in $(D_INLINECODE aliasing) method which will decorate existing one.
+UFCS syntax is desired for fluent like style.
+
+-----------------
+auto cont = aggregate(
+    singleton, "singleton",
+    prototype, "prototype",
+    values, "parameters",
+    gasoline, "gasoline",
+    electric, "electric",
+    diesel, "diesel"
+).aliasing;
+-----------------
+
+GcRegistered:
+
+GC registered decorating container registers any created component with global gc available in D. Since any component can have customized
+memory allocation strategy through std.experimental.allocator, were one of strategy is to use garbage collector, and each component
+can have dependencies to other components, in some cases, gc on collection cycle could deallocate a component (which technically isn't
+referenced by anyone) even if it is still referenced by other component of which gc is not aware of. GC registered container aims to register
+all public components provided by underlying container into GC in order to avoid the case from above. To use it, just suffix any container with $(D_INLINECODE gcRegistered).
+
+-----------------
+auto cont = aggregate(
+    singleton, "singleton",
+    prototype, "prototype",
+    values, "parameters",
+    gasoline, "gasoline",
+    electric, "electric",
+    diesel, "diesel"
+).aliasing.gcRegistered;
+-----------------
+
+Subscribable:
+
+Subscribable container offers a list of events to which a listener can subscribe and perform operations on. Currently only two events are provided:
+$(OL
+    $(LI instantiation pre event - fired before instantiation of container)
+    $(LI instantiation post event - fired after instantiation of container)
+)
+An example of such listeners can be like in listing below, which will enable a container before instantiation based on profile argument
+-----------------
+cont.subscribable.subscribe(
+    ContainerInstantiationEventType.pre,
+    {
+        if (cont.has(cont.locate!string("profile"))) {
+            cont.locate!Switchable(cont.locate!string("profile")).enabled = true;
+            return;
+        }
+
+        throw new Exception("No engine profile selected. Specify it with -p");
+    }
+);
+-----------------
+
+Typed:
+
+Typed container decorates underlying container with ability to provide a component based on interface it implements.
+Code using typed container attempts to get a component by an interface such as $(D_INLINECODE Engine) in this example,
+typed container will check if underlying container has a component identified by provided interface. If yes it will give
+the component from decorated container. If not, it will search for all registered components that implement the required interface
+and use first found component to serve it. Notice that in this example, no $(D_INLINECODE Engine) was registered in container by
+$(D_INLINECODE Engine) interface. Each instance $(D_INLINECODE GasolineEngine), $(D_INLINECODE ElectricEngine), and $(D_INLINECODE DieselEngine)
+are registered by their type only. No attempt to alias one of them to $(D_INLINECODE Engine) is done, yet when Car is instantiated, a component
+implementing $(D_INLINECODE Engine) interface is supplied. This magic is done by typed container, which supplied first available component implementing
+$(D_INLINECODE Engine) interface.
+
+Proxy:
+
+A proxy container proxies all components supplied by decorated container. It will supply proxy objects instead of real components, which in turn
+will on each public call of a proxy will redirect it to component in redirected container, and return a value from it. The proxy container
+alone is not much useful. It is intended to be used along with containers that are dependendet on some global state to provide components.
+An example of such containers could be containers that provide different instances of same component per thread or fiber, or in case of
+web application, a container that gives new instances of same component for each new available request web application receives.
+
+Deffered:
+
+Deffered container, executes delayed components construction and configuration. Construction and configuration of a component can occur in cases
+when there is a circular dependency between a set of components. In such case to resolve it, injection of one dependency can be delayed.
+Delaying of construction or configuration is left to component factory, while execution of delayed action is enforced upon Deffered container.
+To enable circular dependency resolution, decorate container with $(D_INLINECODE deffered) decorator, and register components using $(D_INLINECODE withConfigurationDefferring)
+configuration context (simply append it after $(D_INLINECODE container.configure) method). This exampe shows a typical example of circular
+dependency. A car has a dependency on four tires, while each tire has a dependency on a car instance, resulting in a circular dependency.
+Removing $(D_INLINECODE deffered) or $(D_INLINECODE withConfigurationDefferring) will result in circular dependency exception thrown by container.
+
+Example:
+Such behavior can be useful, like in car company example, that at certian point of time decided that their application should provide
+upon start cars with different engines, electric/diesel/gasoline.
 
 The workflow needed to implement in application in order to allow 3 different configurations is
 shown below and consists of following steps:
@@ -28,95 +126,51 @@ $(OL
     $(LI switch on it, and register diesel/gasoline/electric engine by Engine interface depending on selected profile )
 )
 
+Following snippet of code shows all decorating containers in use except of proxy one.
+
 ------------------
-//    ..............car example code..............
+auto decorated() {
+    auto gasoline = singleton.typed.switchable.enabled(false);
+    auto electric = singleton.typed.switchable.enabled(false);
+    auto diesel = singleton.typed.switchable.enabled(false);
 
-    import std.getopt;
-    string profile;
+    auto cont = aggregate(
+        singleton, "singleton",
+        prototype, "prototype",
+        values, "parameters",
+        gasoline, "gasoline",
+        electric, "electric",
+        diesel, "diesel"
+    ).aliasing.gcRegistered.deffered;
 
-    auto help = getopt(args,
-        "p|profile", &profile
-    );
-
-    switch (profiles) {
-        case "diesel": {
-            container.register!(Engine, DieselEngine);
-            break;
-        }
-
-        case "electric": {
-            container.register!(Engine, ElectricEngine);
-            break;
-        }
-
-        case "gasoline": {
-            container.register!(Engine, GasolineEngine);
-            break;
-        }
-
-        default: {
-            assert(0, "No profile selected");
-        }
-    }
-
-//    ..............car example code..............
-------------------
-
-Quite straitforward implementation is shown here. The application takes argument from command line,
-switches on it, and registers different set of components for car, based on argument of
-command line. Though for simplistic usage, the approach is quite useful, yet in cases when the
-control over container instantiation is not handled by the client code, but by a third party container,
-such a straightforward approach becomes quite complicated. For such cases the framework does pro-
-vide a solution by the ability of decorating existing containers, and third party ones with additional
-logic. In case of car simulation app, with 3 different car profiles for startup, the framework provides
-two types of containers, through which profiling feature is implemented. Example below shows the
-powerfullness of framework in adding additional behavior to existing container, thereby extending it.
-------------------
-auto containerWithProfiles() {
-    auto container = new ApplicationContainer; // A composite container with singleton, prototype built in.
-
-    auto electricProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
-    auto gasolineProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
-    auto dieselProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
-    auto subscribableContainer = container.subscribable(); // decorating joint container with subscribable container
-
-    container.set(electricProfileContainer, "electric");
-    container.set(gasolineProfileContainer, "gasoline");
-    container.set(dieselProfileContainer, "diesel");
-
-    subscribableContainer.subscribe(
+    return cont.subscribable.subscribe(
         ContainerInstantiationEventType.pre,
         {
-            foreach (element; container.locate!(string[])("profile")) {
-                if (container.has(element)) {
-                    try {
-
-                        container.locate!Switchable(element).enabled = true;
-                    } catch (InvalidCastException e) {
-
-                    }
-                }
+            if (cont.has(cont.locate!string("profile"))) {
+                cont.locate!Switchable(cont.locate!string("profile")).enabled = true;
+                return;
             }
+
+            throw new Exception("No engine profile selected. Specify it with -p");
         }
     );
-
-    return subscribableContainer;
 }
 ------------------
 
-The profile based container is assembled from 3 switchable containers, and a subscribable
-composite container. When the application is booted up, the code from $(D_INLINECODE main(string[] args)) loads into container
+The profile based container is assembled from 3 typed and switchable containers, and a subscribable
+composite container with gc component registration and construction of deffered components.
+When the application is booted up, the code from $(D_INLINECODE main(string[] args)) loads into container
 "profile" argument. Afterwards components are registered into container, and for each profile,
-the profiled components are registered in respective gasoline, electric, diesel containers. Once this
+the right engine is registered in respective gasoline, electric, diesel containers. Once this
 is finished, the container is instantiated using $(D_INLINECODE intantiate) method. During instantiation phase,
 subscribable composite container fires an pre-instantiation event on which, a delegate is attached, that
 checks for "profile" argument, and enables the container identified by value in profile container.
-In such a way most of conditional chains such as switch or if are avoided, furthermore the approach
-could be scaled indefinitely without hindering the expressibility of implementation.
-
-Both subscribable and switchable containers, are decorators over more basic ones, and can be
-used with all containers present from framework. They can be nested in any order desired, by the
-implementor.
+Afterwards construction of components proceeds. When car is constructed typed container jumps in and
+provides an implenentation of $(D_INLINECODE Engine) for car depending on enabled container. When
+construction arrives at a Tire, a circular dependency is detected, and construction of a component is
+deffered at later stage in order to break dependency chain. Once component is constructed, it is registered
+with global gc instance in order to avoid destruction of gc managed components while they are still referenced
+by non-managed components. Once instantiation is finished, car is fetched from container and displayed in console.
 
 Try running this example, pass as argument $(D_INLINECODE --profile) with value of
 $(D_INLINECODE gasoline), $(D_INLINECODE electric), $(D_INLINECODE diesel).
@@ -156,6 +210,8 @@ module app;
 import aermicioi.aedi;
 import std.stdio;
 import std.algorithm;
+import std.experimental.allocator.mallocator;
+import std.experimental.allocator;
 
 /**
 A struct that should be managed by container.
@@ -264,9 +320,20 @@ class Tire {
         int size_;
         float pressure_;
         string vendor_;
+        Car car_;
     }
 
     public @property {
+        @autowired
+        Tire car(Car car) {
+            this.car_ = car;
+            return this;
+        }
+
+        Car car() {
+            return this.car_;
+        }
+
         Tire size(int size) @safe nothrow {
         	this.size_ = size;
 
@@ -446,73 +513,67 @@ class Car {
 }
 
 void drive(Car car, string name) {
-    writeln("Uuh, what a nice car, ", name," with following specs:");
-    writeln("Size:\t", car.size());
-    writeln("Color:\t", car.color());
-    writeln("Engine:\t", car.engine());
-    writeln("Tire front left:\t", car.frontLeft(), "\t located at memory ", cast(void*) car.frontLeft());
-    writeln("Tire front right:\t", car.frontRight(), "\t located at memory ", cast(void*) car.frontRight());
-    writeln("Tire back left: \t", car.backLeft(), "\t located at memory ", cast(void*) car.backLeft());
-    writeln("Tire back right:\t", car.backRight(), "\t located at memory ", cast(void*) car.backRight());
+    writeln("Uuh, what a nice ", name," car, with following specs:");
+    writeln("Size:\t", car.size);
+    writeln("Color:\t", car.color);
+    writeln("Engine:\t", car.engine);
+    writeln("Tire front left:\t", car.frontLeft, "\t located at memory ", cast(void*) car.frontLeft());
+    writeln("Tire front right:\t", car.frontRight, "\t located at memory ", cast(void*) car.frontRight());
+    writeln("Tire back left: \t", car.backLeft, "\t located at memory ", cast(void*) car.backLeft());
+    writeln("Tire back right:\t", car.backRight, "\t located at memory ", cast(void*) car.backRight());
 }
 
-auto containerWithProfiles() {
-    auto container = new ApplicationContainer; // A composite container with singleton, prototype built in.
+auto decorated() {
+    auto gasoline = singleton.typed.switchable.enabled(false);
+    auto electric = singleton.typed.switchable.enabled(false);
+    auto diesel = singleton.typed.switchable.enabled(false);
 
-    auto electricProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
-    auto gasolineProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
-    auto dieselProfileContainer = singleton.switchable(); // creating a singleton, and decorating it with switchable container
-    auto subscribableContainer = container.subscribable(); // decorating joint container with subscribable container
+    auto cont = aggregate(
+        singleton, "singleton",
+        prototype, "prototype",
+        values, "parameters",
+        gasoline, "gasoline",
+        electric, "electric",
+        diesel, "diesel"
+    ).aliasing.gcRegistered.deffered;
 
-    container.set(electricProfileContainer, "electric");
-    container.set(gasolineProfileContainer, "gasoline");
-    container.set(dieselProfileContainer, "diesel");
-
-    subscribableContainer.subscribe(
+    return cont.subscribable.subscribe(
         ContainerInstantiationEventType.pre,
         {
-            foreach (element; container.locate!(string[])("profile")) {
-                if (container.has(element)) {
-                    try {
-
-                        container.locate!Switchable(element).enabled = true;
-                    } catch (InvalidCastException e) {
-
-                    }
-                }
+            if (cont.has(cont.locate!string("profile"))) {
+                cont.locate!Switchable(cont.locate!string("profile")).enabled = true;
+                return;
             }
+
+            throw new Exception("No engine profile selected. Specify it with -p");
         }
     );
-
-    return subscribableContainer;
 }
 
 void main(string[] args) {
 
-    auto container = containerWithProfiles();
+    auto cont = decorated();
     scope(exit) container.terminate();
 
     import std.getopt;
-    string[] profiles;
+    string profile;
 
     auto help = getopt(args,
-        "p|profile", &profiles
+        "p|profile", &profile
     );
 
-    with (container.locate!ValueContainer("parameters").configure()) {
+    with (cont.locate!ValueContainer("parameters").configure) {
 
-        register(profiles, "profile");
+        register(profile, "profile");
     }
 
-    with (container.configure("singleton")) {
-        register!Color; // Let's register a default implementation of Color
+    with (cont.configure("singleton", Mallocator.instance.allocatorObject)) {
+        register!Color;
 
-        register!Size // Let's register default implementation of a Size
+        register!Size
             .set!"width"(200UL)
             .set!"height"(150UL)
             .set!"length"(300UL);
-
-
 
         register!Car
             .autowire
@@ -523,26 +584,21 @@ void main(string[] args) {
             .set!"backRight"(lref!Tire);
     }
 
-    with (container.configure("prototype")) {
+    with (cont.configure("prototype").withConfigurationDefferring) {
         register!Tire
+            .autowire!"car"
             .set!"size"(17)
             .set!"pressure"(3.0)
             .set!"vendor"("divine tire");
     }
 
-    with (container.configure("diesel")) {
-        register!(Engine, DieselEngine);
-    }
+    cont.configure("diesel").register!DieselEngine;
+    cont.configure("gasoline").register!GasolineEngine;
+    cont.configure("electric").register!ElectricEngine;
 
-    with (container.configure("gasoline")) {
-        register!(Engine, GasolineEngine);
-    }
+    cont.link("electric", "ecological");
 
-    with (container.configure("electric")) {
-        register!(Engine, ElectricEngine);
-    }
+    cont.instantiate();
 
-    container.instantiate();
-
-    container.locate!Car.drive("");
+    cont.locate!Car.drive(profile);
 }

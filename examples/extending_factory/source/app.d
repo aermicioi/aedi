@@ -22,12 +22,12 @@ $(OL
     )
 
 A component factory, as name states is responsible for creation and assembly of components
-registered in container. Containers are using them to instantiate components, that are requested.
-In all tutorials up to this registering a component, was equivalent to creating a factory for
-it, and registering it in container. Afterwards factory was returned to the client code, were it was
+registered in container, as well as destroying them. Containers are using them to instantiate components,
+that are requested. In all tutorials up to this registering a component, was equivalent to creating a
+factory for it, and registering it in container. Afterwards factory was returned to the client code, were it was
 further configured, with construction and setter injections by code.
 
-When the default features of framework is not enough, it is possible to extend it, in several
+When the default features of framework are not enough, it is possible to extend it, in several
 directions mentioned above. For defining a new way of creating components, a factory interface
 in listing below is shown, which is minimal requirement for having the custom factories useable by
 containers. A factory encapsulates the logic required as to create and destroy a component.

@@ -46,7 +46,7 @@ Container:
 Container interface is the minimal requirement for a custom container to implement, since it
 offers component serving capabilities. Listing below presents the interface that is to be implemented
 by custom containers. It is meaningful to implement only this interface when, container will not
-integrate with any standard features that framework provides.
+integrate with any advanced features that framework provides.
 
 ------------------
 interface Container : Locator!(Object, string) {

@@ -14,13 +14,12 @@ customize the component that is created. It is practically a black box, that is 
 containers, and not by client code that needs to configure components registered in container.
 
 To support better configuration, without loosing black boxiness of presented $(D_INLINECODE Factory) interface,
-the process of creating and configuring a component was split into two distinct steps below:
+the process of creating and configuring a component was split into three distinct steps below:
 $(OL
     $(LI Allocation and construction of component )
     $(LI Configuration of component )
+    $(LI Destruct and deallocation of component)
     )
-It will explain how to integrate those steps in fluent manner to be used
-along with Aedi api for configuring components.
 
 The following steps are formalized into a set of interfaces shown below, where each step
 itself is encapsulated into objects implementing presented interfaces.

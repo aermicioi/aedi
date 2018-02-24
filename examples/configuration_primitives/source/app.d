@@ -17,6 +17,8 @@ $(OL
     $(LI $(D_INLINECODE autowire) )
     $(LI $(D_INLINECODE factoryMethod) )
     $(LI $(D_INLINECODE callback) )
+    $(LI $(D_INLINECODE value))
+    $(LI $(D_INLINECODE destructor))
 )
 
 Lets start with first one from list, which is $(D_INLINECODE autowire) method.
@@ -49,7 +51,7 @@ introspection, $(D_INLINECODE autowire) cannot work well with overloaded methods
 $(D_INLINECODE autowire) cannot know which version of method/constructor to overload, and will default to the
 first one from the list of overloads.
 
-factoryMethod:
+FactoryMethod:
 
 Frequently in applications that use third party code, components from that third party code,
 are instantiated using factories or other entities from that third party code, and the client code of
@@ -93,6 +95,33 @@ as a configuration primitive.
 -------------------
 Though it's quite a simple primitive, it is as well powerful one. It is possible to define your own
 custom configuration primitives just by using under the hood the $(D_INLINECODE callback) primitive.
+
+Value:
+The value primitive instructs container to use as basis an already constructed component. The component itself
+can be further configured using primitives specified above. The only specific case that should be taken into accout
+is the fact that using same value that is a reference type (a pointer, or class) in multiple components, will result into
+having same component with multiple identities in container. The container itself won't be aware of the relationship, as in case
+with aliasing. It is recommended that $(D_INLINECODE value) to be used only once per reference value.
+
+-------------------
+register!GasolineEngine
+    .value(new GasolineEngine(15)); // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
+-------------------
+
+Destructor:
+When container is shut down, the default behavior is to destroy all constructed components. The default destruction logic is to run destructor and
+deallocate the component. Sometimes, the default behavior is not desired, or additional logic should be run. In such cases $(D_INLINECODE destructor)
+primitive can be used to either pass a delegate, or factory method to be used to destroy the component.
+
+-------------------
+register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
+    .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref)
+    .destructor((IAllocator alloc, ref Car car) {
+        write("Crushing the car. ");
+        alloc.dispose(car);
+        writeln("Done");
+    });
+-------------------
 
 Those additional primitives are quite handy to use, with libraries that are usign factories,
 dependencies by interface, or when some custom behavior has to be run during construction of a
@@ -213,7 +242,11 @@ A concrete implementation of Engine that uses gasoline for propelling.
 **/
 class GasolineEngine : Engine {
 
+    private double consume;
     public {
+        this(double consume) {
+            this.consume = consume;
+        }
 
         void turnOn() {
             writeln("pururukVrooomVrrr");
@@ -221,7 +254,7 @@ class GasolineEngine : Engine {
         }
 
         void run() {
-            writeln("vrooom");
+            writeln("munch ", consume, " of litres vroom");
         }
 
         void turnOff() {
@@ -392,7 +425,7 @@ void drive(Car car, string name) {
 
 void main() {
     SingletonContainer container = singleton(); // Creating container that will manage a color
-    // scope(exit) container.terminate();
+    scope(exit) container.terminate();
 
     with (container.configure) {
         register!Color; // Let's register a default implementation of Color
@@ -412,8 +445,10 @@ void main() {
             .set!"height"(150UL)
             .set!"length"(500UL);
 
-        register!(Engine, GasolineEngine); // Register a gasoline engine as default implementation of an engine
-        register!GasolineEngine; // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
+        register!(Engine, GasolineEngine)
+            .construct(10.0); // Register a gasoline engine as default implementation of an engine
+        register!GasolineEngine
+            .value(new GasolineEngine(15)); // Register a gasoline engine. Note: this engine is not the same gasoline engine from default implementation.
         register!DieselEngine; // Register a diesel engine
 
         register!CarManufacturer; // Let's register a car manufacturer in our container.
@@ -423,7 +458,12 @@ void main() {
             .autowire!"color"(); // Inject default implementation of a Color.
 
         register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
-            .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref);
+            .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref)
+            .destructor((IAllocator alloc, ref Car car) {
+                write("Crushing the car with ", typeid(car.engine), " engine: ");
+                alloc.dispose(car);
+                writeln("Done");
+            });
 
         register!Car("sedan.engine.electric") // Register a car with electric engine
             .callback(
