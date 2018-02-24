@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<title>Function aggregate</title>
+		<title>aggregate - multiple declarations</title>
 		<link rel="stylesheet" href="../../../../../css/style.min.css"/>
 		<script type="text/javascript" src="../../../../../js/script.min.js"></script>
 	</head>
@@ -115,6 +115,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="../../../../../aermicioi/aedi/container/decorating_mixin.html">decorating_mixin</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../../aermicioi/aedi/container/deffered_container.html">deffered_container</a>
 						</div>
 					</li>
 					<li>
@@ -319,6 +324,17 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 						</div>
 				<ul class="tree-view">
 					<li class="tree-view collapsed">
+						<div class="package ">annotation
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../../aermicioi/aedi/test/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
 						<div class="package ">register
 						</div>
 				<ul class="tree-view">
@@ -343,6 +359,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="../../../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../../aermicioi/aedi/test/container/aliasing_container.html">aliasing_container</a>
 						</div>
 					</li>
 					<li>
@@ -598,7 +619,21 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 		</nav>
 		<div id="main-contents">
 			<div>
-				<h1>Function aggregate</h1><p>Wraps up several containers into one.
+				<h1>aggregate - multiple declarations</h1>
+				<nav class="page-nav">
+					<ul>
+						<li>
+							<a href="#0">
+								Function <code>aggregate</code>
+							</a>
+						</li>
+						<li>
+							<a href="#1">
+								Function <code>aggregate</code>
+							</a>
+						</li>
+					</ul>
+				</nav><h2 id="0">Function aggregate</h2><p>Wraps up several containers into one.
 </p>
 				<div class="prototype">
 					<code class="lang-d">
@@ -606,7 +641,7 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 				<span class="kwd">auto </span><span class="kwd">auto</span> <span class="pln">aggregate</span>(T...)
 				<span class="pun">(</span>
 				<br/>
-				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/container/container/Container.html"><span class="typ">Container</span></a> <span class="pln">managed</span><span class="pun">,</span>
+				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/storage/container/Container.html"><span class="typ">Container</span></a> <span class="pln">managed</span><span class="pun">,</span>
 				<br/>
 				&nbsp;&nbsp;<span class="typ">string</span> <span class="pln">identity</span><span class="pun">,</span>
 				<br/>
@@ -618,18 +653,38 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 				</div>
 				<section></section>
 
-				<section><h2>Parameters</h2>
+				<section><h3>Parameters</h3>
 <table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
 <tr><td id="managed">managed</td><td> first container managed by aggregate one</td></tr>
 <tr><td id="identity">identity</td><td> identity of container by which it is possible to identify it</td></tr>
 <tr><td id="manageds">manageds</td><td> a set of containers in pairs of (managed, identity)</td></tr>
 </table>
 </section>
-<section><h2>Returns</h2>
+<section><h3>Returns</h3>
 <p>TupleContainer!T
 </p>
 </section>
-
+<h2 id="1">Function aggregate</h2><p></p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="kwd">auto </span><span class="kwd">auto</span> <span class="pln">aggregate</span>(T...)
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/container/aggregate_container/AggregateContainer.html"><span class="typ">AggregateContainer</span></a> <span class="pln">container</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/storage/container/Container.html"><span class="typ">Container</span></a> <span class="pln">managed</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="typ">string</span> <span class="pln">identity</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="pln">T</span> <span class="pln">manageds</span>
+				<br/>
+				<span class="pun">)</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				
+				
 			</div>
 			<footer>
 				<div id="license-info">

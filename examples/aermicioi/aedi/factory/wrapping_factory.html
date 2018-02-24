@@ -119,6 +119,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					</li>
 					<li>
 						<div class="module ">
+							<a href="../../../aermicioi/aedi/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
 							<a href="../../../aermicioi/aedi/container/factory.html">factory</a>
 						</div>
 					</li>
@@ -319,6 +324,17 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 						</div>
 				<ul class="tree-view">
 					<li class="tree-view collapsed">
+						<div class="package ">annotation
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../aermicioi/aedi/test/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
 						<div class="package ">register
 						</div>
 				<ul class="tree-view">
@@ -343,6 +359,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../aermicioi/aedi/test/container/aliasing_container.html">aliasing_container</a>
 						</div>
 					</li>
 					<li>
@@ -601,6 +622,47 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 				<h1>Module aermicioi.aedi.factory.wrapping_factory</h1><p></p>
 				<section></section>
 				<section>
+					<h2>Functions</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="__ctor" class="public" href="../../../aermicioi/aedi/factory/wrapping_factory/__ctor.html">__ctor</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="__dtor" class="public" href="../../../aermicioi/aedi/factory/wrapping_factory/__dtor.html">__dtor</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="__how" class="public" href="../../../aermicioi/aedi/factory/wrapping_factory/__how.html">__how</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="__method" class="public" href="../../../aermicioi/aedi/factory/wrapping_factory/__method.html">__method</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
+				<section>
 					<h2>Classes</h2>
 					<table>
 						<col class="caption"/>
@@ -625,6 +687,53 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 							<td>Wraps up the result of some factory in Wrapper object if component is not
 derived from Object.
 </td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="DefferedProxyHusk" class="private" href="../../../aermicioi/aedi/factory/wrapping_factory/DefferedProxyHusk.html">DefferedProxyHusk</a>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<h2>Manifest constants</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Type</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a id="__what" class="public" href="../../../aermicioi/aedi/factory/wrapping_factory/__what.html">
+									<code>__what</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<h2>Aliases</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Type</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a id="DefferedProxy" class="public" href="../../../aermicioi/aedi/factory/wrapping_factory/DefferedProxy.html">
+									<code>DefferedProxy</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><span class="typ">AutoImplement</span>!(DefferedProxyHusk!T,__how,__what)</code>
+							</td>
+							<td></td>
 						</tr>
 					</table>
 				</section>

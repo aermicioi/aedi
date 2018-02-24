@@ -119,6 +119,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					</li>
 					<li>
 						<div class="module ">
+							<a href="../../../aermicioi/aedi/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
 							<a href="../../../aermicioi/aedi/container/factory.html">factory</a>
 						</div>
 					</li>
@@ -319,6 +324,17 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 						</div>
 				<ul class="tree-view">
 					<li class="tree-view collapsed">
+						<div class="package ">annotation
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../aermicioi/aedi/test/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
 						<div class="package ">register
 						</div>
 				<ul class="tree-view">
@@ -343,6 +359,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../aermicioi/aedi/test/container/aliasing_container.html">aliasing_container</a>
 						</div>
 					</li>
 					<li>
@@ -601,6 +622,23 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 				<h1>Module aermicioi.util.traits.partial</h1><p></p>
 				<section></section>
 				<section>
+					<h2>Functions</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="curry" class="public" href="../../../aermicioi/util/traits/partial/curry.html">curry</a><span class="decoration">(func, args)</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
+				<section>
 					<h2>Templates</h2>
 					<table>
 						<col class="caption"/>
@@ -634,6 +672,14 @@ to pred.
 							</td>
 							<td>Instantiate a template that will check equality of first with second
 </td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="get" class="public" href="../../../aermicioi/util/traits/partial/get.html">get</a>
+								</code>
+							</td>
+							<td></td>
 						</tr>
 						<tr>
 							<td>
@@ -689,6 +735,43 @@ to pred.
 							<td>Apply to Preds a set of Args.
 </td>
 						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="staticAssert" class="public" href="../../../aermicioi/util/traits/partial/staticAssert.html">staticAssert</a>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<h2>Manifest constants</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Type</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a id="allSatisfied" class="public" href="../../../aermicioi/util/traits/partial/allSatisfied.html">
+									<code>allSatisfied</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="anySatisfied" class="public" href="../../../aermicioi/util/traits/partial/anySatisfied.html">
+									<code>anySatisfied</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
 					</table>
 				</section>
 				<section>
@@ -712,6 +795,72 @@ to pred.
 						</tr>
 						<tr>
 							<td>
+								<a id="onFail" class="public" href="../../../aermicioi/util/traits/partial/onFail.html">
+									<code>onFail</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><a href="../../../aermicioi/util/traits/partial/if_.html"><span class="pln">if_</span></a>!(isTrue,isTrue,chain!(get!0,partialPrefixed!(tee,pred)))</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="onFailPrint" class="public" href="../../../aermicioi/util/traits/partial/onFailPrint.html">
+									<code>onFailPrint</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><a href="../../../aermicioi/util/traits/partial/onFail.html"><span class="pln">onFail</span></a>!(partialSuffixed!(pragmaMsg,error))</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="partialPrefixed" class="public" href="../../../aermicioi/util/traits/partial/partialPrefixed.html">
+									<code>partialPrefixed</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"></code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="partialPrefixed" class="public" href="../../../aermicioi/util/traits/partial/partialPrefixed.html">
+									<code>partialPrefixed</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"></code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="partialSuffixed" class="public" href="../../../aermicioi/util/traits/partial/partialSuffixed.html">
+									<code>partialSuffixed</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"></code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="partialSuffixed" class="public" href="../../../aermicioi/util/traits/partial/partialSuffixed.html">
+									<code>partialSuffixed</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"></code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
 								<a id="reverse" class="public" href="../../../aermicioi/util/traits/partial/reverse.html">
 									<code>reverse</code>
 								</a>
@@ -721,6 +870,17 @@ to pred.
 							</td>
 							<td>Reverse the order of arguments.
 </td>
+						</tr>
+						<tr>
+							<td>
+								<a id="tee" class="public" href="../../../aermicioi/util/traits/partial/tee.html">
+									<code>tee</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><span class="pln">args</span></code>
+							</td>
+							<td></td>
 						</tr>
 					</table>
 				</section>

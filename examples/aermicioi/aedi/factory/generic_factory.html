@@ -119,6 +119,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					</li>
 					<li>
 						<div class="module ">
+							<a href="../../../aermicioi/aedi/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
 							<a href="../../../aermicioi/aedi/container/factory.html">factory</a>
 						</div>
 					</li>
@@ -319,6 +324,17 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 						</div>
 				<ul class="tree-view">
 					<li class="tree-view collapsed">
+						<div class="package ">annotation
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../aermicioi/aedi/test/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
 						<div class="package ">register
 						</div>
 				<ul class="tree-view">
@@ -343,6 +359,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../aermicioi/aedi/test/container/aliasing_container.html">aliasing_container</a>
 						</div>
 					</li>
 					<li>
@@ -698,6 +719,14 @@ method or constructor.
 							<td>Calls component's method with a set of arguments.
 </td>
 						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="compileArgumentsTuple" class="private" href="../../../aermicioi/aedi/factory/generic_factory/compileArgumentsTuple.html">compileArgumentsTuple</a><span class="decoration">(types, array, locator)</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
 					</table>
 				</section>
 				<section>
@@ -940,6 +969,30 @@ to some third party factory.
 						<tr>
 							<td>
 								<code>
+									<a id="assertFieldCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/assertFieldCompatible.html">assertFieldCompatible</a>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="assertObjectConstructorCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/assertObjectConstructorCompatible.html">assertObjectConstructorCompatible</a>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="assertObjectMethodCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/assertObjectMethodCompatible.html">assertObjectMethodCompatible</a>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
 									<a id="FactoryMethodInstanceFactory" class="public" href="../../../aermicioi/aedi/factory/generic_factory/FactoryMethodInstanceFactory.html">FactoryMethodInstanceFactory</a>
 								</code>
 							</td>
@@ -958,6 +1011,85 @@ to some third party factory.
 					</table>
 				</section>
 				<section>
+					<h2>Manifest constants</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Type</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a id="isFieldCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/isFieldCompatible.html">
+									<code>isFieldCompatible</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isMethodCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/isMethodCompatible.html">
+									<code>isMethodCompatible</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isObjectConstructorCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/isObjectConstructorCompatible.html">
+									<code>isObjectConstructorCompatible</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isObjectMethodCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/isObjectMethodCompatible.html">
+									<code>isObjectMethodCompatible</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isStruct" class="private" href="../../../aermicioi/aedi/factory/generic_factory/isStruct.html">
+									<code>isStruct</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isValueOfType" class="private" href="../../../aermicioi/aedi/factory/generic_factory/isValueOfType.html">
+									<code>isValueOfType</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isValueOfType" class="private" href="../../../aermicioi/aedi/factory/generic_factory/isValueOfType.html">
+									<code>isValueOfType</code>
+								</a>
+							</td>
+							<td>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
+				<section>
 					<h2>Aliases</h2>
 					<table>
 						<col class="caption"/>
@@ -971,10 +1103,65 @@ to some third party factory.
 								</a>
 							</td>
 							<td>
-								<code class="prettyprint lang-d"><span class="typ">FirstTemplate</span>!W</code>
+								<code class="prettyprint lang-d"><a href="../../../aermicioi/aedi/factory/generic_factory/FactoryMethodBasedFactory.FirstTemplate.html"><span class="typ">FactoryMethodBasedFactory<wbr/></span><span class="pun">.<wbr/></span><span class="typ">FirstTemplate</span></a>!W</code>
 							</td>
 							<td>Instantiates a component using a method from other component (factory method pattern).
 </td>
+						</tr>
+						<tr>
+							<td>
+								<a id="getCompatibleOverload" class="public" href="../../../aermicioi/aedi/factory/generic_factory/getCompatibleOverload.html">
+									<code>getCompatibleOverload</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><span class="typ">Filter</span>!(partialSuffixed!(isArgumentListCompatible,Args),getOverloads!(T,method))<span class="pun">[</span><span class="lit">0</span><span class="pun">]</span></code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isNonStaticMethodCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/isNonStaticMethodCompatible.html">
+									<code>isNonStaticMethodCompatible</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"></code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isNonStaticMethodCompatibleAndReturnTypeOf" class="public" href="../../../aermicioi/aedi/factory/generic_factory/isNonStaticMethodCompatibleAndReturnTypeOf.html">
+									<code>isNonStaticMethodCompatibleAndReturnTypeOf</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"><span class="pln">templateAnd</span>!(isMethodCompatible,chain!(templateNot!isStaticFunction,getCompatibleOverload),partialSuffixed!(chain!(partialPrefixed!(get,0),getCompatibleOverload),X))</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="isStaticMethodCompatible" class="public" href="../../../aermicioi/aedi/factory/generic_factory/isStaticMethodCompatible.html">
+									<code>isStaticMethodCompatible</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"></code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<a id="hasDefaultCtor" class="private" href="../../../aermicioi/aedi/factory/generic_factory/hasDefaultCtor.html">
+									<code>hasDefaultCtor</code>
+								</a>
+							</td>
+							<td>
+								<code class="prettyprint lang-d"></code>
+							</td>
+							<td></td>
 						</tr>
 					</table>
 				</section>

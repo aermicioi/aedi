@@ -119,6 +119,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					</li>
 					<li>
 						<div class="module ">
+							<a href="./aermicioi/aedi/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
 							<a href="./aermicioi/aedi/container/factory.html">factory</a>
 						</div>
 					</li>
@@ -319,6 +324,17 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 						</div>
 				<ul class="tree-view">
 					<li class="tree-view collapsed">
+						<div class="package ">annotation
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
 						<div class="package ">register
 						</div>
 				<ul class="tree-view">
@@ -343,6 +359,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="./aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/aliasing_container.html">aliasing_container</a>
 						</div>
 					</li>
 					<li>
@@ -725,7 +746,7 @@ shown below and consists of following steps:
 <p>Following snippet of code shows all decorating containers in use except of proxy one.
 </p>
 
-<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">decorated</span><span class="pun">() {
+<pre class="code"><code class="lang-d"><span class="kwd">auto <a href="./decorating_containers/decorated.html"></span><span class="pln">decorated</span></a><span class="pun">() {
     </span><span class="kwd">auto </span><span class="pln">gasoline </span><span class="pun">= </span><span class="pln">singleton<wbr/></span><span class="pun">.</span><span class="pln">typed<wbr/></span><span class="pun">.</span><span class="pln">switchable<wbr/></span><span class="pun">.</span><span class="pln">enabled</span><span class="pun">(</span><span class="kwd">false</span><span class="pun">);
     </span><span class="kwd">auto </span><span class="pln">electric </span><span class="pun">= </span><span class="pln">singleton<wbr/></span><span class="pun">.</span><span class="pln">typed<wbr/></span><span class="pun">.</span><span class="pln">switchable<wbr/></span><span class="pun">.</span><span class="pln">enabled</span><span class="pun">(</span><span class="kwd">false</span><span class="pun">);
     </span><span class="kwd">auto </span><span class="pln">diesel </span><span class="pun">= </span><span class="pln">singleton<wbr/></span><span class="pun">.</span><span class="pln">typed<wbr/></span><span class="pun">.</span><span class="pln">switchable<wbr/></span><span class="pun">.</span><span class="pln">enabled</span><span class="pun">(</span><span class="kwd">false</span><span class="pun">);
@@ -774,6 +795,39 @@ Experiment with it, to understand decorating containers.
 </p>
 </section>
 </section>
+				<section>
+					<h2>Functions</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="decorated" class="public" href="./decorating_containers/decorated.html">decorated</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="drive" class="public" href="./decorating_containers/drive.html">drive</a><span class="decoration">(car, name)</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="main" class="public" href="./decorating_containers/main.html">main</a><span class="decoration">(args)</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
 				<section>
 					<h2>Interfaces</h2>
 					<table>

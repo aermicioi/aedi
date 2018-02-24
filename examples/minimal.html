@@ -119,6 +119,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					</li>
 					<li>
 						<div class="module ">
+							<a href="./aermicioi/aedi/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
 							<a href="./aermicioi/aedi/container/factory.html">factory</a>
 						</div>
 					</li>
@@ -319,6 +324,17 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 						</div>
 				<ul class="tree-view">
 					<li class="tree-view collapsed">
+						<div class="package ">annotation
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
 						<div class="package ">register
 						</div>
 				<ul class="tree-view">
@@ -343,6 +359,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="./aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./aermicioi/aedi/test/container/aliasing_container.html">aliasing_container</a>
 						</div>
 					</li>
 					<li>
@@ -699,42 +720,42 @@ A class representing a car.
     }
 }
 
-</span><span class="kwd">class </span><span class="typ">Mercedes </span><span class="pun">: <a href="./minimal/Car.html"></span><span class="typ">Car</span></a><span class="pln"> </span><span class="pun">{
+</span><span class="kwd">class <a href="./minimal/Mercedes.html"></span><span class="typ">Mercedes</span></a><span class="pln"> </span><span class="pun">: <a href="./minimal/Car.html"></span><span class="typ">Car</span></a><span class="pln"> </span><span class="pun">{
     </span><span class="kwd">this</span><span class="pun">(<a href="./minimal/Size.html"></span><span class="typ">Size</span></a><span class="pln"> s</span><span class="pun">) {
         </span><span class="kwd">super</span><span class="pun">(</span><span class="pln">s</span><span class="pun">);
     }
 }
 
-</span><span class="kwd">class </span><span class="typ">Volkswagen </span><span class="pun">: <a href="./minimal/Car.html"></span><span class="typ">Car</span></a><span class="pln"> </span><span class="pun">{
+</span><span class="kwd">class <a href="./minimal/Volkswagen.html"></span><span class="typ">Volkswagen</span></a><span class="pln"> </span><span class="pun">: <a href="./minimal/Car.html"></span><span class="typ">Car</span></a><span class="pln"> </span><span class="pun">{
     </span><span class="kwd">this</span><span class="pun">(<a href="./minimal/Size.html"></span><span class="typ">Size</span></a><span class="pln"> s</span><span class="pun">) {
         </span><span class="kwd">super</span><span class="pun">(</span><span class="pln">s</span><span class="pun">);
     }
 }
 
 @</span><span class="pln">component </span><span class="com">// Configuration component that creates components managed by container.
-</span><span class="kwd">class </span><span class="typ">Manufacturer </span><span class="pun">{
+</span><span class="kwd">class <a href="./minimal/Manufacturer.html"></span><span class="typ">Manufacturer</span></a><span class="pln"> </span><span class="pun">{
 
     </span><span class="kwd">public </span><span class="pun">{
         @</span><span class="pln">component </span><span class="com">// Add component to container that is constructed by Manufacturer.
-        </span><span class="typ">Mercedes </span><span class="pln">makeMercedes</span><span class="pun">() {
-            </span><span class="kwd">return new </span><span class="typ">Mercedes</span><span class="pun">(<a href="./minimal/Size.html"></span><span class="typ">Size</span></a><span class="pun">(</span><span class="lit">201</span><span class="pun">, </span><span class="lit">150</span><span class="pun">, </span><span class="lit">501</span><span class="pun">));
+        <a href="./minimal/Mercedes.html"></span><span class="typ">Mercedes</span></a><span class="pln"> makeMercedes</span><span class="pun">() {
+            </span><span class="kwd">return new <a href="./minimal/Mercedes.html"></span><span class="typ">Mercedes</span></a><span class="pun">(<a href="./minimal/Size.html"></span><span class="typ">Size</span></a><span class="pun">(</span><span class="lit">201</span><span class="pun">, </span><span class="lit">150</span><span class="pun">, </span><span class="lit">501</span><span class="pun">));
         }
     }
 }
 
-</span><span class="typ">void </span><span class="pln">print</span><span class="pun">(<a href="./minimal/Car.html"></span><span class="typ">Car</span></a><span class="pln"> car</span><span class="pun">) {
+</span><span class="typ">void <a href="./minimal/print.html"></span><span class="pln">print</span></a><span class="pun">(<a href="./minimal/Car.html"></span><span class="typ">Car</span></a><span class="pln"> car</span><span class="pun">) {
     </span><span class="pln">writeln</span><span class="pun">(</span><span class="str">"You bought a new "</span><span class="pun">, </span><span class="pln">car<wbr/></span><span class="pun">.</span><span class="pln">classinfo<wbr/></span><span class="pun">.</span><span class="pln">name</span><span class="pun">, </span><span class="str">" with following specs:"</span><span class="pun">);
     </span><span class="pln">writeln</span><span class="pun">(</span><span class="str">"Size:\t"</span><span class="pun">, </span><span class="pln">car<wbr/></span><span class="pun">.</span><span class="pln">size</span><span class="pun">());
     </span><span class="pln">writeln</span><span class="pun">(</span><span class="str">"Color:\t"</span><span class="pun">, </span><span class="pln">car<wbr/></span><span class="pun">.</span><span class="pln">color</span><span class="pun">());
 }
 
-</span><span class="typ">void </span><span class="pln">main</span><span class="pun">() {
+</span><span class="typ">void <a href="./minimal/main.html"></span><span class="pln">main</span></a><span class="pun">() {
     </span><span class="kwd">auto </span><span class="pln">container </span><span class="pun">= </span><span class="pln">singleton</span><span class="pun">(); </span><span class="com">// 1. Create container that will manage a color
     </span><span class="kwd">scope</span><span class="pun">(</span><span class="pln">exit</span><span class="pun">) </span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">terminate</span><span class="pun">(); </span><span class="com">// 6. Shutdown the container
 
     </span><span class="kwd">with </span><span class="pun">(</span><span class="pln">container<wbr/></span><span class="pun">.</span><span class="pln">configure</span><span class="pun">) {
 
-        </span><span class="pln">register</span><span class="pun">!</span><span class="typ">Volkswagen </span><span class="com">// 2. Register color into container.
+        </span><span class="pln">register</span><span class="pun">!<a href="./minimal/Volkswagen.html"></span><span class="typ">Volkswagen</span></a><span class="pln"> </span><span class="com">// 2. Register color into container.
             <wbr/></span><span class="pun">.</span><span class="pln">construct</span><span class="pun">(<a href="./minimal/Size.html"></span><span class="typ">Size</span></a><span class="pun">(</span><span class="lit">100</span><span class="pun">, </span><span class="lit">200</span><span class="pun">, </span><span class="lit">500</span><span class="pun">))
             <wbr/>.</span><span class="pln">set</span><span class="pun">!</span><span class="str">"color"</span><span class="pun">(</span><span class="str">"blue"<wbr/></span><span class="pun">.</span><span class="pln">lref</span><span class="pun">); </span><span class="com">// 3. Bind blue color from container
 
@@ -755,6 +776,31 @@ A class representing a car.
 </section>
 </section>
 				<section>
+					<h2>Functions</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="main" class="public" href="./minimal/main.html">main</a><span class="decoration">()</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="print" class="public" href="./minimal/print.html">print</a><span class="decoration">(car)</span>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</section>
+				<section>
 					<h2>Classes</h2>
 					<table>
 						<col class="caption"/>
@@ -769,6 +815,30 @@ A class representing a car.
 							</td>
 							<td>A class representing a car.
 </td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="Manufacturer" class="public" href="./minimal/Manufacturer.html">Manufacturer</a>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="Mercedes" class="public" href="./minimal/Mercedes.html">Mercedes</a>
+								</code>
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<code>
+									<a id="Volkswagen" class="public" href="./minimal/Volkswagen.html">Volkswagen</a>
+								</code>
+							</td>
+							<td></td>
 						</tr>
 					</table>
 				</section>

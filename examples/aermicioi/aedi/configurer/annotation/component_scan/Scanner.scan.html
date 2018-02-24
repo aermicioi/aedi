@@ -119,6 +119,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					</li>
 					<li>
 						<div class="module ">
+							<a href="../../../../../aermicioi/aedi/container/deffered_container.html">deffered_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
 							<a href="../../../../../aermicioi/aedi/container/factory.html">factory</a>
 						</div>
 					</li>
@@ -319,6 +324,17 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 						</div>
 				<ul class="tree-view">
 					<li class="tree-view collapsed">
+						<div class="package ">annotation
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../../../../aermicioi/aedi/test/configurer/annotation/component_scan.html">component_scan</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
 						<div class="package ">register
 						</div>
 				<ul class="tree-view">
@@ -343,6 +359,11 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 					<li>
 						<div class="module ">
 							<a href="../../../../../aermicioi/aedi/test/container/aggregate_container.html">aggregate_container</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../../../aermicioi/aedi/test/container/aliasing_container.html">aliasing_container</a>
 						</div>
 					</li>
 					<li>
@@ -616,6 +637,21 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 								Function <code>Scanner.scan</code>
 							</a>
 						</li>
+						<li>
+							<a href="#3">
+								Function <code>Scanner.scan</code>
+							</a>
+						</li>
+						<li>
+							<a href="#4">
+								Function <code>Scanner.scan</code>
+							</a>
+						</li>
+						<li>
+							<a href="#5">
+								Function <code>Scanner.scan</code>
+							</a>
+						</li>
 					</ul>
 				</nav><h2 id="0">Function Scanner.scan</h2><p>Scan symbol T for possible components using ContainerAdderPolicy
 </p>
@@ -696,22 +732,6 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/container/container/ConfigurableContainer.html"><span class="typ">ConfigurableContainer</span></a> <span class="pln">container</span>
 				<br/>
 				<span class="pun">)</span><span class="pun">;</span>
-				<br/>
-				<br/>
-				<span class="typ">void</span> <span class="pln">scan</span>(alias T, St, X...)
-				<span class="pun">(</span>
-				<br/>
-				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/storage/locator/Locator.html"><span class="typ">Locator</span></a>!() <span class="pln">locator</span>
-				<br/>
-				<span class="pun">)</span><span class="pun">;</span>
-				<br/>
-				<br/>
-				<span class="typ">void</span> <span class="pln">scan</span>(alias T, X...)
-				<span class="pun">(</span>
-				<br/>
-				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/storage/locator/Locator.html"><span class="typ">Locator</span></a>!() <span class="pln">locator</span>
-				<br/>
-				<span class="pun">)</span><span class="pun">;</span>
 						</div>
 					</code>
 				</div>
@@ -722,7 +742,49 @@ document.getElementById('symbolSearchPane').style.display = 'block';</script>
 <tr><td id="container">container</td><td> container where to store and from which to locate dependencies for components</td></tr>
 </table>
 </section>
-
+<h2 id="3">Function Scanner.scan</h2><p></p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="typ">void</span> <span class="pln">scan</span>(alias T, St)
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/storage/locator/Locator.html"><span class="typ">Locator</span></a>!() <span class="pln">locator</span>
+				<br/>
+				<span class="pun">)</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				
+				<h2 id="4">Function Scanner.scan</h2><p></p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="typ">void</span> <span class="pln">scan</span>(alias T, St, X...)
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/storage/locator/Locator.html"><span class="typ">Locator</span></a>!() <span class="pln">locator</span>
+				<br/>
+				<span class="pun">)</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				
+				<h2 id="5">Function Scanner.scan</h2><p></p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="typ">void</span> <span class="pln">scan</span>(alias T, X...)
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<a href="../../../../../aermicioi/aedi/storage/locator/Locator.html"><span class="typ">Locator</span></a>!() <span class="pln">locator</span>
+				<br/>
+				<span class="pun">)</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				
+				
 			</div>
 			<footer>
 				<div id="license-info">
