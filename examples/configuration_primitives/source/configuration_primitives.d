@@ -116,7 +116,7 @@ primitive can be used to either pass a delegate, or factory method to be used to
 -------------------
 register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
     .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref)
-    .destructor((IAllocator alloc, ref Car car) {
+    .destructor((RCIAllocator alloc, ref Car car) {
         write("Crushing the car. ");
         alloc.dispose(car);
         writeln("Done");
@@ -459,7 +459,7 @@ void main() {
 
         register!Car("car_manufacturer.product.sedan") // Register a car with gasoline engine
             .factoryMethod!(CarManufacturer, "manufacture")(lref!CarManufacturer, "size.sedan".lref)
-            .destructor((IAllocator alloc, ref Car car) {
+            .destructor((RCIAllocator alloc, ref Car car) {
                 write("Crushing the car with ", typeid(car.engine), " engine: ");
                 alloc.dispose(car);
                 writeln("Done");
@@ -467,7 +467,7 @@ void main() {
 
         register!Car("sedan.engine.electric") // Register a car with electric engine
             .callback(
-                delegate (IAllocator allocator, Locator!() loc) { // Let's construct our car using some custom logic that isn't possible to express with a simple construct method call.
+                delegate (RCIAllocator allocator, Locator!() loc) { // Let's construct our car using some custom logic that isn't possible to express with a simple construct method call.
                     Car car = allocator.make!Car(loc.locate!Size, new ElectricEngine());
 
                     return car;

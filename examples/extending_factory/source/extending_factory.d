@@ -56,18 +56,18 @@ D programming language.
 class LoggingFactory(T) : Factory!T {
     private {
         Locator!() locator_;
-        IAllocator allocator_;
+        RCIAllocator allocator_;
     }
 
     public {
         @property {
-            typeof(this) allocator(IAllocator allocator) @safe nothrow pure {
+            typeof(this) allocator(RCIAllocator allocator) @safe nothrow pure {
                 this.allocator_ = allocator;
 
                 return this;
             }
 
-            IAllocator allocator() @safe nothrow pure {
+            RCIAllocator allocator() @safe nothrow pure {
                 return this.allocator_;
             }
         }
@@ -208,7 +208,7 @@ import std.experimental.allocator;
 class LoggingFactory(T) : Factory!T {
     private {
         Locator!() locator_;
-        IAllocator allocator_;
+        RCIAllocator allocator_;
     }
 
     public {
@@ -222,7 +222,7 @@ class LoggingFactory(T) : Factory!T {
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(IAllocator allocator) @safe nothrow pure {
+            typeof(this) allocator(RCIAllocator allocator) @safe nothrow pure {
                 this.allocator_ = allocator;
 
                 return this;
@@ -232,9 +232,9 @@ class LoggingFactory(T) : Factory!T {
             Get allocator
 
             Returns:
-                IAllocator
+                RCIAllocator
             **/
-            inout(IAllocator) allocator() @safe nothrow pure inout {
+            inout(RCIAllocator) allocator() @safe nothrow pure inout {
                 return this.allocator_;
             }
         }

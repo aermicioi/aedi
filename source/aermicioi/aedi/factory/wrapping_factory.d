@@ -45,7 +45,7 @@ derived from Object.
 class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
 
     private {
-        IAllocator allocator_;
+        RCIAllocator allocator_;
 
         T decorated_;
     }
@@ -75,7 +75,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(IAllocator allocator) @safe nothrow
+            typeof(this) allocator(RCIAllocator allocator) @safe nothrow
             in {
                 assert(allocator !is null);
             }
@@ -90,9 +90,9 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
             Get allocator
 
             Returns:
-                IAllocator
+                RCIAllocator
             **/
-            IAllocator allocator() @safe nothrow {
+            RCIAllocator allocator() @safe nothrow {
                 return this.allocator_;
             }
             /**
@@ -250,12 +250,12 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
     private {
 
         DefferredExecutioner executioner_;
-        IAllocator allocator_;
+        RCIAllocator allocator_;
     }
 
     invariant {
         assert(decorated_ !is null);
-        assert(allocator_ !is null);
+        assert(!allocator_.isNull);
     }
 
     public {
@@ -279,7 +279,7 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(IAllocator allocator) @safe nothrow {
+            typeof(this) allocator(RCIAllocator allocator) @safe nothrow {
                 this.allocator_ = allocator;
                 this.decorated.allocator = allocator;
 
@@ -290,9 +290,9 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
             Get allocator
 
             Returns:
-                IAllocator
+                RCIAllocator
             **/
-            IAllocator allocator() @safe nothrow {
+            RCIAllocator allocator() @safe nothrow {
                 return this.allocator_;
             }
             /**

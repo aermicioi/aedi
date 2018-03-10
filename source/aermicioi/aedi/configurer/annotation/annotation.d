@@ -51,6 +51,9 @@ import std.typecons;
 import std.conv : to;
 import std.algorithm;
 import std.experimental.allocator;
+import std.experimental.allocator.gc_allocator;
+import std.experimental.allocator.mmap_allocator;
+import std.experimental.allocator.mallocator;
 
 /**
 Check if T is instance of ComponentAnnotation
@@ -119,7 +122,8 @@ Use allocator to allocate component.
 Params:
     allocator = allocator used to allocate the component
 **/
-struct AllocatorAnnotation(T = IAllocator) {
+struct AllocatorAnnotation(T = RCIAllocator)
+    if (!hasStaticMember!(T, "instance")) {
 
     T allocator;
 
@@ -127,10 +131,26 @@ struct AllocatorAnnotation(T = IAllocator) {
     Get iallocator
 
     Returns:
-        IAllocator
+        RCIAllocator
     **/
-    IAllocator iallocator() {
+    RCIAllocator iallocator() {
         return this.allocator.allocatorObject;
+    }
+}
+
+struct AllocatorAnnotation(T)
+    if (hasStaticMember!(T, "instance")) {
+
+    T allocator;
+
+    /**
+    Get iallocator
+
+    Returns:
+        RCIAllocator
+    **/
+    RCIAllocator iallocator() {
+        return T.instance.allocatorObject;
     }
 }
 
@@ -139,6 +159,27 @@ ditto
 **/
 AllocatorAnnotation!T allocator(T)(T allocator) {
     return AllocatorAnnotation!T(allocator);
+}
+
+/**
+ditto
+**/
+AllocatorAnnotation!T allocator(T : GCAllocator)() {
+    return AllocatorAnnotation!T();
+}
+
+/**
+ditto
+**/
+AllocatorAnnotation!T allocator(T : MmapAllocator)() {
+    return AllocatorAnnotation!T();
+}
+
+/**
+ditto
+**/
+AllocatorAnnotation!T allocator(T : Mallocator)() {
+    return AllocatorAnnotation!T();
 }
 
 /**
@@ -233,7 +274,7 @@ Params:
 	Args = type tuple of args that can be passed to delegate.
 **/
 struct CallbackFactoryAnnotation(Z, Dg, Args...)
-    if ((is(Dg == Z delegate (IAllocator, Locator!(), Args)) || is(Dg == Z function (IAllocator, Locator!(), Args)))) {
+    if ((is(Dg == Z delegate (RCIAllocator, Locator!(), Args)) || is(Dg == Z function (RCIAllocator, Locator!(), Args)))) {
     Tuple!Args args;
     Dg dg;
 
@@ -253,15 +294,15 @@ struct CallbackFactoryAnnotation(Z, Dg, Args...)
 /**
 ditto
 **/
-auto fact(T, Args...)(T delegate(IAllocator, Locator!(), Args) dg, Args args) {
-    return CallbackFactoryAnnotation!(T, T delegate(IAllocator, Locator!(), Args), Args)(dg, args);
+auto fact(T, Args...)(T delegate(RCIAllocator, Locator!(), Args) dg, Args args) {
+    return CallbackFactoryAnnotation!(T, T delegate(RCIAllocator, Locator!(), Args), Args)(dg, args);
 }
 
 /**
 ditto
 **/
-auto fact(T, Args...)(T function(IAllocator, Locator!(), Args) dg, Args args) {
-    return CallbackFactoryAnnotation!(T, T function(IAllocator, Locator!(), Args), Args)(dg, args);
+auto fact(T, Args...)(T function(RCIAllocator, Locator!(), Args) dg, Args args) {
+    return CallbackFactoryAnnotation!(T, T function(RCIAllocator, Locator!(), Args), Args)(dg, args);
 }
 
 /**
@@ -452,7 +493,7 @@ Params:
     dg = callback used to destroy the component
     args = arguments passed to callback to destroy the component
 **/
-struct CallbackDestructor(T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...) {
+struct CallbackDestructor(T, Dg : void delegate(RCIAllocator, ref T destructable, Args), Args...) {
     Dg dg;
     Args args;
 }
@@ -460,7 +501,7 @@ struct CallbackDestructor(T, Dg : void delegate(IAllocator, ref T destructable, 
 /**
 ditto
 **/
-CallbackDestructor callbackDestructor(T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...)(Dg dg, Args args) {
+CallbackDestructor callbackDestructor(T, Dg : void delegate(RCIAllocator, ref T destructable, Args), Args...)(Dg dg, Args args) {
     return CallbackDestructor(dg, args);
 }
 

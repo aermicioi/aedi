@@ -153,19 +153,19 @@ unittest {
 
         register!MockObject("identity")
             .callback(
-                function MockObject(IAllocator alloc, Locator!() loc) {
+                function MockObject(RCIAllocator alloc, Locator!() loc) {
                     throw new Exception("We'll fail graciously here");
                 }
             );
         register!MockObject()
             .callback(
-                function MockObject(IAllocator alloc, Locator!() loc) {
+                function MockObject(RCIAllocator alloc, Locator!() loc) {
                     throw new Exception("We'll fail graciously here");
                 }
             );
         register!(MockInterface, MockObject)()
             .callback(
-                function MockObject(IAllocator alloc, Locator!() loc) {
+                function MockObject(RCIAllocator alloc, Locator!() loc) {
                     throw new Exception("We'll fail graciously here");
                 }
             );

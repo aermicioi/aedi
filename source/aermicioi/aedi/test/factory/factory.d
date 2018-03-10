@@ -71,7 +71,7 @@ unittest {
     assert(employee.job.name == "scrapper");
     assert(employee.job.payment == 20000);
 
-    employeeFactory.setInstanceFactory(callbackFactory(delegate (IAllocator alloc, Locator!() loc, string name, ubyte age) {
+    employeeFactory.setInstanceFactory(callbackFactory(delegate (RCIAllocator alloc, Locator!() loc, string name, ubyte age) {
         return new Employee(name, age, new Job("scrapped", Currency(0)));
     }, "test", cast(ubyte) 13));
     employeeFactory.addPropertyConfigurer(callbackConfigurer!Employee(delegate (Locator!() loc, Employee e, Company comp) {
@@ -177,7 +177,7 @@ unittest {
     {
         auto currencyFactory = new GenericFactoryImpl!(Currency)(parameters);
         currencyFactory.setInstanceFactory(callbackFactory(
-            delegate Currency(IAllocator alloc, Locator!() loc) {
+            delegate Currency(RCIAllocator alloc, Locator!() loc) {
                 return Currency(20);
             }
         ));

@@ -262,7 +262,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
 
     private {
         Locator!() locator_;
-        IAllocator allocator_;
+        RCIAllocator allocator_;
 
         InstanceFactory!T factory_;
         InstanceDestructor!T destructor_;
@@ -463,7 +463,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(IAllocator allocator) @safe nothrow {
+            typeof(this) allocator(RCIAllocator allocator) @safe nothrow {
                 this.allocator_ = allocator;
 
                 this.factory_.allocator = this.allocator;
@@ -476,9 +476,9 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
             Get allocator
 
             Returns:
-                IAllocator
+                RCIAllocator
             **/
-            IAllocator allocator() @safe nothrow {
+            RCIAllocator allocator() @safe nothrow {
                 return this.allocator_;
             }
 
@@ -1100,7 +1100,7 @@ Params:
     Args = type tuple of arguments passed to delegate for component's construction.
 **/
 class CallbackFactory(T, Dg, Args...) : InstanceFactory!T
-    if ((is(Dg == T delegate (IAllocator, Locator!(), Args)) || is(Dg == T function (IAllocator, Locator!(), Args)))) {
+    if ((is(Dg == T delegate (RCIAllocator, Locator!(), Args)) || is(Dg == T function (RCIAllocator, Locator!(), Args)))) {
 
     mixin AllocatorAwareMixin!(typeof(this));
     mixin LocatorAwareMixin!(typeof(this));
@@ -1146,16 +1146,16 @@ class CallbackFactory(T, Dg, Args...) : InstanceFactory!T
 /**
 ditto
 **/
-auto callbackFactory(T, Args...)(T delegate(IAllocator, Locator!(), Args) dg, auto ref Args args) {
-    auto constr = new CallbackFactory!(T, T delegate(IAllocator, Locator!(), Args), Args)(dg, args);
+auto callbackFactory(T, Args...)(T delegate(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
+    auto constr = new CallbackFactory!(T, T delegate(RCIAllocator, Locator!(), Args), Args)(dg, args);
     return constr;
 }
 
 /**
 ditto
 **/
-auto callbackFactory(T, Args...)(T function(IAllocator, Locator!(), Args) dg, auto ref Args args) {
-    auto constr = new CallbackFactory!(T, T function(IAllocator, Locator!(), Args), Args)(dg, args);
+auto callbackFactory(T, Args...)(T function(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
+    auto constr = new CallbackFactory!(T, T function(RCIAllocator, Locator!(), Args), Args)(dg, args);
     return constr;
 }
 
@@ -1396,7 +1396,7 @@ class DefaultInstanceDestructor(T) : InstanceDestructor!T {
 /**
 Instance destructor that uses a callback to destroy and deallocate components of type T.
 **/
-class CallbackInstaceDestructor(T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...) : InstanceDestructor!(T) {
+class CallbackInstaceDestructor(T, Dg : void delegate(RCIAllocator, ref T destructable, Args), Args...) : InstanceDestructor!(T) {
     mixin AllocatorAwareMixin!(typeof(this));
     mixin LocatorAwareMixin!(typeof(this));
     mixin ParameterHolder!(Args);
@@ -1448,7 +1448,7 @@ class CallbackInstaceDestructor(T, Dg : void delegate(IAllocator, ref T destruct
 ditto
 **/
 CallbackInstaceDestructor!(T, Dg, Args) callbackInstanceDestructor
-    (T, Dg : void delegate(IAllocator, ref T destructable, Args), Args...)
+    (T, Dg : void delegate(RCIAllocator, ref T destructable, Args), Args...)
     (Dg dg, Args args) {
 
     auto callbackInstanceDestructor =

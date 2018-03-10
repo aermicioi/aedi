@@ -177,7 +177,7 @@ Params:
 Returns:
 	Z.
 **/
-auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T delegate(IAllocator, Locator!(), Args) dg, auto ref Args args) {
+auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T delegate(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
     factory.setInstanceFactory(callbackFactory!T(dg, args));
 
     return factory;
@@ -186,7 +186,7 @@ auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T delegate(IAll
 /**
 ditto
 **/
-auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T function(IAllocator, Locator!(), Args) dg, auto ref Args args) {
+auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T function(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
     factory.setInstanceFactory(callbackFactory!T(dg, args));
 
     return factory;
@@ -379,7 +379,7 @@ Returns:
 **/
 auto destructor(Z : InstanceDestructorAware!T, T, Args...)(
     Z factory,
-    void delegate(IAllocator, ref T, Args) dg,
+    void delegate(RCIAllocator, ref T, Args) dg,
     Args args
 ) {
     factory.setInstanceDestructor(callbackInstanceDestructor!T(dg, args));

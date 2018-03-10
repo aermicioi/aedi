@@ -312,7 +312,7 @@ class Job : Identifiable!ulong {
 }
 
 @component
-@fact(function (IAllocator alloc, Locator!() loc, Job job) {
+@fact(function (RCIAllocator alloc, Locator!() loc, Job job) {
     return new FixtureFactory(job);
 }, new Job("Tested name", Currency(2000)))
 @callback(function (Locator!() loc, FixtureFactory fact, Employee e) {
@@ -329,7 +329,7 @@ class FixtureFactory {
             company = new Company(20);
         }
 
-        @fact(function (IAllocator alloc, Locator!() loc, Job job) {
+        @fact(function (RCIAllocator alloc, Locator!() loc, Job job) {
             return new FixtureFactory(job);
         }, new Job("Tested name", Currency(2000)))
         this(Job job) {
@@ -369,7 +369,7 @@ class FixtureFactory {
 //@fact(delegate (Locator!() loc) {
 //    return StructFixtureFactory(new Job("Tested name", Currency(2000)));
 //})
-@fact(function (IAllocator alloc, Locator!() loc) {
+@fact(function (RCIAllocator alloc, Locator!() loc) {
     return StructFixtureFactory(new Job("Tested name", Currency(2000)));
 })
 @callback(function (Locator!() loc, ref StructFixtureFactory fact, Currency c) {
@@ -390,7 +390,7 @@ struct StructFixtureFactory {
 //        @fact(delegate (Locator!() loc) {
 //            return StructFixtureFactory(new Job("Tested name", Currency(2000)));
 //        })
-        @fact(function (IAllocator alloc, Locator!() loc) {
+        @fact(function (RCIAllocator alloc, Locator!() loc) {
             return StructFixtureFactory(new Job("Tested name", Currency(2000)));
         })
         this(Job job) {

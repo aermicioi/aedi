@@ -12,7 +12,7 @@ import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.test.fixture;
 import std.experimental.allocator;
-import std.experimental.allocator.building_blocks.null_allocator;
+import std.experimental.allocator.mallocator;
 import std.exception;
 
 @component
@@ -35,7 +35,7 @@ unittest {
     assert(GenericFactoryPolicy.createFactory!MockNotComponent(storage) is null);
 }
 
-@fact((IAllocator allocator, Locator!() locator) => allocator.make!CallbackFactoryMock(10))
+@fact((RCIAllocator allocator, Locator!() locator) => allocator.make!CallbackFactoryMock(10))
 class CallbackFactoryMock {
 
     public {
@@ -420,7 +420,7 @@ unittest {
     assert(container.locate!ValueComponentMock !is null);
 }
 
-@allocator(NullAllocator())
+@allocator!Mallocator()
 class CustomAllocatorMock {
 
 
@@ -431,7 +431,7 @@ unittest {
     GenericFactoryImpl!CustomAllocatorMock mock = new GenericFactoryImpl!CustomAllocatorMock(storage);
     AllocatorConfiguratorPolicy.configure(mock, storage);
 
-    assert(cast(CAllocatorImpl!NullAllocator) mock.allocator !is null);
+    assert(!mock.allocator.isNull);
 }
 
 @component

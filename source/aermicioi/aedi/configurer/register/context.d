@@ -35,7 +35,7 @@ import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.factory.wrapping_factory;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.storage;
-import std.experimental.allocator : IAllocator, theAllocator;
+import std.experimental.allocator : RCIAllocator, theAllocator;
 import std.traits;
 
 
@@ -67,7 +67,7 @@ struct RegistrationContext(
         /**
         Allocator used for registered components.
         **/
-        IAllocator allocator;
+        RCIAllocator allocator;
 
         /**
         Constructor for RegistrationContext
@@ -77,7 +77,7 @@ struct RegistrationContext(
             locator = locator used to get registered component's dependencies
             allocator = allocator used as default allocation strategy for component
         **/
-        this(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, IAllocator allocator = theAllocator) {
+        this(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator = theAllocator) {
             this.storage = storage;
             this.locator = locator;
             this.allocator = allocator;
@@ -187,7 +187,7 @@ Returns:
 **/
 RegistrationContext!ObjectWrappingFactory configure
         (alias ObjectWrappingFactory = WrappingFactory)
-        (Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, IAllocator allocator = theAllocator) {
+        (Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator = theAllocator) {
     return RegistrationContext!ObjectWrappingFactory(storage, locator, allocator);
 }
 
@@ -196,7 +196,7 @@ ditto
 **/
 RegistrationContext!ObjectWrappingFactory configure
         (alias ObjectWrappingFactory = WrappingFactory)
-        (Locator!(Object, string) locator, Storage!(ObjectFactory, string) storage, IAllocator allocator = theAllocator) {
+        (Locator!(Object, string) locator, Storage!(ObjectFactory, string) storage, RCIAllocator allocator = theAllocator) {
     return RegistrationContext!ObjectWrappingFactory(storage, locator, allocator);
 }
 
@@ -212,7 +212,7 @@ Params:
 Returns:
 	RegistrationContext context with registration interface used to register components.
 **/
-RegistrationContext!ObjectWrappingFactory configure(T, alias ObjectWrappingFactory = WrappingFactory)(T container, IAllocator allocator = theAllocator)
+RegistrationContext!ObjectWrappingFactory configure(T, alias ObjectWrappingFactory = WrappingFactory)(T container, RCIAllocator allocator = theAllocator)
     if (is(T : Storage!(ObjectFactory, string)) && is(T : Locator!(Object, string))) {
 
     return configure(cast(Locator!(Object, string)) container, container, allocator);
@@ -233,7 +233,7 @@ Returns:
 **/
 RegistrationContext!ObjectWrappingFactory configure
         (alias ObjectWrappingFactory = WrappingFactory)
-        (Locator!(Object, string) locator, string storage, IAllocator allocator = theAllocator) {
+        (Locator!(Object, string) locator, string storage, RCIAllocator allocator = theAllocator) {
     return configure!ObjectWrappingFactory(locator, locator.locate!(Storage!(ObjectFactory, string))(storage), allocator);
 }
 
@@ -299,7 +299,7 @@ Params:
 Returns:
     registrationContext
 **/
-Context along(Context: RegistrationContext!T, alias T)(Context registrationContext, IAllocator allocator) {
+Context along(Context: RegistrationContext!T, alias T)(Context registrationContext, RCIAllocator allocator) {
     registrationContext.allocator = allocator;
 
     return registrationContext;

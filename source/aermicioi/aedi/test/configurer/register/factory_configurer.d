@@ -66,7 +66,7 @@ unittest {
         register!(Identifiable!ulong, Employee)();
         register!(StructFixtureFactory)
             .callback(
-                function StructFixtureFactory(IAllocator alloc, Locator!() loc)
+                function StructFixtureFactory(RCIAllocator alloc, Locator!() loc)
                 {
                     return StructFixtureFactory(new Job("Aligator", Currency(20)));
                 }
@@ -186,7 +186,7 @@ unittest {
     bool destroyed = false;
     with (container.configure) {
         register!MockObject
-            .destructor((IAllocator allocator, ref MockObject object, int i) {
+            .destructor((RCIAllocator allocator, ref MockObject object, int i) {
                 destroyed = true;
             }, 1);
     }

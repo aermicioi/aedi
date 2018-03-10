@@ -359,7 +359,7 @@ class MockValueFactory(T) : Factory!T {
 }
 
 class CircularFactoryMock(T) : MockFactory!T, Factory!T {
-    import std.experimental.allocator : IAllocator;
+    import std.experimental.allocator : RCIAllocator;
 
     Object fetched;
     string referenced = "mock";
@@ -383,7 +383,7 @@ class CircularFactoryMock(T) : MockFactory!T, Factory!T {
             return typeid(T);
         }
 
-        override CircularFactoryMock!T allocator(IAllocator allocator) {
+        override CircularFactoryMock!T allocator(RCIAllocator allocator) {
             super.allocator = allocator;
 
             return this;

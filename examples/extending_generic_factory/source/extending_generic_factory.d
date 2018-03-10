@@ -119,7 +119,7 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
         int size;
 
         Locator!(Object, string) locator_;
-        IAllocator allocator_;
+        RCIAllocator allocator_;
     }
 
     public {
@@ -134,7 +134,7 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
                 return this;
             }
 
-            TireConstructorInstanceFactory allocator(IAllocator allocator) pure nothrow @safe {
+            TireConstructorInstanceFactory allocator(RCIAllocator allocator) pure nothrow @safe {
                 this.allocator_ = allocator;
 
                 return this;
@@ -239,7 +239,7 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
         int size;
 
         Locator!(Object, string) locator_;
-        IAllocator allocator_;
+        RCIAllocator allocator_;
     }
 
     public {
@@ -254,7 +254,7 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
                 return this;
             }
 
-            TireConstructorInstanceFactory allocator(IAllocator allocator) pure nothrow @safe {
+            TireConstructorInstanceFactory allocator(RCIAllocator allocator) pure nothrow @safe {
                 this.allocator_ = allocator;
 
                 return this;

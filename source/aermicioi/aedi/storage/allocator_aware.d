@@ -29,13 +29,13 @@ Authors:
 **/
 module aermicioi.aedi.storage.allocator_aware;
 
-public import std.experimental.allocator : IAllocator, make, dispose, theAllocator;
+public import std.experimental.allocator : RCIAllocator, make, dispose, theAllocator;
 import aermicioi.aedi.storage.decorator : MutableDecorator, Decorator;
 
 /**
 Interface for components that are aware of a memory allocator and are using it for some purpose, such as allocating storage for other components, or data.
 **/
-interface AllocatorAware(AllocatorType = IAllocator) {
+interface AllocatorAware(AllocatorType = RCIAllocator) {
 
     public {
         @property {
@@ -65,7 +65,7 @@ mixin template AllocatorAwareMixin(T : AllocatorAware!Z, Z) {
 ditto
 **/
 mixin template AllocatorAwareMixin(Z) {
-    import std.experimental.allocator : IAllocator, make, theAllocator;
+    import std.experimental.allocator : RCIAllocator, make, theAllocator;
     private {
         Z allocator_;
     }
@@ -102,7 +102,7 @@ mixin template AllocatorAwareMixin(Z) {
             **/
             inout(Z) allocator() @safe nothrow inout
             out(allocator) {
-                assert(allocator !is null);
+                assert(!allocator.isNull);
             }
             body {
                 return this.allocator_;
@@ -148,7 +148,7 @@ mixin template AllocatorAwareDecoratorMixin(T : AllocatorAware!Z, Z)
                 Get allocator
 
                 Returns:
-                    IAllocator
+                    RCIAllocator
                 **/
                 inout(Z) allocator() @safe nothrow inout {
                     return this.decorated.allocator;
