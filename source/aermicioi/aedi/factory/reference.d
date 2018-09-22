@@ -492,19 +492,3 @@ ditto
 template name(T) {
     alias name = fullyQualifiedName!T;
 }
-
-/**
-Convert a type into a locator reference by type's name.
-**/
-template toLref(Type) {
-    auto toLref() {
-        return name!Type.lref;
-    }
-}
-
-/**
-ditto
-**/
-template toLrefType(Type) {
-    alias toLrefType = LocatorReference;
-}

@@ -157,6 +157,37 @@ unittest {
 }
 
 unittest {
+
+    SingletonContainer container = new SingletonContainer();
+
+    with (container.configure) {
+
+        register!int("property").value(10);
+        register!int("arg1").value(12);
+        register!int("arg2").value(11);
+        register!int("propertino").value(23);
+        register!int.value(20);
+
+        register!MockObject
+            .autowire!"property";
+
+        register!MockObject("other")
+            .autowire!"imethod";
+        register!MockObject("another")
+            .autowire!"method";
+        register!MockObject("tertiary")
+            .autowire!"propertino";
+    }
+
+    container.instantiate();
+
+    assert(container.locate!MockObject.property == 10);
+    assert(container.locate!MockObject("other").property == 1);
+    assert(container.locate!MockObject("another").property == 32);
+    assert(container.locate!MockObject("tertiary").property == 23);
+}
+
+unittest {
    import aermicioi.aedi.container.proxy_container;
    import aermicioi.aedi.factory.proxy_factory;
 

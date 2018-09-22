@@ -107,13 +107,45 @@ class AutowiredConstructorFactoryMock {
     }
 }
 
+class AutowiredByNameConstructorFactoryMock {
+
+    public {
+        int i;
+
+        @autowired
+        this(int otter) {
+            this.i = otter;
+        }
+    }
+}
+
+class AutowiredByQualifierConstructorFactoryMock {
+
+    public {
+        int i;
+
+        @autowired
+        this(@qualifier("qualified") int i) {
+            this.i = i;
+        }
+    }
+}
+
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     storage.set(new WrapperImpl!int(22), "int");
+    storage.set(new WrapperImpl!int(23), "otter");
+    storage.set(new WrapperImpl!int(24), "qualified");
     GenericFactory!AutowiredConstructorFactoryMock mock = new GenericFactoryImpl!AutowiredConstructorFactoryMock(storage);
     AutowiredConstructorMethodConfiguratorPolicy.configureMethod!"__ctor"(mock, storage);
+    GenericFactory!AutowiredByNameConstructorFactoryMock mockByName = new GenericFactoryImpl!AutowiredByNameConstructorFactoryMock(storage);
+    AutowiredConstructorMethodConfiguratorPolicy.configureMethod!"__ctor"(mockByName, storage);
+    GenericFactory!AutowiredByQualifierConstructorFactoryMock mockByQualifier = new GenericFactoryImpl!AutowiredByQualifierConstructorFactoryMock(storage);
+    AutowiredConstructorMethodConfiguratorPolicy.configureMethod!"__ctor"(mockByQualifier, storage);
 
     assert(mock.factory.i == 22);
+    assert(mockByName.factory.i == 23);
+    assert(mockByQualifier.factory.i == 24);
 }
 
 class SetterFieldMockFactory {
@@ -156,13 +188,38 @@ class AutowiredSetterFieldMockFactory {
     }
 }
 
+class AutowiredByNameSetterFieldMockFactory {
+
+    public {
+        @autowired
+        int otter;
+    }
+}
+
+class AutowiredSetterByQualifierFieldMockFactory {
+
+    public {
+        @autowired
+        @qualifier("qualified")
+        int i;
+    }
+}
+
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     storage.set(new WrapperImpl!int(112), "int");
+    storage.set(new WrapperImpl!int(113), "otter");
+    storage.set(new WrapperImpl!int(114), "qualified");
     GenericFactory!AutowiredSetterFieldMockFactory mock = new GenericFactoryImpl!AutowiredSetterFieldMockFactory(storage);
     AutowiredFieldConfiguratorPolicy.configureField!"i"(mock, storage);
+    GenericFactory!AutowiredByNameSetterFieldMockFactory mockByName = new GenericFactoryImpl!AutowiredByNameSetterFieldMockFactory(storage);
+    AutowiredFieldConfiguratorPolicy.configureField!"otter"(mockByName, storage);
+    GenericFactory!AutowiredSetterByQualifierFieldMockFactory mockByQualifier = new GenericFactoryImpl!AutowiredSetterByQualifierFieldMockFactory(storage);
+    AutowiredFieldConfiguratorPolicy.configureField!"i"(mockByQualifier, storage);
 
     assert(mock.factory.i == 112);
+    assert(mockByName.factory.otter == 113);
+    assert(mockByQualifier.factory.i == 114);
 }
 
 class SetterMethodMockFactory {
@@ -219,13 +276,45 @@ class AutowiredSetterMethodMockFactory {
     }
 }
 
+class AutowiredSetterByNameMethodMockFactory {
+
+    public {
+        int i_;
+
+        @autowired
+        @property void i(int otter) {
+            this.i_ = otter;
+        }
+    }
+}
+
+class AutowiredSetterByQualifierMethodMockFactory {
+
+    public {
+        int i_;
+
+        @autowired
+        @property void i(@qualifier("qualified") int i) {
+            this.i_ = i;
+        }
+    }
+}
+
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     storage.set(new WrapperImpl!int(115), "int");
+    storage.set(new WrapperImpl!int(116), "otter");
+    storage.set(new WrapperImpl!int(117), "qualified");
     GenericFactory!AutowiredSetterMethodMockFactory mock = new GenericFactoryImpl!AutowiredSetterMethodMockFactory(storage);
     AutowiredMethodConfiguratorPolicy.configureMethod!"i"(mock, storage);
+    GenericFactory!AutowiredSetterByNameMethodMockFactory mockByName = new GenericFactoryImpl!AutowiredSetterByNameMethodMockFactory(storage);
+    AutowiredMethodConfiguratorPolicy.configureMethod!"i"(mockByName, storage);
+    GenericFactory!AutowiredSetterByQualifierMethodMockFactory mockByQualifier = new GenericFactoryImpl!AutowiredSetterByQualifierMethodMockFactory(storage);
+    AutowiredMethodConfiguratorPolicy.configureMethod!"i"(mockByQualifier, storage);
 
     assert(mock.factory.i_ == 115);
+    assert(mockByName.factory.i_ == 116);
+    assert(mockByQualifier.factory.i_ == 117);
 }
 
 class AutowiredMethodScannerMock {

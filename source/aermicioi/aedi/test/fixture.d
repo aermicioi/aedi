@@ -124,10 +124,14 @@ class MockObject : MockInterface {
         return property;
     }
 
-    int method(int arg1, int arg2) {
-        property = arg1 + arg2;
+    int method(int arg1, int arg3) {
+        property = arg1 + arg3;
 
         return property;
+    }
+
+    int propertino(int property) {
+        return this.property = property;
     }
 
     int nasty() {

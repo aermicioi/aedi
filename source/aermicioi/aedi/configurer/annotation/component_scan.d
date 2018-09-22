@@ -478,7 +478,7 @@ struct ConstructorMethodConfiguratorPolicy {
 }
 
 /**
-Method policy that scans constructors for @autowired annotation to use them to construct component with dependencies identified by their type.
+Method policy that scans constructors for @autowired annotation to use them to construct component with dependencies identified by qualifier, name or their type.
 **/
 struct AutowiredConstructorMethodConfiguratorPolicy {
 
@@ -503,8 +503,9 @@ struct AutowiredConstructorMethodConfiguratorPolicy {
 
                 foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
                     debug(annotationScanDebug) pragma(msg, "Autowiring constructor of ", Z, " with arguments ", Parameters!(overload));
+
                     instantiator.setInstanceFactory(
-                        constructorBasedFactory!Z(staticMap!(toLref, Parameters!(overload)))
+                        constructorBasedFactory!Z(makeAutowireReferences!overload.expand)
                     );
                 }
             }
@@ -583,15 +584,28 @@ struct AutowiredFieldConfiguratorPolicy {
         locator = locator for component dependencies
     **/
     static void configureField(string member, T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
+        alias field = AliasSeq!(__traits(getMember, Z, member));
 
         alias Callbacks = Filter!(
             isAutowiredAnnotation,
-            allUDAs!(__traits(getMember, Z, member))
+            allUDAs!(field)
         );
 
         foreach (Callback; tuple(staticMap!(toValue, Callbacks))) {
             debug(annotationScanDebug) pragma(msg, "Autowiring field ", member, " of ", Z, " to ", typeof(getMember!(Z, member)));
-            instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(toLref!(typeof(getMember!(Z, member)))));
+
+            RuntimeReference reference = __traits(identifier, field).lref.alternate(lref!(typeof(field)));
+
+            alias qualifiers = Filter!(
+                isQualifierAnnotation,
+                allUDAs!(field)
+            );
+
+            static foreach (qualifier; qualifiers) {
+                reference = qualifier.id.lref.alternate(reference);
+            }
+
+            instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(reference));
         }
     }
 }
@@ -659,7 +673,7 @@ struct CallbackMethodConfiguratorPolicy {
 }
 
 /**
-Method configurator policy that will call method annotated with @autowire with arguments extracted from locator by their type.
+Method configurator policy that will call method annotated with @autowire with arguments extracted from locator identified by qualifier, name or their type.
 **/
 struct AutowiredMethodConfiguratorPolicy {
 
@@ -684,7 +698,8 @@ struct AutowiredMethodConfiguratorPolicy {
                 foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
 
                     debug(annotationScanDebug) pragma(msg, "Calling method ", member, " of ", Z, " with autowired ", Parameters!overload);
-                    instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(staticMap!(toLref, Parameters!overload)));
+
+                    instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(makeAutowireReferences!overload.expand));
                 }
             }
         }
@@ -1045,9 +1060,9 @@ struct FactoryMethodContainerAdder(ComponentStoringPolicy = ComponentStoringPoli
 
                         if (factory !is null) {
                             static if (__traits(isStaticFunction, overload)) {
-                                auto instanceFactory = factoryMethodBasedFactory!(T, member)(staticMap!(toLref, Parameters!overload));
+                                auto instanceFactory = factoryMethodBasedFactory!(T, member)(makeAutowireReferences!overload.expand);
                             } else {
-                                auto instanceFactory = factoryMethodBasedFactory!(T, member)(staticMap!(toLref, AliasSeq!(T, Parameters!overload)));
+                                auto instanceFactory = factoryMethodBasedFactory!(T, member)(lref!T, makeAutowireReferences!overload.expand);
                             }
 
                             import aermicioi.aedi.storage.decorator : Decorator;
@@ -1905,4 +1920,27 @@ private template getPossibleComponents(alias Symbol) {
             __traits(allMembers, Symbol)
         )
     );
+}
+
+private auto makeAutowireReferences(alias overload)() {
+
+    Repeat!(Parameters!overload.length, RuntimeReference) arguments;
+
+    static foreach (index, argument; arguments) {{
+        argument = ParameterIdentifierTuple!overload[index].lref.alternate(
+            lref!(Parameters!overload[index])
+        );
+
+        static if (is(FunctionTypeOf!overload params == __parameters)) {
+
+            static foreach (qualifier; Filter!(
+                isQualifierAnnotation,
+                __traits(getAttributes, params[index .. index + 1])
+            )) {
+                argument = qualifier.id.lref.alternate(argument);
+            }
+        }
+    }}
+
+    return tuple(arguments);
 }

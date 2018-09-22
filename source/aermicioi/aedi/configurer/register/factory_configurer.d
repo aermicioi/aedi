@@ -47,6 +47,8 @@ public import aermicioi.aedi.factory.reference : lref, anonymous;
 
 import std.meta;
 import std.traits;
+import std.algorithm;
+import std.range;
 
 /**
 Construct component using args.
@@ -242,13 +244,13 @@ auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void functi
 Autowire a constructor, field or a method.
 
 Autowire a constructor, field or a method.
-A constructor is autowired only when no member is passed as argument.
-When a member is passed as argument, it will be called with
-a list of references (where args are identified by their type FQN) in
-case when member is a function, or it will set the member to the
-value that is located in container by it's type FQN.
-Note: In case of constructors as well as methods that are overloaded,
-the first constructor or method from overload set is selected to be autowired.
+To autowire a constructor simply call autowire with no template arguments.
+For autowiring a field or a method, call autowire with the name of field or argument as first template argument.
+Autowiring process will attempt to find all parameters by their name first, and by type afterwards, in order to
+inject the dependencies into the component. Failing to find a suitable candidate for injection, will fail in an exception
+during container instantiation.
+Note: There are no guarantees as of which method or constructor from an overload set will be selected
+as such it is advised to use autowire only on members that are not part of an overload set.
 
 Params:
     T = the component type
@@ -260,7 +262,16 @@ Returns:
 **/
 auto autowire(Z : InstanceFactoryAware!T, T)(Z factory)
     if (getMembersWithProtection!(T, "__ctor", "public").length > 0) {
-    return factory.construct(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, "__ctor", "public")[0])));
+
+    alias ctor = getMembersWithProtection!(T, "__ctor", "public")[0];
+
+    Repeat!(Parameters!ctor.length, RuntimeReference) arguments;
+
+    static foreach (index, argument; arguments) {
+        argument = ParameterIdentifierTuple!ctor[index].lref.alternate(lref!(Parameters!ctor[index]));
+    }
+
+    return factory.construct(arguments);
 }
 
 /**
@@ -268,7 +279,21 @@ ditto
 **/
 auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
     if (getMembersWithProtection!(T, member, "public").length > 0) {
-    return factory.set!(member)(staticMap!(toLref, Parameters!(getMembersWithProtection!(T, member, "public")[0])));
+    alias method = getMembersWithProtection!(T, member, "public")[0];
+
+    Repeat!(Parameters!method.length, RuntimeReference) arguments;
+
+    static foreach (index, argument; arguments) {
+        argument = ParameterIdentifierTuple!method[index].lref.alternate(
+            lref!(Parameters!method[index])
+        );
+    }
+
+    static if (arguments.length == 1) {
+        arguments[0] = __traits(identifier, method).lref.alternate(arguments[0]);
+    }
+
+    return factory.set!(member)(arguments);
 }
 
 /**
@@ -276,7 +301,11 @@ ditto
 **/
 auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
     if (isField!(T, member)) {
-    return factory.set!(member)(lref!(typeof(getMember!(T, member))));
+
+    alias field = getMember!(T, member);
+    RuntimeReference reference = __traits(identifier, field).lref.alternate(lref!(typeof(field)));
+
+    return factory.set!(member)(reference);
 }
 
 /**
