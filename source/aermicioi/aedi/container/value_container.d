@@ -39,7 +39,7 @@ import aermicioi.aedi.exception.not_found_exception;
 Value container for instantiated components.
 
 **/
-class ValueContainer : Container, Storage!(Object, string) {
+@safe class ValueContainer : Container, Storage!(Object, string) {
 
     private {
         ObjectStorage!(Object, string) values;

@@ -34,6 +34,8 @@ import std.traits;
 import std.meta;
 import aermicioi.util.traits;
 
+@safe:
+
 /**
 Create a singleton container
 

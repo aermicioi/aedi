@@ -413,7 +413,7 @@ struct StructFixtureFactory {
         	return company_;
         }
 
-        ref StructFixtureFactory job(Job job) @safe nothrow {
+        ref StructFixtureFactory job(Job job) @safe nothrow return scope {
         	this.job_ = job;
 
         	return this;
@@ -427,7 +427,7 @@ struct StructFixtureFactory {
             return Currency(amount);
         }
 
-        ref StructFixtureFactory currency(Currency currency) @safe nothrow {
+        ref StructFixtureFactory currency(Currency currency) @safe nothrow return scope {
         	this.currency_ = currency;
 
         	return this;
@@ -451,7 +451,7 @@ struct Currency {
         }
 
         @property {
-            ref Currency amount(ptrdiff_t amount) @safe nothrow {
+            ref Currency amount(ptrdiff_t amount) @safe nothrow return scope {
             	this.amount_ = amount;
 
             	return this;

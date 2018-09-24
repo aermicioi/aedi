@@ -47,7 +47,7 @@ import std.typecons;
 /**
 Interface for objects that can be subscribed to specific events emmited by them.
 **/
-interface Subscribable(T)
+@safe interface Subscribable(T)
 {
 
     public
@@ -62,7 +62,7 @@ interface Subscribable(T)
         Returns:
         	typeof(this)
         **/
-        Subscribable subscribe(T type, void delegate() subscriber);
+        Subscribable subscribe(T type, void delegate() @safe subscriber);
     }
 }
 
@@ -133,11 +133,11 @@ template SubscribableContainer(T)
         Decorator!Container
     );
 
-    class SubscribableContainer : InheritanceSet
+    @safe class SubscribableContainer : InheritanceSet
     {
         private
         {
-            void delegate()[][ContainerInstantiationEventType] subscribers;
+            void delegate() @safe[][ContainerInstantiationEventType] subscribers;
             T decorated_;
         }
 
@@ -166,7 +166,7 @@ template SubscribableContainer(T)
            	    typeof(this)
             **/
             SubscribableContainer subscribe(ContainerInstantiationEventType event,
-                    void delegate() subscriber)
+                    void delegate() @safe subscriber)
             {
                 this.subscribers[event] ~= subscriber;
 

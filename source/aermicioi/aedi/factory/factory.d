@@ -41,7 +41,7 @@ Interface for objects able to create some instance of type T.
 Intent of this interface is to provide a single entry for objects, able to
 instantiate something.
 **/
-interface Factory(T) : LocatorAware!(), AllocatorAware!() {
+@safe interface Factory(T) : LocatorAware!(), AllocatorAware!() {
 
 	public {
 
@@ -51,7 +51,7 @@ interface Factory(T) : LocatorAware!(), AllocatorAware!() {
 		Returns:
 			T instantiated component.
 		**/
-		T factory();
+		T factory() @safe;
 
         /**
         Destructs a component of type T.
@@ -59,7 +59,7 @@ interface Factory(T) : LocatorAware!(), AllocatorAware!() {
         Params:
             component = component that is to ve destroyed.
         **/
-        void destruct(ref T component);
+        void destruct(ref T component) @safe;
 
 		@property {
 
@@ -79,7 +79,7 @@ alias ObjectFactory = Factory!Object;
 /**
 A mixin that implements a destruct delegating mechanism to decorated factory
 **/
-mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
+@safe mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
 
     /**
     Destructs a component of type T.
@@ -87,7 +87,7 @@ mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
     Params:
         component = component that is to ve destroyed.
     **/
-    void destruct(ref Z component) {
+    void destruct(ref Z component) @safe {
 
         this.decorated.destruct(component);
     }
@@ -96,7 +96,7 @@ mixin template DestructDecoratorMixin(T : Factory!Z, Z) {
 /**
 A mixin that implements a factory delegating mechanism to decorated factory
 **/
-mixin template FactoryDecoratorMixin(T : Factory!Z, Z) {
+@safe mixin template FactoryDecoratorMixin(T : Factory!Z, Z) {
 
     /**
     Instantiates component of type T.
@@ -104,7 +104,7 @@ mixin template FactoryDecoratorMixin(T : Factory!Z, Z) {
     Returns:
         T instantiated component.
     **/
-    Z factory() {
+    Z factory() @safe {
         return this.decorated.factory();
     }
 }

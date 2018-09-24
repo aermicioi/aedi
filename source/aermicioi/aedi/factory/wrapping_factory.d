@@ -42,7 +42,7 @@ import std.traits;
 Wraps up the result of some factory in Wrapper object if component is not
 derived from Object.
 **/
-class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
+@safe class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
 
     private {
         RCIAllocator allocator_;
@@ -157,7 +157,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
 		Returns:
 			Object instantiated component and probably wrapped if not derived from Object.
 		**/
-        Object factory() {
+        Object factory() @trusted {
             static if (is(Z : Object)) {
 
                 return this.decorated.factory;
@@ -199,7 +199,7 @@ class WrappingFactory(T : Factory!Z, Z) : ObjectFactory, MutableDecorator!T {
         Returns:
 
         **/
-        void destruct(ref Object component) {
+        void destruct(ref Object component) @trusted {
             static if (is(Z : Object)) {
 
                 Z casted = cast(Z) component;
@@ -241,7 +241,7 @@ The wrapper will provide a proxy object instead of original only when, an deffer
 and exception chain contains a CircularReferenceException. Due to providing a proxy instead of original object
 usage of this factory wrapper should be considered in cases when performance is not of first priority.
 **/
-class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecorator!T, DefferredExecutionerAware {
+@safe class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecorator!T, DefferredExecutionerAware {
     import aermicioi.aedi.exception : AediException, CircularReferenceException;
     import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin, theAllocator;
 
@@ -352,7 +352,7 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
 		Returns:
 			Z instantiated component.
 		**/
-        Z factory() {
+        Z factory() @trusted {
             try {
                 return this.decorated.factory();
             } catch (AediException exception) {
@@ -397,7 +397,7 @@ class DefferedProxyWrapper(T : Factory!Z, Z : Object) : Factory!Z, MutableDecora
         Returns:
 
         **/
-        void destruct(ref Z component) {
+        void destruct(ref Z component) @trusted {
             DefferedProxy!Z proxy = cast(DefferedProxy!Z) component;
 
             if (proxy !is null) {

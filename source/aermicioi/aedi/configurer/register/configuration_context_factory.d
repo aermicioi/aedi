@@ -43,7 +43,7 @@ package {
     A decorator over generic factory, that sole purpose is to contain
     additional metadata usable for register api primitives.
     **/
-    class ConfigurationContextFactory(T) : DecoratableGenericFactory!T {
+    @safe class ConfigurationContextFactory(T) : DecoratableGenericFactory!T {
 
         private {
             Storage!(ObjectFactory, string) storage_;

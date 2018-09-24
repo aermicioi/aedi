@@ -9,6 +9,13 @@
 			"targetType": "sourceLibrary"
 		},
 		{
+			"name": "dip1000-library",
+			"targetType": "sourceLibrary",
+			"dflags": [
+				"-dip1000"
+			]
+		},
+		{
 			"name": "unittest",
 			"targetType": "library",
 			"debugVersions": [

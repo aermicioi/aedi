@@ -50,6 +50,8 @@ import std.traits;
 import std.algorithm;
 import std.range;
 
+@safe:
+
 /**
 Construct component using args.
 
@@ -378,7 +380,7 @@ Params:
 Returns:
 	factory
 **/
-auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) {
+auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) @trusted {
     import aermicioi.aedi.factory.proxy_factory : ProxyFactory, ProxyObjectFactory;
     import aermicioi.aedi.container.proxy_container : ProxyContainer;
 
@@ -467,7 +469,7 @@ Params:
 Returns:
     factory
 **/
-auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) {
+auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) @trusted {
     auto defferedExecutioinerAware = cast(DefferredExecutionerAware) factory.decorated;
     if ((defferedExecutioinerAware !is null) && (factory.locator.has(defferedExecutionerIdentity))) {
 

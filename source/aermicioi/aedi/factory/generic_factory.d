@@ -50,7 +50,7 @@ import std.typecons;
 /**
 Interface for objects that are executing delayed/defferred actions.
 **/
-interface DefferredExecutioner {
+@safe interface DefferredExecutioner {
 
     public {
 
@@ -90,7 +90,7 @@ interface DefferredExecutioner {
 Interface for objects that are aware of deffered executioner, and are able to store their defferred actions in it
 for later execution, by themselves or other third party.
 **/
-interface DefferredExecutionerAware {
+@safe interface DefferredExecutionerAware {
     public {
         @property {
             /**
@@ -119,7 +119,7 @@ interface DefferredExecutionerAware {
 A property configurer, has the purpose to modify component of type T according to some logic encapsulated in it.
 
 **/
-interface PropertyConfigurer(T) : LocatorAware!() {
+@safe interface PropertyConfigurer(T) : LocatorAware!() {
 
     public {
 
@@ -129,14 +129,14 @@ interface PropertyConfigurer(T) : LocatorAware!() {
         Params:
         	object = An object of type T, that will be configured
         **/
-        void configure(ref T object);
+        void configure(ref T object) @safe;
     }
 }
 
 /**
 An instance factory, instantiates component of type T.
 **/
-interface InstanceFactory(T) : LocatorAware!(), AllocatorAware!() {
+@safe interface InstanceFactory(T) : LocatorAware!(), AllocatorAware!() {
 
     public {
 
@@ -146,14 +146,14 @@ interface InstanceFactory(T) : LocatorAware!(), AllocatorAware!() {
         Returns:
             T instantiated component
         **/
-        T factory();
+        T factory() @safe;
     }
 }
 
 /**
 An interface for components that can destruct components of type T and deallocate them using provided allocator.
 **/
-interface InstanceDestructor(T) : LocatorAware!(), AllocatorAware!() {
+@safe interface InstanceDestructor(T) : LocatorAware!(), AllocatorAware!() {
 
     public {
 
@@ -163,7 +163,7 @@ interface InstanceDestructor(T) : LocatorAware!(), AllocatorAware!() {
         Params:
             destructable = element to be destructed and deallocated using stored allocator
         **/
-        void destruct(ref T destructable);
+        void destruct(ref T destructable) @safe;
     }
 }
 
@@ -171,7 +171,7 @@ interface InstanceDestructor(T) : LocatorAware!(), AllocatorAware!() {
 Interface for objects that are aware of an instance factory
 and can use it to instantiate a component.
 **/
-interface InstanceFactoryAware(T) {
+@safe interface InstanceFactoryAware(T) {
     public {
 
         @property {
@@ -184,7 +184,7 @@ interface InstanceFactoryAware(T) {
         	Returns:
     			The InstanceFactoryAware
             **/
-            InstanceFactoryAware!T setInstanceFactory(InstanceFactory!T factory);
+            InstanceFactoryAware!T setInstanceFactory(InstanceFactory!T factory) @safe;
         }
     }
 }
@@ -193,7 +193,7 @@ interface InstanceFactoryAware(T) {
 Interface for objects that are aware of an instance factory
 and can use it to instantiate a component.
 **/
-interface InstanceDestructorAware(T) {
+@safe interface InstanceDestructorAware(T) {
     public {
 
         @property {
@@ -206,7 +206,7 @@ interface InstanceDestructorAware(T) {
         	Returns:
     			The InstanceDestructorAware!T
             **/
-            InstanceDestructorAware!T setInstanceDestructor(InstanceDestructor!T destructor);
+            InstanceDestructorAware!T setInstanceDestructor(InstanceDestructor!T destructor) @safe;
         }
     }
 }
@@ -215,7 +215,7 @@ interface InstanceDestructorAware(T) {
 Interface for objects that are aware of a set of property configurers
 and can use them to configure some component.
 **/
-interface PropertyConfigurersAware(T) {
+@safe interface PropertyConfigurersAware(T) {
     public {
         /**
         Adds an configurer to the PropertyConfigurersAware.
@@ -226,7 +226,7 @@ interface PropertyConfigurersAware(T) {
     	Returns:
     		The PropertyConfigurersAware instance
         **/
-        PropertyConfigurersAware!T addPropertyConfigurer(PropertyConfigurer!T configurer);
+        PropertyConfigurersAware!T addPropertyConfigurer(PropertyConfigurer!T configurer) @safe;
     }
 }
 /**
@@ -235,7 +235,7 @@ A generic factory, is a factory that instantiates component of type T using Inst
 A generic factory, is a factory that instantiates component of type T using InstanceFactory and a list of PropertyConfigurers.
 It can optionally provide a Locator!() object to InstanceFactory and PropertyConfigurer to be used as a source of component.
 **/
-interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigurersAware!T, InstanceDestructorAware!T {
+@safe interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigurersAware!T, InstanceDestructorAware!T {
 
     public {
 
@@ -249,7 +249,7 @@ interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigu
             Returns:
             	Locator!() the locator that should be used by underlying constructor or property configurer.
             **/
-            Locator!() locator();
+            Locator!() locator() @safe;
         }
     }
 }
@@ -257,7 +257,7 @@ interface GenericFactory(T) : Factory!T, InstanceFactoryAware!T, PropertyConfigu
 /**
 A concrete implementation of GenericFactory interface.
 **/
-class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecutionerAware {
+@safe class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecutionerAware {
     import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
 
     private {
@@ -298,7 +298,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
         Returns:
             T instantiated component
         **/
-        T factory() {
+        T factory() @safe {
             T instance = this.factory_.factory();
 
             foreach (key, configurer; this.configurers) {
@@ -348,7 +348,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
         Returns:
 
         **/
-        void destruct(ref T component) {
+        void destruct(ref T component) @safe {
             this.destructor_.destruct(component);
         }
 
@@ -388,7 +388,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
             Returns:
                 typeof(this)
             **/
-            typeof(this) setInstanceDestructor(InstanceDestructor!T destructor)
+            typeof(this) setInstanceDestructor(InstanceDestructor!T destructor) @safe
             in {
                 assert(destructor !is null);
             }
@@ -410,7 +410,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
         	Returns:
     			The InstanceFactoryAware
             **/
-            GenericFactory!T setInstanceFactory(InstanceFactory!T factory)
+            GenericFactory!T setInstanceFactory(InstanceFactory!T factory) @safe
             in {
                 assert(factory !is null);
             }
@@ -502,7 +502,7 @@ class GenericFactoryImpl(T) : GenericFactory!T, LocatorAware!(), DefferredExecut
     	Returns:
     		The PropertyConfigurersAware instance
         **/
-        GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer) {
+        GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer) @safe {
 
             this.configurers ~= configurer;
 
@@ -525,10 +525,10 @@ GenericFactory!T genericFactory(T)(Locator!() locator) {
 /**
 Standard implementation of DefferredExecutioner interface.
 **/
-class DefferredExecutionerImpl : DefferredExecutioner {
+@safe class DefferredExecutionerImpl : DefferredExecutioner {
 
     private {
-        void delegate()[] deffered;
+        void delegate() @system[] deffered;
     }
 
     public {
@@ -542,7 +542,7 @@ class DefferredExecutionerImpl : DefferredExecutioner {
         Returns:
             typeof(this)
         **/
-        DefferredExecutioner add(void delegate() dg) {
+        DefferredExecutioner add(void delegate() dg) @safe {
             this.deffered ~= dg;
 
             return this;
@@ -557,7 +557,7 @@ class DefferredExecutionerImpl : DefferredExecutioner {
         Returns:
             typeof(this)
         **/
-        DefferredExecutioner add(void delegate()[] dgs) {
+        DefferredExecutioner add(void delegate()[] dgs) @safe {
             this.deffered ~= dgs;
 
             return this;
@@ -569,7 +569,7 @@ class DefferredExecutionerImpl : DefferredExecutioner {
         Returns:
             typeof(this)
         **/
-        DefferredExecutioner execute() {
+        DefferredExecutioner execute() @trusted {
             foreach (dg; this.deffered) {
                 dg();
             }
@@ -582,7 +582,7 @@ class DefferredExecutionerImpl : DefferredExecutioner {
 }
 
 /**
-ParameterHolder Stores a set of Args for futher usage in it's subclasses.
+ParameterHolder Stores a set of Args for futher usage in it's sub@safe classes.
 
 Params:
     Args = a type tuple of args that ParameterHolder can hold.
@@ -638,7 +638,7 @@ Params:
     property = method that will be called
     Args = type tuple of args that method can be called with.
 **/
-class MethodConfigurer(T, string property, Args...) : PropertyConfigurer!T
+@safe class MethodConfigurer(T, string property, Args...) : PropertyConfigurer!T
 	if (
 	    isMethodCompatible!(T, property, Args)
     ) {
@@ -654,7 +654,7 @@ class MethodConfigurer(T, string property, Args...) : PropertyConfigurer!T
             Params:
                 args = list of arguments passed to T's method
         **/
-        this(ref Args args) {
+        this(ref Args args) @safe {
             this.args(args);
         }
 
@@ -665,7 +665,7 @@ class MethodConfigurer(T, string property, Args...) : PropertyConfigurer!T
             InvalidCastException when extracted component by reference, is not of type expected by argument
             of component's method
         **/
-        void configure(ref T obj) {
+        void configure(ref T obj) @trusted {
 
             try {
 
@@ -710,7 +710,7 @@ Encapsulates logic that sets component's field to a certain value.
 If argument that is contained by configurer is a RuntimeReference, it will be automatically
 replaced with value extracted from locator, and set to component's field.
 **/
-class FieldConfigurer(T, string property, Arg) : PropertyConfigurer!T
+@safe class FieldConfigurer(T, string property, Arg) : PropertyConfigurer!T
 	if (
 	    isFieldCompatible!(T, property, Arg)
     ) {
@@ -725,7 +725,7 @@ class FieldConfigurer(T, string property, Arg) : PropertyConfigurer!T
             Params:
                 arg = list of arguments passed to T's method
         **/
-        this(ref Arg arg) {
+        this(ref Arg arg) @safe {
             this.args(arg);
         }
 
@@ -736,7 +736,7 @@ class FieldConfigurer(T, string property, Arg) : PropertyConfigurer!T
             InvalidCastException when extracted component by reference, is not of type expected by argument
             of component's field
         **/
-        void configure(ref T obj) {
+        void configure(ref T obj) @trusted {
 
             try {
 
@@ -768,7 +768,7 @@ auto fieldConfigurer(string property, T, Arg)(auto ref Arg arg)
 /**
 Instantiates a component using it's constructor with no arguments.
 **/
-class DefaultInstanceFactory(T) : InstanceFactory!T
+@safe class DefaultInstanceFactory(T) : InstanceFactory!T
     if (
         hasDefaultCtor!T
     ) {
@@ -783,7 +783,7 @@ class DefaultInstanceFactory(T) : InstanceFactory!T
         Returns:
             T instantiated component
         **/
-        T factory() {
+        T factory() @trusted {
 
             try {
                 static if (is(T == class) && !isAbstractClass!T) {
@@ -806,7 +806,7 @@ when a component has elaborate constructor, yet
 no constructor was configured for generic factory to
 use those elaborate constructors.
 **/
-class DefaultFailingInstanceFactory(T) : InstanceFactory!T {
+@safe class DefaultFailingInstanceFactory(T) : InstanceFactory!T {
 
     mixin LocatorAwareMixin!(typeof(this));
     mixin AllocatorAwareMixin!(typeof(this));
@@ -818,7 +818,7 @@ class DefaultFailingInstanceFactory(T) : InstanceFactory!T {
         Returns:
             T instantiated component
         **/
-        T factory() {
+        T factory() @safe {
 
             throw new InstanceFactoryException("Component " ~ name!T ~ " has elaborate constructor, yet no instance constructor was provided.");
         }
@@ -836,7 +836,7 @@ Params:
     T = component type
     Args = type tuple of args that are passed to T's constructor
 **/
-class ConstructorBasedFactory(T, Args...) : InstanceFactory!T
+@safe class ConstructorBasedFactory(T, Args...) : InstanceFactory!T
 	if (
 	    isObjectConstructorCompatible!(T, Args)
 	) {
@@ -852,7 +852,7 @@ class ConstructorBasedFactory(T, Args...) : InstanceFactory!T
             Params:
                 args = arguments used for constructor
         **/
-        this(ref Args args) {
+        this(ref Args args) @safe {
             this.args(args);
         }
 
@@ -863,7 +863,7 @@ class ConstructorBasedFactory(T, Args...) : InstanceFactory!T
             InvalidCastException when extracted component by reference, is not of type expected by argument
             of component's constructor
         **/
-        T factory() {
+        T factory() @trusted {
 
             try {
 
@@ -939,7 +939,7 @@ template FactoryMethodInstanceFactory(string method, T, Args...)
         alias Z = ReturnType!Compatible;
         alias Params = Parameters!Compatible;
 
-        class FactoryMethodInstanceFactory : InstanceFactory!Z {
+        @safe class FactoryMethodInstanceFactory : InstanceFactory!Z {
 
             mixin AllocatorAwareMixin!(typeof(this));
             mixin LocatorAwareMixin!(typeof(this));
@@ -957,7 +957,7 @@ template FactoryMethodInstanceFactory(string method, T, Args...)
 
                 @property {
 
-                    this(ref W factoryMethodComponent) {
+                    this(ref W factoryMethodComponent) @safe {
                         this.factoryMethodComponent = factoryMethodComponent;
                     }
 
@@ -1000,7 +1000,7 @@ template FactoryMethodInstanceFactory(string method, T, Args...)
             Returns:
                 T instantiated component
             **/
-            Z factory() {
+            Z factory() @trusted {
                 try {
                     static if (!__traits(isStaticFunction, Compatible)) {
 
@@ -1099,7 +1099,7 @@ Params:
     T = the constructed component
     Args = type tuple of arguments passed to delegate for component's construction.
 **/
-class CallbackFactory(T, Dg, Args...) : InstanceFactory!T
+@safe class CallbackFactory(T, Dg, Args...) : InstanceFactory!T
     if ((is(Dg == T delegate (RCIAllocator, Locator!(), Args)) || is(Dg == T function (RCIAllocator, Locator!(), Args)))) {
 
     mixin AllocatorAwareMixin!(typeof(this));
@@ -1118,7 +1118,7 @@ class CallbackFactory(T, Dg, Args...) : InstanceFactory!T
                 dg = delegate used to create object
                 args = arguments passed to delegate
         **/
-        this(Dg dg, ref Args args) {
+        this(Dg dg, ref Args args) @safe {
             this.dg = dg;
             this.args(args);
         }
@@ -1126,7 +1126,7 @@ class CallbackFactory(T, Dg, Args...) : InstanceFactory!T
         /**
         See InstanceFactory interface
         **/
-        T factory() {
+        T factory() @trusted {
             try {
 
                 return this.dg(this.allocator, this.locator, args.expand);
@@ -1174,7 +1174,7 @@ Params:
     T = the component
     Args = type tuple of arguments used by delegate for customization.
 **/
-class CallbackConfigurer(T, X, Dg, Args...) : PropertyConfigurer!T
+@safe class CallbackConfigurer(T, X, Dg, Args...) : PropertyConfigurer!T
     if (
         is(T : X) && (
             is(Dg : void delegate (Locator!(), X, Args)) ||
@@ -1199,7 +1199,7 @@ class CallbackConfigurer(T, X, Dg, Args...) : PropertyConfigurer!T
                 dg = delegate used to configure the created object
                 args = arguments passed to delegate
         **/
-        this(Dg dg, ref Args args) {
+        this(Dg dg, ref Args args) @safe {
             this.dg = dg;
             this.args(args);
         }
@@ -1210,7 +1210,7 @@ class CallbackConfigurer(T, X, Dg, Args...) : PropertyConfigurer!T
         Params:
         	object = An object of type T, that will be configured
         **/
-        void configure(ref T object) {
+        void configure(ref T object) @trusted {
 
             try {
 
@@ -1263,7 +1263,7 @@ As a consequence, any reference based type will
 point to same content when it is instantiated
 multiple times.
 **/
-class ValueInstanceFactory(T) : InstanceFactory!T {
+@safe class ValueInstanceFactory(T) : InstanceFactory!T {
     private {
         T initial_;
     }
@@ -1278,7 +1278,7 @@ class ValueInstanceFactory(T) : InstanceFactory!T {
             Params:
                 initial = argument that is to be passed as created object
         **/
-        this(T initial) {
+        this(T initial) @safe {
             this.initial = initial;
         }
 
@@ -1315,7 +1315,7 @@ class ValueInstanceFactory(T) : InstanceFactory!T {
         Returns:
             T instantiated component
         **/
-        T factory() {
+        T factory() @safe {
             return this.initial();
         }
     }
@@ -1325,7 +1325,7 @@ class ValueInstanceFactory(T) : InstanceFactory!T {
 InstanceFactory that delegates the task of instantiating a component
 to some third party factory.
 **/
-class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!(Factory!X) {
+@safe class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!(Factory!X) {
 
     mixin AllocatorAwareMixin!(typeof(this));
     mixin LocatorAwareMixin!(typeof(this));
@@ -1339,7 +1339,7 @@ class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!
         /**
             Default constructor for DelegatingInstanceFactory!(T, X)
         **/
-        this() {
+        this() @safe {
 
         }
 
@@ -1349,7 +1349,7 @@ class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!
             Params:
                 factory = the factory to which this instance will delegate the task of creating a component
         **/
-        this(Factory!X factory) {
+        this(Factory!X factory) @safe {
             this.decorated = factory;
         }
 
@@ -1361,16 +1361,16 @@ class DelegatingInstanceFactory(T, X : T) : InstanceFactory!T, MutableDecorator!
         Returns:
             T instantiated component
         **/
-        T factory() {
+        T factory() @safe {
             return this.decorated.factory();
         }
     }
 }
 
 /**
-Default implementation of destructor that calls dispose upon classes only.
+Default implementation of destructor that calls dispose upon @safe classes only.
 **/
-class DefaultInstanceDestructor(T) : InstanceDestructor!T {
+@safe class DefaultInstanceDestructor(T) : InstanceDestructor!T {
 
     mixin AllocatorAwareMixin!(typeof(this));
     mixin LocatorAwareMixin!(typeof(this));
@@ -1381,7 +1381,7 @@ class DefaultInstanceDestructor(T) : InstanceDestructor!T {
     Params:
         destructable = element to be destructed and deallocated using stored allocator
     **/
-    void destruct(ref T component) {
+    void destruct(ref T component) @trusted {
         import std.experimental.allocator : dispose;
 
         static if (is(T == class)) {
@@ -1396,7 +1396,7 @@ class DefaultInstanceDestructor(T) : InstanceDestructor!T {
 /**
 Instance destructor that uses a callback to destroy and deallocate components of type T.
 **/
-class CallbackInstaceDestructor(T, Dg : void delegate(RCIAllocator, ref T destructable, Args), Args...) : InstanceDestructor!(T) {
+@safe class CallbackInstaceDestructor(T, Dg : void delegate(RCIAllocator, ref T destructable, Args), Args...) : InstanceDestructor!(T) {
     mixin AllocatorAwareMixin!(typeof(this));
     mixin LocatorAwareMixin!(typeof(this));
     mixin ParameterHolder!(Args);
@@ -1438,7 +1438,7 @@ class CallbackInstaceDestructor(T, Dg : void delegate(RCIAllocator, ref T destru
         Params:
             destructable = element to be destructed and deallocated using stored allocator
         **/
-        void destruct(ref T destructable) {
+        void destruct(ref T destructable) @trusted {
             this.dg()(this.allocator, destructable, this.args.expand);
         }
     }
@@ -1474,7 +1474,7 @@ template FactoryMethodInstanceDestructor(string method, T, Z, Args...)
 
     alias Compatible = getCompatibleOverload!(T, method, Z, Args);
 
-    class FactoryMethodInstanceDestructor : InstanceDestructor!Z {
+    @safe class FactoryMethodInstanceDestructor : InstanceDestructor!Z {
 
         mixin LocatorAwareMixin!(typeof(this));
         mixin AllocatorAwareMixin!(typeof(this));
@@ -1520,7 +1520,7 @@ template FactoryMethodInstanceDestructor(string method, T, Z, Args...)
             Params:
                 destructable = element to be destructed and deallocated using stored allocator
             **/
-            void destruct(ref Z destructable) {
+            void destruct(ref Z destructable) @trusted {
                 static if (!isStaticFunction!(Compatible)) {
                     __traits(getMember, this.destructor, method)(destructable, this.args.expand);
                 } else {
@@ -1597,7 +1597,7 @@ Note:
 **/
 template isArgumentListCompatible(alias func, ArgTuple...)
 	if (isSomeFunction!func) {
-    bool isArgumentListCompatible() {
+    bool isArgumentListCompatible() @safe {
         alias FuncParams = Parameters!func;
         alias Required = Filter!(partialSuffixed!(isValueOfType, void), ParameterDefaults!func);
 
@@ -1767,7 +1767,7 @@ private {
 }
 
 private {
-    string compileArgumentsTuple(Tuple...)(string types, string array, string locator) {
+    string compileArgumentsTuple(Tuple...)(string types, string array, string locator) @safe {
         import std.conv : to;
         import std.array : join;
         string[] stmt;

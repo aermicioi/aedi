@@ -36,7 +36,7 @@ import aermicioi.aedi.storage.storage;
 /**
  Interface for objects that can serevr Type elements.
 **/
-interface Locator(Type = Object, KeyType = string) {
+@safe interface Locator(Type = Object, KeyType = string) {
 
     public {
 
@@ -73,7 +73,7 @@ interface Locator(Type = Object, KeyType = string) {
 /**
 Exposes the list of locators contained in it.
 **/
-interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) :
+@safe interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) :
     Locator!(Type, KeyType) {
 
     import std.range.interfaces : InputRange;
@@ -110,7 +110,7 @@ interface AggregateLocator(Type = Object, KeyType = string, LocatorKeyType = Key
 /**
 Exposes, and allows to set a list of containers into it.
 **/
-interface MutableAggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) :
+@safe interface MutableAggregateLocator(Type = Object, KeyType = string, LocatorKeyType = KeyType) :
     AggregateLocator!(Type, KeyType, LocatorKeyType), Storage!(Locator!(Type, KeyType), LocatorKeyType) {
 
 }

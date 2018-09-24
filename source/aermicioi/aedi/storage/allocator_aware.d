@@ -35,7 +35,7 @@ import aermicioi.aedi.storage.decorator : MutableDecorator, Decorator;
 /**
 Interface for components that are aware of a memory allocator and are using it for some purpose, such as allocating storage for other components, or data.
 **/
-interface AllocatorAware(AllocatorType = RCIAllocator) {
+@safe interface AllocatorAware(AllocatorType = RCIAllocator) {
 
     public {
         @property {
@@ -57,14 +57,14 @@ interface AllocatorAware(AllocatorType = RCIAllocator) {
 /**
 Convienience mixin that implmenets allocator aware interface by delegating it to decorated AllocatorAware component.
 **/
-mixin template AllocatorAwareMixin(T : AllocatorAware!Z, Z) {
+@safe mixin template AllocatorAwareMixin(T : AllocatorAware!Z, Z) {
     mixin AllocatorAwareMixin!Z;
 }
 
 /**
 ditto
 **/
-mixin template AllocatorAwareMixin(Z) {
+@safe mixin template AllocatorAwareMixin(Z) {
     import std.experimental.allocator : RCIAllocator, make, theAllocator;
     private {
         Z allocator_;
@@ -114,7 +114,7 @@ mixin template AllocatorAwareMixin(Z) {
 /**
 Mixin containing default forwarding allocator properties for decorating components.
 **/
-mixin template AllocatorAwareDecoratorMixin(T : AllocatorAware!Z, Z)
+@safe mixin template AllocatorAwareDecoratorMixin(T : AllocatorAware!Z, Z)
     if (is(T : Decorator!X, X)) {
     import aermicioi.util.traits;
     import std.meta;

@@ -40,7 +40,7 @@ import aermicioi.aedi.storage.decorator : MutableDecoratorMixin;
 /**
 A decorating factory that detects circular reference insantiations.
 **/
-class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
+@safe class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
 
     mixin AllocatorAwareMixin!(typeof(this));
     mixin DestructDecoratorMixin!(typeof(this));
@@ -76,7 +76,7 @@ class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
              * Returns:
              * 	TypeInfo
             **/
-            TypeInfo type() const {
+            TypeInfo type() const @safe {
             	return this.decorated.type();
             }
 
@@ -102,7 +102,7 @@ class InProcessObjectFactoryDecorator : ObjectFactory, ObjectFactoryDecorator {
 		Returns:
 			Object created object.
 		**/
-        Object factory() {
+        Object factory() @safe {
             if (inProcess) {
                 throw new InProgressException("ObjectFactory is already instantiating, type: " ~ this.decorated.type.toString());
             }
@@ -126,7 +126,7 @@ and chains it in a new exception that adds additonal debugging information
 such as registered identity, and cause of exception. It is useful for chaining
 component instantiation pipeline and printing it for debugging purposes.
 **/
-class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
+@safe class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
 
     mixin AllocatorAwareMixin!(typeof(this));
     mixin DestructDecoratorMixin!(typeof(this));
@@ -188,7 +188,7 @@ class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
              * Returns:
              * 	TypeInfo
             **/
-            TypeInfo type() const {
+            TypeInfo type() const @safe {
             	return this.decorated.type();
             }
 
@@ -200,7 +200,7 @@ class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
              * Returns:
              * 	typeof(this)
             **/
-            ExceptionChainingObjectFactory locator(Locator!() locator) {
+            ExceptionChainingObjectFactory locator(Locator!() locator) @safe {
             	this.decorated.locator = locator;
 
             	return this;
@@ -213,7 +213,7 @@ class ExceptionChainingObjectFactory : ObjectFactory, ObjectFactoryDecorator {
 		Returns:
 			Object created object.
 		**/
-        Object factory() {
+        Object factory() @safe {
 
             try {
                 Object obj = this.decorated.factory();

@@ -44,7 +44,7 @@ import std.typecons;
 
  Instantiates a new object using passed ObjectFactory implementation, on each request of it by some part of an application.
 **/
-class PrototypeContainer : ConfigurableContainer {
+@safe class PrototypeContainer : ConfigurableContainer {
 
     private {
 
@@ -160,7 +160,7 @@ class PrototypeContainer : ConfigurableContainer {
                 pair.value.each!((proxy) => this.factories.get(pair.key).destruct(proxy));
             }
 
-            this.proxies.contents.clear;
+            (() @trusted scope => this.proxies.contents.clear)();
 
             return this;
         }

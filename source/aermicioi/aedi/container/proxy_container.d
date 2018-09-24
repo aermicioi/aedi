@@ -48,7 +48,7 @@ import aermicioi.util.traits;
 /**
 TODO: Add description of what this is and why it was designed as such.
 **/
-interface ProxyContainer : Container, Storage!(ProxyObjectFactory, string),
+@safe interface ProxyContainer : Container, Storage!(ProxyObjectFactory, string),
     Decorator!(Locator!())
 {
 
@@ -108,7 +108,7 @@ template ProxyContainerImpl(T)
     /**
     Templated proxy container.
     **/
-    class ProxyContainerImpl : InheritanceSet
+    @safe class ProxyContainerImpl : InheritanceSet
     {
         private
         {
@@ -178,7 +178,7 @@ template ProxyContainerImpl(T)
                         this.proxyFactories.get(pair.key).destruct(pair.value);
                     }
 
-                    this.proxies.contents.clear;
+                    (() @trusted scope => this.proxies.contents.clear)();
 
                     return this;
                 }

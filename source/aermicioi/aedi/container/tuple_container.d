@@ -42,7 +42,7 @@ import std.container;
 An aggregate container with knowledge of concrete types of aggregated containers.
 It delegates the task of serving an object to contained containers.
 **/
-class TupleContainer(T...) : Container {
+@safe class TupleContainer(T...) : Container {
 
     public {
         /**

@@ -35,7 +35,7 @@ import aermicioi.aedi.storage.locator;
 /**
 Interface for objects that are able to store elements of Type by identity of KeyType.
 **/
-interface Storage(Type, KeyType) {
+@safe interface Storage(Type, KeyType) {
 
     public {
 

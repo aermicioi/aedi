@@ -41,7 +41,7 @@ import std.conv;
 
  Stores Type elements by KeyType identity in.
 **/
-class ObjectStorage(Type = Object, KeyType = string) : Container!(Type, KeyType), AliasAware!(KeyType) {
+@safe class ObjectStorage(Type = Object, KeyType = string) : Container!(Type, KeyType), AliasAware!(KeyType) {
 
     private {
 
@@ -138,7 +138,7 @@ class ObjectStorage(Type = Object, KeyType = string) : Container!(Type, KeyType)
         Returns:
         	int
         **/
-        int opApply(scope int delegate(Type value) dg) {
+        int opApply(scope int delegate(Type value) dg) @trusted {
 
         	foreach (value; this.contents()) {
 
@@ -155,7 +155,7 @@ class ObjectStorage(Type = Object, KeyType = string) : Container!(Type, KeyType)
         /**
         ditto
         **/
-        int opApply(scope int delegate(const KeyType key, Type value) dg) {
+        int opApply(scope int delegate(const KeyType key, Type value) dg) @trusted {
 
         	foreach (key, value; this.contents()) {
 

@@ -239,7 +239,7 @@ class MockObjectFactoryMethod {
     }
 }
 
-class MockFactory(T) : ObjectFactory {
+@safe class MockFactory(T) : ObjectFactory {
     import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
     mixin AllocatorAwareMixin!(typeof(this));
 
@@ -252,7 +252,7 @@ class MockFactory(T) : ObjectFactory {
             this.allocator = theAllocator;
         }
 
-        Object factory() {
+        Object factory() @trusted {
 
             return this.allocator.make!T();
         }
@@ -266,7 +266,7 @@ class MockFactory(T) : ObjectFactory {
         Returns:
 
         **/
-        void destruct(ref Object component) {
+        void destruct(ref Object component) @trusted {
             destroy(component);
         }
 
@@ -284,7 +284,7 @@ class MockFactory(T) : ObjectFactory {
     }
 }
 
-class MockFailingFactory(T) : ObjectFactory {
+@safe class MockFailingFactory(T) : ObjectFactory {
     import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
     mixin AllocatorAwareMixin!(typeof(this));
 
@@ -293,12 +293,12 @@ class MockFailingFactory(T) : ObjectFactory {
     }
 
     public {
-        Object factory() {
+        Object factory() @safe {
             import aermicioi.aedi.exception.di_exception;
             throw new AediException("Well, I'll just fail everything.");
         }
 
-        void destruct(ref Object destruct) {
+        void destruct(ref Object destruct) @trusted {
             destroy(destruct);
         }
 
@@ -316,7 +316,7 @@ class MockFailingFactory(T) : ObjectFactory {
     }
 }
 
-class MockValueFactory(T) : Factory!T {
+@safe class MockValueFactory(T) : Factory!T {
     import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
     mixin AllocatorAwareMixin!(typeof(this));
 
@@ -325,7 +325,7 @@ class MockValueFactory(T) : Factory!T {
     }
 
     public {
-        T factory() {
+        T factory() @trusted {
             static if (is(T : Object)) {
                 return new T();
             } else {
@@ -342,7 +342,7 @@ class MockValueFactory(T) : Factory!T {
         Returns:
 
         **/
-        void destruct(ref T component) {
+        void destruct(ref T component) @trusted {
             static if (is(T : Object)) {
                 destroy(component);
             }
@@ -362,21 +362,21 @@ class MockValueFactory(T) : Factory!T {
     }
 }
 
-class CircularFactoryMock(T) : MockFactory!T, Factory!T {
+@safe class CircularFactoryMock(T) : MockFactory!T, Factory!T {
     import std.experimental.allocator : RCIAllocator;
 
     Object fetched;
     string referenced = "mock";
 
     public {
-        override T factory() {
+        override T factory() @trusted {
             auto t = new T;
             this.fetched = this.locator_.get(this.referenced);
 
             return t;
         }
 
-        void destruct(ref T component) {
+        void destruct(ref T component) @safe {
             Object obj = component;
             super.destruct(obj);
         }
@@ -700,7 +700,7 @@ struct Currency {
 
         @property {
             @setter(cast(ptrdiff_t) 100)
-            ref Currency amount(ptrdiff_t amount) @safe nothrow {
+            ref Currency amount(ptrdiff_t amount) @safe nothrow return scope {
             	this.amount_ = amount;
 
             	return this;
@@ -800,7 +800,7 @@ struct StructFixtureFactory {
         	return company_;
         }
 
-        ref StructFixtureFactory job(Job job) @safe nothrow {
+        ref StructFixtureFactory job(Job job) @safe nothrow return scope {
         	this.job_ = job;
 
         	return this;
@@ -814,7 +814,7 @@ struct StructFixtureFactory {
             return Currency(amount);
         }
 
-        ref StructFixtureFactory currency(Currency currency) @safe nothrow {
+        ref StructFixtureFactory currency(Currency currency) @safe nothrow return scope {
         	this.currency_ = currency;
 
         	return this;

@@ -92,7 +92,7 @@ template TypeBasedContainer(T) {
             )
         );
 
-    class TypeBasedContainer : InheritanceSet {
+    @safe class TypeBasedContainer : InheritanceSet {
 
         private {
             ObjectStorage!(RedBlackTree!(string), string) candidates;
@@ -129,7 +129,7 @@ template TypeBasedContainer(T) {
                 ClassInfo info = cast(ClassInfo) factory.type;
                 if (info !is null) {
                     info.crawlClassInfo(
-                        delegate (TypeInfo_Class crawled) {
+                        (TypeInfo_Class crawled) @safe {
                             if (!this.candidates.has(crawled.toString())) {
                                 this.candidates.set(new RedBlackTree!string, crawled.toString());
                             }
@@ -155,7 +155,7 @@ template TypeBasedContainer(T) {
         	Return:
         		TypeBasedContainer
             **/
-            TypeBasedContainer remove(string identity) {
+            TypeBasedContainer remove(string identity) @trusted {
                 decorated.remove(identity);
 
                 foreach (pair; this.candidates.contents.byKeyValue.array) {
@@ -308,7 +308,7 @@ template TypeBasedContainer(T) {
 }
 
 private {
-    void crawlClassInfo(TypeInfo_Class class_, void delegate (TypeInfo_Class) dg) {
+    void crawlClassInfo(TypeInfo_Class class_, void delegate (TypeInfo_Class) @safe dg) @safe {
         dg(class_);
 
         foreach (iface; class_.interfaces) {

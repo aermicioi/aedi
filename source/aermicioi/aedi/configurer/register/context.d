@@ -38,6 +38,7 @@ import aermicioi.aedi.storage.storage;
 import std.experimental.allocator : RCIAllocator, theAllocator;
 import std.traits;
 
+@safe:
 
 /**
 A component registration interface for storage.

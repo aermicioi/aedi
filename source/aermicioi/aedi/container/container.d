@@ -38,7 +38,7 @@ import aermicioi.aedi.storage.alias_aware;
 /**
 Interface for objects that instantiate and manage the lifetime of objects in it.
 **/
-interface Container : Locator!(Object, string) {
+@safe interface Container : Locator!(Object, string) {
 
     public {
 
@@ -62,14 +62,14 @@ interface Container : Locator!(Object, string) {
 /**
  Buildable/configurable instantiatiator with factories, and aliasing.
 **/
-interface ConfigurableContainer : Container, Storage!(ObjectFactory, string), AliasAware!(string), FactoryLocator!ObjectFactory {
+@safe interface ConfigurableContainer : Container, Storage!(ObjectFactory, string), AliasAware!(string), FactoryLocator!ObjectFactory {
 
 }
 
 /**
 Provide an interface for accessing factories used by containers to instantiate component.
 **/
-interface FactoryLocator(T : Factory!Z, Z) {
+@safe interface FactoryLocator(T : Factory!Z, Z) {
     import std.range.interfaces : InputRange;
     import std.typecons : Tuple;
 

@@ -33,7 +33,7 @@ import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 
 
-interface Container(StorageType, StorageKeyType, LocatorType = StorageType, LocatorKeyType = StorageKeyType) :
+@safe interface Container(StorageType, StorageKeyType, LocatorType = StorageType, LocatorKeyType = StorageKeyType) :
     Storage!(StorageType, StorageKeyType), Locator!(LocatorType, LocatorKeyType) {
 
 }

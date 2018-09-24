@@ -46,7 +46,7 @@ alias ObjectFactoryDecorator = Decorator!ObjectFactory;
 A base class for generic factory decorators that channels calls
 to decorated generic factory.
 **/
-abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator!(GenericFactory!T) {
+@safe abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator!(GenericFactory!T) {
 
 	mixin AllocatorAwareDecoratorMixin!(typeof(this));
 	mixin DestructDecoratorMixin!(typeof(this));
@@ -150,7 +150,7 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
 		Returns:
 			T instantiated component of type T.
 		**/
-        T factory() {
+        T factory() @safe {
             return this.decorated.factory();
         }
 
@@ -184,7 +184,7 @@ abstract class DecoratableGenericFactory(T) : GenericFactory!T, MutableDecorator
 /**
 An object that can be tagged with some information.
 **/
-interface Taggable(T) {
+@safe interface Taggable(T) {
     import std.range.interfaces : InputRange;
     public {
 
@@ -223,7 +223,7 @@ interface Taggable(T) {
 /**
 Decorates a factory with tagging functionality.
 **/
-class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory!T) {
+@safe class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory!T) {
 
     mixin AllocatorAwareDecoratorMixin!(typeof(this));
     mixin DestructDecoratorMixin!(typeof(this));
@@ -325,7 +325,7 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
 		Returns:
 			T instantiated component of type T.
 		**/
-        T factory() {
+        T factory() @safe {
             return this.decorated.factory;
         }
     }
@@ -335,7 +335,7 @@ class TaggableFactoryDecorator(T, Z) : Factory!T, Taggable!Z, Decorator!(Factory
 Interface for object that can provide some location in
 code/file that is associated with some kind of registration event
 **/
-interface RegistrationLocation {
+@safe interface RegistrationLocation {
     public {
         @property {
 
@@ -362,7 +362,7 @@ interface RegistrationLocation {
 A decorating factory, that adds component registration information
 when decorated factory threws some kind of exception.
 **/
-class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Factory!T), RegistrationLocation {
+@safe class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Factory!T), RegistrationLocation {
 
 	mixin AllocatorAwareDecoratorMixin!(typeof(this));
 
@@ -467,7 +467,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
 		Returns:
 			T instantiated component of type T.
 		**/
-        T factory() {
+        T factory() @safe {
 
             try {
                 return this.decorated.factory;
@@ -491,7 +491,7 @@ class RegistrationAwareDecoratingFactory(T) : Factory!T, MutableDecorator!(Facto
 		Params:
 			component = component that is to be destroyed.
 		**/
-		void destruct(ref T component) {
+		void destruct(ref T component) @safe {
 
 			try {
 

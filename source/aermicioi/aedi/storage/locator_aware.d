@@ -69,14 +69,14 @@ alias DelegatingLocator = LocatorAware;
 /**
 Mixin implementing LocatorAware interface for a component of type T.
 **/
-mixin template LocatorAwareMixin(T : LocatorAware!(Z, X), Z, X) {
+@safe mixin template LocatorAwareMixin(T : LocatorAware!(Z, X), Z, X) {
     mixin LocatorAwareMixin!(Z, X);
 }
 
 /**
 ditto
 **/
-mixin template LocatorAwareMixin(Type = Object, KeyType = string) {
+@safe mixin template LocatorAwareMixin(Type = Object, KeyType = string) {
     import aermicioi.aedi.storage.locator;
     private {
         Locator!(Type, KeyType) locator_;
@@ -92,7 +92,7 @@ mixin template LocatorAwareMixin(Type = Object, KeyType = string) {
         Returns:
             typeof(this)
         **/
-        typeof(this) locator(Locator!(Type, KeyType) locator) {
+        typeof(this) locator(Locator!(Type, KeyType) locator) @safe {
             this.locator_ = locator;
 
             return this;

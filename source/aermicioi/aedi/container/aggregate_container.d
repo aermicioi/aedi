@@ -42,7 +42,7 @@ Aggregate container, that delegates the task of locating to containers
 managed by it.
 
 **/
-class AggregateContainer : Container, Storage!(Container, string), AggregateLocator!(Object, string) {
+@safe class AggregateContainer : Container, Storage!(Container, string), AggregateLocator!(Object, string) {
 
     private {
         ObjectStorage!(Container, string) containers;
@@ -109,7 +109,7 @@ class AggregateContainer : Container, Storage!(Container, string), AggregateLoca
         **/
         Object get(string identity) {
             if (this.containers.has(identity)) {
-                Object container = cast(Object) this.containers.get(identity);
+                Object container = (() scope @trusted => cast(Object) this.containers.get(identity))();
 
                 if (container !is null) {
                     return container;

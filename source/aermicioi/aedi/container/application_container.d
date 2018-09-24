@@ -47,7 +47,7 @@ already instantiated component. It should be sufficient for usages, when no spec
 is required.
 
 **/
-class ApplicationContainer : AggregateContainer {
+@safe class ApplicationContainer : AggregateContainer {
 
     public {
 

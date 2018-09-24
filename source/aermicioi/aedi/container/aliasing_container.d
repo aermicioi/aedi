@@ -77,7 +77,7 @@ template AliasingContainer(T) {
     /**
     Templated aliasing decorated.
     **/
-    class AliasingContainer : InheritanceSet {
+    @safe class AliasingContainer : InheritanceSet {
         private {
             string[const(string)] aliasings;
         }

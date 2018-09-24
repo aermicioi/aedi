@@ -32,6 +32,7 @@ module aermicioi.aedi.storage.wrapper;
 import std.traits;
 import std.meta : staticMap;
 
+@safe:
 /**
 Interface for components that wrap a component of type T. Provides boxing and automatic unboxing of wrapped values.
 **/
@@ -44,7 +45,7 @@ interface Wrapper(T) {
         Returns:
             T the wrapped value
         **/
-        @property ref inout(T) value() inout;
+        @property ref inout(T) value() inout return scope;
 
         /**
         Alias wrapper to T for automatic unboxing of values.
@@ -65,7 +66,7 @@ interface Castable(T) {
         Returns:
             T component transformed into T component.
         **/
-        @property inout(T) casted() inout;
+        @property inout(T) casted() inout return scope;
 
         /**
         Alias casted type for automatic casting of component.
@@ -117,7 +118,7 @@ private {
                 this.value_ = value;
             }
 
-            @property ref inout(T) value() inout {
+            @property ref inout(T) value() inout return scope {
                 return this.value_;
             }
         }
@@ -129,7 +130,7 @@ private {
 
     mixin template CastableMixin(Type) {
         @property {
-            inout(Type) casted() inout {
+            inout(Type) casted() inout return scope {
                 return cast(inout(Type)) this.value;
             }
         }
@@ -144,7 +145,5 @@ private {
         mixin CastableMixin!(More);
     }
 
-    template toCastable(T) {
-        alias toCastable = Castable!T;
-    }
+    alias toCastable(T) = Castable!T;
 }

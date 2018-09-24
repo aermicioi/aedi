@@ -44,7 +44,7 @@ import std.typecons;
 /**
 Interface that allows object to be switchable in off and on state.
 **/
-interface Switchable {
+@safe interface Switchable {
 
     public @property {
 
@@ -133,7 +133,7 @@ template SwitchableContainer(T) {
     /**
     Templated switchable decorated.
     **/
-    class SwitchableContainer : InheritanceSet {
+    @safe class SwitchableContainer : InheritanceSet {
         private {
             T decorated_;
 

@@ -38,7 +38,7 @@ Exception denoting something is in use, and cannot be modified or removed.
 Exception denoting something is in use, and cannot be modified or removed.
 Usually thrown when an used component is attempted to remove from container.
 **/
-class InUseException : AediException {
+@safe class InUseException : AediException {
     private {
         string[] keys;
     }

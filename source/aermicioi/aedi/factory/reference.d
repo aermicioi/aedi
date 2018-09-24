@@ -45,7 +45,7 @@ Represents a reference that some component is dependent on it.
 It will resolve itself to the referenced component, that is
 subclass of Object, or component that is encapsulated in Wrapper object.
 **/
-interface RuntimeReference {
+@safe interface RuntimeReference {
 
     /**
     Resolve the reference, to referenced component.
@@ -68,7 +68,7 @@ Represents a reference that is located in locator.
 It uses referenced component's identity in locator to
 find it and serve.
 **/
-class LocatorReference : RuntimeReference {
+@safe class LocatorReference : RuntimeReference {
     private {
         string identity_;
     }
@@ -137,21 +137,21 @@ class LocatorReference : RuntimeReference {
 /**
 ditto
 **/
-auto lref(string id) {
+@safe auto lref(string id) {
     return new LocatorReference(id);
 }
 
 /**
 ditto
 **/
-auto lref(string name)() {
+@safe auto lref(string name)() {
     return name.lref;
 }
 
 /**
 Reference to a component stored in a locator by it's type.
 **/
-class TypeLocatorReference(T) : RuntimeReference {
+@safe class TypeLocatorReference(T) : RuntimeReference {
 
     public {
         /**
@@ -182,7 +182,7 @@ class TypeLocatorReference(T) : RuntimeReference {
 /**
 ditto
 **/
-auto lref(T)() {
+@safe auto lref(T)() {
     return new TypeLocatorReference!T;
 }
 
@@ -193,7 +193,7 @@ Represents a reference to component yet to be constructed.
 It will instantiate the referenced component using an object
 factory, and will serve it to requestor.
 **/
-class AnonymousFactoryReference : RuntimeReference {
+@safe class AnonymousFactoryReference : RuntimeReference {
 
     private {
         ObjectFactory factory_;
@@ -246,7 +246,7 @@ class AnonymousFactoryReference : RuntimeReference {
 /**
 ditto
 **/
-auto anonymous(T : Factory!X, X)(T factory) {
+@safe auto anonymous(T : Factory!X, X)(T factory) {
     import aermicioi.aedi.factory.wrapping_factory : WrappingFactory;
     return anonymous(new WrappingFactory!T(factory));
 }
@@ -254,7 +254,7 @@ auto anonymous(T : Factory!X, X)(T factory) {
 /**
 ditto
 **/
-auto anonymous(ObjectFactory factory) {
+@safe auto anonymous(ObjectFactory factory) {
     auto anonymous = new AnonymousFactoryReference();
     anonymous.factory = factory;
 
@@ -272,7 +272,7 @@ Throws:
 Returns:
     AlternateReference
 **/
-AlternateReference alternate(RuntimeReference original, RuntimeReference alternate) {
+@safe AlternateReference alternate(RuntimeReference original, RuntimeReference alternate) {
     AlternateReference reference = new AlternateReference();
 
     reference.original = original;
@@ -284,7 +284,7 @@ AlternateReference alternate(RuntimeReference original, RuntimeReference alterna
 /**
 ditto
 **/
-class AlternateReference : RuntimeReference {
+@safe class AlternateReference : RuntimeReference {
     private {
         RuntimeReference original_;
         RuntimeReference alternative_;
@@ -381,7 +381,7 @@ Returns:
 	T referenced object
 	Wrapper!T referenced component that is not of Object subclass.
 **/
-auto resolve(T : Object)(RuntimeReference reference, Locator!() locator)
+@trusted auto resolve(T : Object)(RuntimeReference reference, Locator!() locator)
 body {
     T result = cast(T) reference.get(locator);
 
@@ -400,7 +400,7 @@ body {
 /**
 ditto
 **/
-auto resolve(T)(RuntimeReference reference, Locator!() locator)
+@trusted auto resolve(T)(RuntimeReference reference, Locator!() locator)
     if (is(T == interface)) {
 
     Object obj = reference.get(locator);
@@ -440,7 +440,7 @@ auto resolve(T)(RuntimeReference reference, Locator!() locator)
 /**
 ditto
 **/
-auto resolve(T)(RuntimeReference reference, Locator!() locator)
+@trusted auto resolve(T)(RuntimeReference reference, Locator!() locator)
     if (!is(T == interface)) {
 
     Object obj = reference.get(locator);
@@ -473,7 +473,7 @@ auto resolve(T)(RuntimeReference reference, Locator!() locator)
 /**
 ditto
 **/
-auto ref Z resolve(T, Z)(auto ref Z reference, Locator!() locator)
+@trusted auto ref Z resolve(T, Z)(auto ref Z reference, Locator!() locator)
     if (!is(Z : RuntimeReference)) {
     return reference;
 }

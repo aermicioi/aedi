@@ -32,7 +32,7 @@ module aermicioi.aedi.storage.decorator;
 /**
 Provides the underlying decorated object.
 **/
-interface Decorator(T) {
+@safe interface Decorator(T) {
 
     public {
         @property {
@@ -51,7 +51,7 @@ interface Decorator(T) {
 /**
 Allows to get and set decorated object.
 **/
-interface MutableDecorator(T) : Decorator!T {
+@safe interface MutableDecorator(T) : Decorator!T {
     public {
         @property {
 
@@ -83,7 +83,7 @@ Params:
 Returns:
 	Decorator or null if not found.
 **/
-Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) {
+Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) @trusted {
 
     Haystack decorator = cast(Haystack) decorated;
     Needle needle = cast(Needle) decorated;
@@ -99,7 +99,7 @@ Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) {
 /**
 Mixin implementing MutableDecorator for a decorated element of T.
 **/
-mixin template MutableDecoratorMixin(T) {
+@safe mixin template MutableDecoratorMixin(T) {
 
 	private {
 		T decorated_;

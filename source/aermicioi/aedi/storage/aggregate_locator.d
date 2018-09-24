@@ -39,7 +39,7 @@ import std.typecons;
 /**
 An implementation of AggregateLocator.
 **/
-class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = KeyType) :
+@safe class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = KeyType) :
     MutableAggregateLocator!(Type, KeyType, LocatorKeyType) {
 
     protected {
@@ -98,7 +98,7 @@ class AggregateLocatorImpl(Type = Object, KeyType = string, LocatorKeyType = Key
             }
 
             if ((identity in this.locators) !is null) {
-                auto result = cast(Type) this.locators[identity];
+                auto result = (() scope @trusted => cast(Type) this.locators[identity])();
 
                 if (result !is null) {
                     return result;

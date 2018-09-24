@@ -55,6 +55,8 @@ import std.experimental.allocator.gc_allocator;
 import std.experimental.allocator.mmap_allocator;
 import std.experimental.allocator.mallocator;
 
+@safe:
+
 /**
 Check if T is instance of ComponentAnnotation
 **/
@@ -149,7 +151,7 @@ struct AllocatorAnnotation(T)
     Returns:
         RCIAllocator
     **/
-    RCIAllocator iallocator() {
+    RCIAllocator iallocator() @trusted {
         return T.instance.allocatorObject;
     }
 }

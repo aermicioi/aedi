@@ -51,7 +51,7 @@ import std.typecons;
 Creates a proxy to an object or interface of type T,
 that is located in source locator by some identity.
 **/
-class ProxyFactory(T) : Factory!T
+@safe class ProxyFactory(T) : Factory!T
     if (
         (
             is(T == class) &&
@@ -89,7 +89,7 @@ class ProxyFactory(T) : Factory!T
 		Returns:
 			T instantiated component of type T.
 		**/
-        Proxy!T factory() {
+        Proxy!T factory() @trusted {
             auto proxy = this.allocator.make!(Proxy!T);
             proxy.__id__ = this.identity;
             proxy.__locator__ = this.source;
@@ -106,7 +106,7 @@ class ProxyFactory(T) : Factory!T
         Returns:
 
         **/
-        void destruct(ref T component) {
+        void destruct(ref T component) @trusted {
             Proxy!T proxy = cast(Proxy!T) component;
 
             if (proxy !is null) {
@@ -230,7 +230,7 @@ template ProxyImpl(T)
         is(T == interface)
     ) {
 
-    static class ProxyImpl : T {
+    class ProxyImpl : T {
         private {
 
             Locator!() __locator_;
@@ -312,7 +312,7 @@ alias Proxy(T) = AutoImplement!(ProxyImpl!T, how!T, templateAnd!(
 /**
 A ProxyObjectFactory instantiates a proxy to some type of object located in source locator.
 **/
-interface ProxyObjectFactory : ObjectFactory {
+@safe interface ProxyObjectFactory : ObjectFactory {
 
     @property {
 
@@ -338,7 +338,7 @@ interface ProxyObjectFactory : ObjectFactory {
 Proxy factory decorator, that conforms to requirements of a container, exposing as well the ability
 to set proxied object's identity and locator.
 **/
-class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(ProxyFactory!T)
+@safe class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(ProxyFactory!T)
     if (is(T : Object) && !isFinalClass!T) {
 
     import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
@@ -449,7 +449,7 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Prox
 		Returns:
 			Object instantiated component.
 		**/
-        Object factory() {
+        Object factory() @safe {
             return this.decorated.factory();
         }
 
@@ -462,7 +462,7 @@ class ProxyObjectWrappingFactory(T) : ProxyObjectFactory, MutableDecorator!(Prox
         Returns:
 
         **/
-        void destruct(ref Object component)
+        void destruct(ref Object component) @safe
         in {
             assert(component !is null);
         }

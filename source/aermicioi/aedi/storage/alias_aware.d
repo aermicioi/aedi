@@ -33,7 +33,7 @@ module aermicioi.aedi.storage.alias_aware;
 /**
 Interface for objects that are able to alias an identity and resolve an alias to original identity.
 **/
-interface AliasAware(Type) {
+@safe interface AliasAware(Type) {
 
     public {
 

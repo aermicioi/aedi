@@ -41,7 +41,7 @@ import aermicioi.aedi.container.container : FactoryLocator;
 Mix in container interface implementation that delegates
 it to decorated container.
 **/
-mixin template ContainerMixin(T : Container) {
+@safe mixin template ContainerMixin(T : Container) {
 
     /**
     Sets up the internal state of container.
@@ -73,7 +73,7 @@ mixin template ContainerMixin(T : Container) {
 Mix in alias aware interface implementation that delegates
 the logic to decorated container.
 **/
-mixin template AliasAwareMixin(T : AliasAware!W, W) {
+@safe mixin template AliasAwareMixin(T : AliasAware!W, W) {
     /**
     Alias a identity to an alias_.
 
@@ -127,7 +127,7 @@ mixin template AliasAwareMixin(T : AliasAware!W, W) {
 /**
 ditto
 **/
-mixin template AliasAwareMixin(T) {
+@safe mixin template AliasAwareMixin(T) {
 
 }
 
@@ -135,7 +135,7 @@ mixin template AliasAwareMixin(T) {
 Mix in storage interface implementation that delegates
 the logic to decorated container.
 **/
-mixin template StorageMixin(T : Storage!(W, X), W, X) {
+@safe mixin template StorageMixin(T : Storage!(W, X), W, X) {
     /**
     Set component in decorated by identity.
 
@@ -174,14 +174,14 @@ mixin template StorageMixin(T : Storage!(W, X), W, X) {
 Mix in locator interface implementation that delegates
 the logic to decorated container.
 **/
-mixin template LocatorMixin(T : Locator!(W, X), W, X) {
+@safe mixin template LocatorMixin(T : Locator!(W, X), W, X) {
     mixin LocatorMixin!(W, X);
 }
 
 /**
 ditto
 **/
-mixin template LocatorMixin(W, X) {
+@safe mixin template LocatorMixin(W, X) {
     /**
     Get object created by a factory identified by key
 
@@ -213,7 +213,7 @@ mixin template LocatorMixin(W, X) {
 Mix in factory locator interface implementation that delegates
 the logic to decorated container.
 **/
-mixin template FactoryLocatorMixin(T : FactoryLocator!W, W) {
+@safe mixin template FactoryLocatorMixin(T : FactoryLocator!W, W) {
     import std.range.interfaces : InputRange;
     import std.typecons : Tuple;
     /**

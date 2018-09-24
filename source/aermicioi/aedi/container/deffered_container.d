@@ -61,7 +61,7 @@ template DefferedContainer(T)
         Decorator!Container
     );
 
-    class DefferedContainer : InheritanceSet
+    @safe class DefferedContainer : InheritanceSet
     {
         private
         {
@@ -169,7 +169,7 @@ template DefferedContainer(T)
             Object get(string key)
             {
                 if (key == this.identity) {
-                    return cast(Object) this.executioner;
+                    return (() @trusted => cast(Object) this.executioner)();
                 }
 
                 ++this.depth;

@@ -46,7 +46,7 @@ import std.typecons;
 
  It creates objects from ObjectFactory implementations and sets them as long as it lives in application.
 **/
-class SingletonContainer : ConfigurableContainer {
+@safe class SingletonContainer : ConfigurableContainer {
 
     private {
 
@@ -165,7 +165,7 @@ class SingletonContainer : ConfigurableContainer {
                 this.factories.get(pair.key).destruct(pair.value);
             }
 
-            this.singletons.contents.clear;
+            (() scope @trusted => this.singletons.contents.clear)();
 
             return this;
         }

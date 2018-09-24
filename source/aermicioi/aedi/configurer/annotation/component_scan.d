@@ -75,7 +75,7 @@ enum bool isConfiguratorPolicy(T, X : GenericFactory!Z = GenericFactory!Object, 
 /**
 Create a GenericFactory!T if T is annotated with @component annotation.
 **/
-struct GenericFactoryPolicy {
+@safe struct GenericFactoryPolicy {
 
     private alias getComponents(alias T) = Filter!(
             isComponentAnnotation,
@@ -107,7 +107,7 @@ struct GenericFactoryPolicy {
 /**
 A factory policy that uses annotations implementing factory policy interface on component to instantiate the component.
 **/
-struct GenericFactoryAnnotationPolicy {
+@safe struct GenericFactoryAnnotationPolicy {
 
     private alias getGenericFactoryPolicies(T, X) = Filter!(
         chain!(
@@ -145,7 +145,7 @@ struct GenericFactoryAnnotationPolicy {
 /**
 A factory policy that applies in order a set of factory policies to create component factory.
 **/
-struct FallbackFactoryPolicy(FactoryPolicies...)
+@safe struct FallbackFactoryPolicy(FactoryPolicies...)
     if (allSatisfy!(isFactoryPolicy, FactoryPolicies)) {
 
     /**
@@ -174,7 +174,7 @@ struct FallbackFactoryPolicy(FactoryPolicies...)
 /**
 Chain a set of configurator policies.
 **/
-struct ChainedConfiguratorPolicy(ConfiguratorPolicies...)
+@safe struct ChainedConfiguratorPolicy(ConfiguratorPolicies...)
     if (allSatisfy!(isConfiguratorPolicy, ConfiguratorPolicies)) {
 
     /**
@@ -196,7 +196,7 @@ struct ChainedConfiguratorPolicy(ConfiguratorPolicies...)
 /**
 Set allocator used by factory to instantiate component T.
 **/
-struct AllocatorConfiguratorPolicy {
+@safe struct AllocatorConfiguratorPolicy {
 
     private alias getAllocators(alias T) = Filter!(
             isAllocatorAnnotation,
@@ -222,7 +222,7 @@ struct AllocatorConfiguratorPolicy {
 /**
 Set callback instance factory from @callbac annotation into GenericFactory!Z
 **/
-struct CallbackFactoryConfiguratorPolicy {
+@safe struct CallbackFactoryConfiguratorPolicy {
     private alias getCallbackFactories(alias T) = Filter!(
             isCallbackFactoryAnnotation,
             allUDAs!T
@@ -256,7 +256,7 @@ struct CallbackFactoryConfiguratorPolicy {
 /**
 Set value factory that takes component from @value annotation and provides it as a new component.
 **/
-struct ValueFactoryConfiguratorPolicy {
+@safe struct ValueFactoryConfiguratorPolicy {
     private alias getValueFactories(alias T) = Filter!(
             isValueAnnotation,
             allUDAs!T
@@ -287,7 +287,7 @@ struct ValueFactoryConfiguratorPolicy {
 /**
 A policy that uses annotations that implement isConfigurerPolicy interface to configure the component factory
 **/
-struct GenericConfigurerConfiguratorPolicy {
+@safe struct GenericConfigurerConfiguratorPolicy {
     private alias getGenerics(alias T, X) = Filter!(
                 chain!(
                     ApplyRight!(isConfiguratorPolicy, X),
@@ -314,7 +314,7 @@ struct GenericConfigurerConfiguratorPolicy {
 /**
 A policy that configures factory to use callback to destroy created components.
 **/
-struct CallbackDestructorConfigurerPolicy {
+@safe struct CallbackDestructorConfigurerPolicy {
     private alias getCallbackDestructors(alias T, X) = Filter!(
         chain!(
             ApplyRight!(isCallbackDestructor, X),
@@ -394,7 +394,7 @@ enum bool isMethodConfiguratorPolicy(T, string member = "method", X : GenericFac
 /**
 Configurator policy that applies method configurator policies on all public methods of a component
 **/
-struct MethodScanningConfiguratorPolicy(MethodConfiguratorPolicies...)
+@safe struct MethodScanningConfiguratorPolicy(MethodConfiguratorPolicies...)
     if (allSatisfy!(isMethodConfiguratorPolicy, MethodConfiguratorPolicies)) {
 
     /**
@@ -419,7 +419,7 @@ struct MethodScanningConfiguratorPolicy(MethodConfiguratorPolicies...)
 /**
 Configurator policy that applies field configurator policies on all public methods of a component
 **/
-struct FieldScanningConfiguratorPolicy(FieldConfiguratorPolicies...)
+@safe struct FieldScanningConfiguratorPolicy(FieldConfiguratorPolicies...)
     if (allSatisfy!(isFieldConfiguratorPolicy, FieldConfiguratorPolicies)) {
 
     /**
@@ -444,7 +444,7 @@ struct FieldScanningConfiguratorPolicy(FieldConfiguratorPolicies...)
 /**
 Method configurator policy that scans only constructors for @constructor annotation, for using them to instantiate component Z
 **/
-struct ConstructorMethodConfiguratorPolicy {
+@safe struct ConstructorMethodConfiguratorPolicy {
 
     /**
     Checks if scanned method is a constructor and has @constructor annotation, and sets it to be used to construct component if so.
@@ -480,7 +480,7 @@ struct ConstructorMethodConfiguratorPolicy {
 /**
 Method policy that scans constructors for @autowired annotation to use them to construct component with dependencies identified by qualifier, name or their type.
 **/
-struct AutowiredConstructorMethodConfiguratorPolicy {
+@safe struct AutowiredConstructorMethodConfiguratorPolicy {
 
     /**
     Configures instantiator to use @autowired constructor method, to construct the component.
@@ -516,7 +516,7 @@ struct AutowiredConstructorMethodConfiguratorPolicy {
 /**
 Field configurator policy that will set a field annotated @setter annotation to value contained in it.
 **/
-struct SetterFieldConfiguratorPolicy {
+@safe struct SetterFieldConfiguratorPolicy {
 
     /**
     Configures instantiator to inject into field a predefined value or a dependency from @setter annotation
@@ -544,7 +544,7 @@ struct SetterFieldConfiguratorPolicy {
 /**
 Field configurator policy that will set a field to value returned by a callback in @callback annotation
 **/
-struct CallbackFieldConfiguratorPolicy {
+@safe struct CallbackFieldConfiguratorPolicy {
 
     /**
     Configure instantiator to inject return value of callback from @callback annotation into field
@@ -572,7 +572,7 @@ struct CallbackFieldConfiguratorPolicy {
 /**
 Field configurator policy that will try to inject a dependency that matches fields type for fields that are annotated with @autowired annotation
 **/
-struct AutowiredFieldConfiguratorPolicy {
+@safe struct AutowiredFieldConfiguratorPolicy {
 
     /**
     Configure instantiator to inject into field a component identified by field's type if field has @autowired annotation.
@@ -613,7 +613,7 @@ struct AutowiredFieldConfiguratorPolicy {
 /**
 Method configurator policy that will call a method with resolved arguments from @setter annotation.
 **/
-struct SetterMethodConfiguratorPolicy {
+@safe struct SetterMethodConfiguratorPolicy {
 
     /**
     Configure instantiator to call @setter annotated method with arguments from annotation
@@ -644,7 +644,7 @@ struct SetterMethodConfiguratorPolicy {
 /**
 Method configurator policy that will call callback from @callback annotated methods.
 **/
-struct CallbackMethodConfiguratorPolicy {
+@safe struct CallbackMethodConfiguratorPolicy {
 
     /**
     Configre instantiator to call callback from @callback annotation with arguments that are stored in annotation
@@ -675,7 +675,7 @@ struct CallbackMethodConfiguratorPolicy {
 /**
 Method configurator policy that will call method annotated with @autowire with arguments extracted from locator identified by qualifier, name or their type.
 **/
-struct AutowiredMethodConfiguratorPolicy {
+@safe struct AutowiredMethodConfiguratorPolicy {
 
     /**
     Configure instantiator to call a method annotated with @autowired with arguments extracted from locator
@@ -723,7 +723,7 @@ enum bool isTransformer(T, X = Object) = is(T == struct) && is(typeof(&T.transfo
 /**
 A transformer that creates out of a type a GenericFactory for passed type
 **/
-struct TypeTransformer(FactoryPolicy, ConfigurerPolicy)
+@safe struct TypeTransformer(FactoryPolicy, ConfigurerPolicy)
     if (isFactoryPolicy!FactoryPolicy && isConfiguratorPolicy!ConfigurerPolicy) {
 
     /**
@@ -752,7 +752,7 @@ struct TypeTransformer(FactoryPolicy, ConfigurerPolicy)
 /**
 Transformer that wraps results of another transformer in WrappingFactory
 **/
-struct ObjectFactoryTransformer(TransformerPolicy) {
+@safe struct ObjectFactoryTransformer(TransformerPolicy) {
 
     /**
     Wrap up results of another transformer into WrappingFactory
@@ -826,7 +826,7 @@ enum bool isComponentStoringPolicy(T, X = Object) =
 /**
 A default implementation of component storing policy that looks for @qualifier and @contained annotations to store component factory.
 **/
-struct ComponentStoringPolicyImpl {
+@safe struct ComponentStoringPolicyImpl {
 
     /**
     Store component factory into storage.
@@ -871,7 +871,7 @@ struct ComponentStoringPolicyImpl {
 /**
 ContainerAdder that chains a set of ContainerAdders on a symbol.
 **/
-struct ChainedContainerAdder(ContainerAdderPolicies...) {
+@safe struct ChainedContainerAdder(ContainerAdderPolicies...) {
     import aermicioi.util.traits;
 
     /**
@@ -906,7 +906,7 @@ struct ChainedContainerAdder(ContainerAdderPolicies...) {
 /**
 Applies a transformer on passed symbol if it is a type.
 **/
-struct TypeContainerAdder(TypeTransformerPolicy, ComponentStoringPolicy = ComponentStoringPolicyImpl)
+@safe struct TypeContainerAdder(TypeTransformerPolicy, ComponentStoringPolicy = ComponentStoringPolicyImpl)
     if (isComponentStoringPolicy!ComponentStoringPolicy) {
 
     /**
@@ -943,7 +943,7 @@ struct TypeContainerAdder(TypeTransformerPolicy, ComponentStoringPolicy = Compon
 /**
 ContainerAdder that scans a type for inner static types, to transform and store into a storage.
 **/
-struct InnerTypeContainerAdder(ContainerAdderPolicy) {
+@safe struct InnerTypeContainerAdder(ContainerAdderPolicy) {
 
     /**
     Check if T symbol is a type
@@ -980,7 +980,7 @@ struct InnerTypeContainerAdder(ContainerAdderPolicy) {
 /**
 ContainerAdder that will scan a module for it's members, to transform into component factories and add them into a storage
 **/
-struct ModuleContainerAdder(ContainerAdderPolicy) {
+@safe struct ModuleContainerAdder(ContainerAdderPolicy) {
 
     /**
     Check if T symbol is a module.
@@ -1016,7 +1016,7 @@ struct ModuleContainerAdder(ContainerAdderPolicy) {
 /**
 ContainerAdder that will scan a type for it's methods, and use them to create component factories out of their return type
 **/
-struct FactoryMethodContainerAdder(ComponentStoringPolicy = ComponentStoringPolicyImpl)
+@safe struct FactoryMethodContainerAdder(ComponentStoringPolicy = ComponentStoringPolicyImpl)
     if (isComponentStoringPolicy!ComponentStoringPolicy) {
 
     /**
@@ -1079,513 +1079,6 @@ struct FactoryMethodContainerAdder(ComponentStoringPolicy = ComponentStoringPoli
                 }
             }
         }
-    }
-}
-
-/**
-Register an object into storage using annotations provided in it.
-
-An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    T = type of object to be registered
-    storage = the storage where to register the object
-    locator = the locator used to find object dependencies
-    id = identity by which object will be stored in storage
-**/
-deprecated
-auto componentScan(T)(Storage!(ObjectFactory, string) storage, Locator!() locator, string id) {
-    auto factory = componentScanImpl!T(locator);
-
-    alias SubComponents = staticMap!(
-        partialPrefixed!(
-            getMember,
-            T
-        ),
-        Filter!(
-            templateAnd!(
-                partialPrefixed!(
-                    partialSuffixed!(
-                        isProtection,
-                        "public"
-                    ),
-                    T
-                ),
-                chain!(
-                    isType,
-                    partialPrefixed!(
-                        getMember,
-                        T
-                    )
-                ),
-                chain!(
-                    isClass,
-                    partialPrefixed!(
-                        getMember,
-                        T
-                    )
-                )
-            ),
-            __traits(allMembers, T)
-        )
-    );
-
-    static if (SubComponents.length > 0) {
-        storage.componentScan!SubComponents(locator);
-    }
-
-    if (factory !is null) {
-        storage.set(new WrappingFactory!(Factory!T)(factory), id);
-    }
-
-    return storage;
-}
-
-/**
-Register an object into storage by it's type FQN using annotations provided in it.
-
-An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    T = type of object to be registered
-    storage = the storage where to register the object
-**/
-deprecated
-auto componentScan(T)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
-
-    alias qualifiers = Filter!(isQualifier, allUDAs!T);
-
-    static if (qualifiers.length > 0) {
-        return storage.componentScan!T(locator, qualifiers[0].id);
-    } else {
-        return storage.componentScan!T(locator, name!T);
-    }
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(T)(ConfigurableContainer storage) {
-
-    return storage.componentScan!T(storage);
-}
-
-/**
-Register an object into storage by I's interface FQN that it implements using annotations provided in it.
-
-An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    I = the inteface that object implements.
-    T = type of object to be registered
-    storage = the storage where to register the object
-**/
-deprecated
-auto componentScan(I, T)(Storage!(ObjectFactory, string) storage, Locator!() locator)
-    if (is(I == interface) && is(T == class) && is(T : I)) {
-
-    alias qualifiers = Filter!(
-        isQualifier,
-        allUDAs!I
-    );
-
-    static if (qualifiers.length > 0) {
-        return storage.componentScan!T(locator, qualifier[0].id);
-    } else {
-        return storage.componentScan!T(locator, name!I);
-    }
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(I, T)(ConfigurableContainer storage)
-    if (is(I == interface) && is(T == class) && is(T : I)) {
-
-    return storage.componentScan!(I, T)(storage);
-}
-
-/**
-Register a set of objects by it's type, or implemented interface into a storage.
-
-When registering an object by it's interface, next to interface it is required to specify the original type of object.
-Note: An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    I = the inteface that object implements.
-    T = type of object to be registered
-    storage = the storage where to register the object
-**/
-deprecated
-auto componentScan(T, V...)(Storage!(ObjectFactory, string) storage, Locator!() locator) {
-    storage.componentScan!T(locator);
-    return storage.componentScan!V(locator);
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(T, V...)(ConfigurableContainer storage) {
-
-    return storage.componentScan!(T, V)(storage);
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(I, T, V...)(Storage!(ObjectFactory, string) storage, Locator!() locator)
-    if (is(I == interface) && is(T == class) && is(T : I)) {
-    storage.componentScan!(I, T)(locator);
-
-    return storage.componentScan!(V)(locator);
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(I, T, V...)(ConfigurableContainer storage)
-    if (is(I == interface) && is(T == class) && is(T : I)) {
-
-    return storage.componentScan!(I, T, V)(storage);
-}
-
-/**
-Scan a module and register all public objects that are annotated with @component annotation.
-
-Note: An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    Module = module to scan for components.
-    storage = the storage where to register the object
-    locator = the locator used to fetch registered object's dependencies.
-**/
-deprecated
-auto componentScan(alias Module)(Storage!(ObjectFactory, string) storage, Locator!() locator)
-    if (startsWith(Module.stringof, "module ")) {
-
-    alias components = staticMap!(
-        partialPrefixed!(
-            getMember,
-            Module
-        ),
-        Filter!(
-            templateAnd!(
-                partialSuffixed!(
-                    partialPrefixed!(
-                        isProtection,
-                        Module
-                    ),
-                    "public"
-                ),
-                chain!(
-                    isType,
-                    partialPrefixed!(
-                        getMember,
-                        Module
-                    )
-                ),
-                chain!(
-                    isClass,
-                    partialPrefixed!(
-                        getMember,
-                        Module
-                    )
-                )
-            ),
-            __traits(allMembers, Module)
-        )
-    );
-
-    storage.componentScan!components(locator);
-
-    return storage;
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(alias M)(ConfigurableContainer storage)
-    if (startsWith(M.stringof, "module")) {
-
-    return storage.componentScan!(M)(storage);
-}
-
-/**
-Scan a set of modules and register all public objects that are annotated with @component annotation.
-
-Due to limitations of D language currently it is impossible to recursively scan all public imports of a module to register all
-depencies of a package. Each particular module should be specified in order to register dependencies.
-Note: An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    M = current module to scan.
-    V = rest set of modules waiting for scan.
-    storage = the storage where to register the object
-    locator = the locator used to fetch registered object's dependencies.
-**/
-deprecated
-auto componentScan(alias M, V...)(Storage!(ObjectFactory, string) storage, Locator!() locator)
-    if (startsWith(M.stringof, "module")) {
-    storage.componentScan!M(locator);
-    return storage.componentScan!V(locator);
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(alias M, V...)(ConfigurableContainer storage)
-    if (startsWith(M.stringof, "module")) {
-
-    return storage.componentScan!(M, V)(storage);
-}
-
-/**
-Register an object into a storage contained in storageLocator and identified by @container annotation using annotations provided in it.
-
-An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    T = type of object to be registered
-    storageLocator = the locator from which to fetch storage for object
-    locator = locator used to find dependencies for object
-    id = identity by which object will be stored in storage
-**/
-deprecated
-auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator, string id)
-    if (!is(R : Storage!(ObjectFactory, string))) {
-
-    alias containers = Filter!(
-        isContained,
-        allUDAs!T
-    );
-
-    static if (containers.length > 0) {
-        string storageId = containers[0].id;
-    } else {
-        string storageId = "singleton";
-    }
-
-    auto storage = storageLocator.locate!(Storage!(ObjectFactory, string))(storageId);
-
-    if (storage !is null) {
-
-        storage.componentScan!T(locator, id);
-    } else {
-
-        throw new NotFoundException("Could not find storage to save factory for object of identity " ~ id);
-    }
-
-    return storageLocator;
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(T, R : Locator!())(R locator, string id)
-    if (!is(R : Storage!(ObjectFactory, string))) {
-    return locator.componentScan!T(locator, id);
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(T, R : Locator!())(R storageLocator, Locator!() locator)
-    if (!is(R : Storage!(ObjectFactory, string))) {
-
-    alias qualifiers = Filter!(
-        isQualifier,
-        allUDAs!T
-    );
-
-    static if (qualifiers.length > 0) {
-        return storageLocator.componentScan!T(locator, qualifiers[0].id);
-    } else {
-        return storageLocator.componentScan!T(locator, name!T);
-    }
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(T, R : Locator!())(R locator)
-    if (!is(R : Storage!(ObjectFactory, string))) {
-    return locator.componentScan!T(locator);
-}
-
-/**
-ditto
-**/
-template componentScan(T, V...)
-    if((V.length > 0)) {
-
-    /**
-    ditto
-    **/
-    deprecated
-auto componentScan(R : Locator!())(R storageLocator, Locator!() locator)
-        if (!is(R : Storage!(ObjectFactory, string))) {
-        .componentScan!T(storageLocator, locator);
-
-        return .componentScan!V(storageLocator, locator);
-    }
-
-    /**
-    ditto
-    **/
-    deprecated
-auto componentScan(R : Locator!())(R locator)
-        if (!is(R : Storage!(ObjectFactory, string))) {
-        .componentScan!T(locator, locator);
-
-        return .componentScan!V(locator, locator);
-    }
-}
-
-/**
-Register an object into a storage contained in storageLocator and identified by @container annotation using annotations provided in it.
-
-An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    I = interface implemented by object, by which to register it.
-    T = type of object to be registered
-    storageLocator = locator used to find storage for object
-    locator = locator used to find dependencies for object
-**/
-deprecated
-auto componentScan(I, T, R : Locator!())(R storageLocator, Locator!() locator)
-    if (is (I == interface) && is (T == class) && is (T : I) && !is(R : Storage!(ObjectFactory, string))) {
-    alias qualifiers = Filter!(
-        isQualifier,
-        allUDAs!I
-    );
-
-    static if (qualifiers.length > 0) {
-        return storageLocator.componentScan!T(locator, qualifiers[0].id);
-    } else {
-        return storageLocator.componentScan!T(locator, name!I);
-    }
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(I, T, R : Locator!())(R locator)
-    if (is (I == interface) && is (T == class) && is (T : I) && !is(R : Storage!(ObjectFactory, string))) {
-
-    return locator.componentScan!(I, T)(locator);
-}
-
-/**
-ditto
-**/
-template componentScan(I, T, V...)
-    if (is (I == interface) && is (T == class) && is (T : I) && (V.length > 0)) {
-
-    /**
-    ditto
-    **/
-    deprecated
-auto componentScan(R : Locator!())(R storageLocator, Locator!() locator)
-        if (!is(R : Storage!(ObjectFactory, string))) {
-
-        .componentScan!(I, T)(storageLocator, locator);
-
-        return .componentScan!(V)(storageLocator, locator);
-    }
-
-    /**
-    ditto
-    **/
-    deprecated
-auto componentScan(R : Locator!())(R locator)
-        if (!is(R : Storage!(ObjectFactory, string))) {
-
-        .componentScan!(I, T)(locator);
-
-        return .componentScan!(V)(locator);
-    }
-}
-
-/**
-Register module's objects into a storage contained in storageLocator and identified by @container annotation using annotations provided in it.
-
-An object will be registered in storage only in case when it is annotated with @component annotation. In case when no @component
-annotation is found, object is not registered in storage.
-
-Params:
-    M = module to scan for instantiable objects.
-    storageLocator = locator used to find storage for objects
-    locator = locator used to find object dependencies
-**/
-deprecated
-auto componentScan(alias M, R : Locator!())(R storageLocator, Locator!() locator)
-    if (M.stringof.startsWith("module ") && !is(R : Storage!(ObjectFactory, string)))  {
-
-    alias components = getPossibleComponents!M;
-
-    storageLocator.componentScan!components(locator);
-
-    return storageLocator;
-}
-
-/**
-ditto
-**/
-deprecated
-auto componentScan(alias M, R : Locator!())(R locator)
-    if (M.stringof.startsWith("module ") && !is(R : Storage!(ObjectFactory, string)))  {
-
-    locator.componentScan!M(locator);
-
-    return locator;
-}
-
-/**
-ditto
-**/
-template componentScan(alias M, V...)
-    if (M.stringof.startsWith("module ") && (V.length > 0)) {
-
-    /**
-    ditto
-    **/
-    deprecated
-auto componentScan(R : Locator!())(R locatorStorage, Locator!() locator)
-        if (!is(R : Storage!(ObjectFactory, string))) {
-
-        .componentScan!M(locatorStorage, locator);
-        return .componentScan!V(locatorStorage, locator);
-    }
-
-    /**
-    ditto
-    **/
-    deprecated
-auto componentScan(R : Locator!())(R locator)
-        if (!is(R : Storage!(ObjectFactory, string))) {
-
-        .componentScan!M(locator);
-        return .componentScan!V(locator);
     }
 }
 
@@ -1674,7 +1167,7 @@ are desired to be added into a container. The template will instantiate $(D_INLI
 that will use passed container adder policy to scan symbols passed to them. It is advised to define your own
 set of scanning methods in case when additional scanning and transformation logic is expected.
 **/
-mixin template Scanner(ContainerAdderPolicy) {
+@safe mixin template Scanner(ContainerAdderPolicy) {
 
     /**
     Scan symbol T for possible components using ContainerAdderPolicy
@@ -1770,60 +1263,6 @@ Default implementation of $(D_INLINECODE scan) family of functions featuring all
 **/
 mixin Scanner!(ContainerAdderImpl!());
 
-deprecated
-auto componentScanImpl(T)(Locator!() locator) {
-
-    return TypeTransformerImpl.transform!T(locator);
-}
-
-private template isQualifier(alias T) {
-    alias isQualifier = isQualifier!(typeof(T));
-}
-
-private template isQualifier(T) {
-    enum bool isQualifier = is(T == QualifierAnnotation);
-}
-
-private template isContained(alias T) {
-    alias isContained = isContained!(typeof(T));
-}
-
-private template isContained(T) {
-    enum bool isContained = is(T == ContainedAnnotation);
-}
-
-private template isValue(T) {
-    enum bool isValue = is (typeof(T));
-}
-
-private template isReturnTypeEq(alias symbol, Type)
-    if (isSomeFunction!symbol) {
-    enum bool isReturnTypeEq = is(ReturnType!symbol : Type);
-}
-
-private template isNamedTemplate(alias T, string name) {
-    enum bool isNamedTemplate = isTemplate!T && (identifier!T == name);
-}
-
-private template isEqByFQDN(alias first, alias second) {
-    enum bool isEqByFQDN = fullyQualifiedName!first == fullyQualifiedName!second;
-}
-
-private template instantiatonToTemplate(alias T, alias Template = T) {
-    static if (isTemplateInstantiationOf!(T, Template)) {
-        alias instantiatonToTemplate = Template;
-    } else static if (isTemplate!T) {
-        alias instantiatonToTemplate = T;
-    }
-}
-
-private enum bool isTemplateInstantiationOf(T, alias Template) = is(T : Template!(Z), Z...);
-private enum bool isTemplateInstantiationOf(alias T, alias Template) = is(typeof(T) : Template!(Z), Z...);
-
-private template identifierEq(alias T, string identity) {
-    enum bool identifierEq = identifier!T == identity;
-}
-
 private template allUDAs(alias symbol) {
     alias allUDAs = AliasSeq!(__traits(getAttributes, symbol));
 }
@@ -1834,92 +1273,6 @@ private template toValue(T) {
 
 private template toValue(alias T) {
     alias toValue = T;
-}
-
-private template isType(alias T) {
-    static if (__traits(compiles, () { T z = T.init; })) {
-
-        enum bool isType = true;
-    } else {
-
-        enum bool isType = false;
-    }
-}
-
-private template isClass(alias T) {
-    enum bool isClass = is(typeof(T) == class);
-}
-
-private template isClass(T) {
-    enum bool isClass = is(T == class);
-}
-
-private template isStruct(alias T) {
-    enum bool isStruct = is(typeof(T) == struct);
-}
-
-private template isStruct(T) {
-    enum bool isStruct = is(T == struct);
-}
-
-private template getPublicAggregateMembers(alias Symbol) {
-    alias getPublicAggregateMembers = Filter!(
-        templateAnd!(
-            partialSuffixed!(
-                partialPrefixed!(
-                    isProtection,
-                    Symbol
-                ),
-                "public"
-            ),
-            chain!(
-                hasMembers,
-                partialPrefixed!(
-                    getMember,
-                    Symbol
-                )
-            )
-        ),
-        __traits(allMembers, Symbol)
-    );
-}
-
-private template getPossibleComponents(alias Symbol) {
-    alias getPossibleComponents = staticMap!(
-        partialPrefixed!(
-            getMember,
-            Symbol
-        ),
-        Filter!(
-            templateAnd!(
-                partialSuffixed!(
-                    partialPrefixed!(
-                        isProtection,
-                        Symbol
-                    ),
-                    "public"
-                ),
-                chain!(
-                    isType,
-                    partialPrefixed!(
-                        getMember,
-                        Symbol
-                    )
-                ),
-                chain!(
-                    templateOr!(
-                        isClass,
-                        isStruct
-                    ),
-                    partialPrefixed!(
-                        getMember,
-                        Symbol
-                    )
-                )
-            ),
-            __traits(allMembers, Symbol)
-        )
-    );
 }
 
 private auto makeAutowireReferences(alias overload)() {
