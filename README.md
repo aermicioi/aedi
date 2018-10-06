@@ -21,6 +21,7 @@ feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 - Modular design.
 - Documentation. Tutorials and api documentation in section below.
 - Highly tested.
+- Usable in @safe code.
 
 ## Installation
 
@@ -29,13 +30,13 @@ Add Aedi as a dependency to a dub project:
 Json configuration:
 
 ```json
-"aedi": "~>0.4.0"
+"aedi": "~>1.0.0"
 ```
 
 SDL configuration:
 
 ```sdl
-dependency "aedi" version="~>0.4.0"
+dependency "aedi" version="~>1.0.0"
 ```
 
 ## Quickstart
