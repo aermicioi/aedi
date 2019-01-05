@@ -49,6 +49,7 @@ module aermicioi.aedi.container;
 public import aermicioi.aedi.container.aggregate_container;
 public import aermicioi.aedi.container.aliasing_container;
 public import aermicioi.aedi.container.application_container;
+public import aermicioi.aedi.container.describing_container;
 public import aermicioi.aedi.container.container;
 public import aermicioi.aedi.container.prototype_container;
 public import aermicioi.aedi.container.singleton_container;

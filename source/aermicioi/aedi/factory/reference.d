@@ -390,10 +390,7 @@ body {
     }
 
     throw new InvalidCastException(
-        "Resolved runtime reference " ~
-        typeid(reference.get(locator)).toString() ~
-        " is not of expected type: " ~
-        fullyQualifiedName!T
+        "Resolved runtime reference is of ${actual} type, expected ${expected} type", null, typeid(T), reference.get(locator).classinfo
     );
 }
 
@@ -430,11 +427,8 @@ ditto
     }
 
     throw new InvalidCastException(
-        "Resolved runtime reference " ~
-        typeid(reference.get(locator)).toString() ~
-        " is not of expected type: " ~
-        fullyQualifiedName!T
-        );
+        "Resolved runtime reference is of ${actual} type, expected ${expected} type", null, typeid(T), reference.get(locator).classinfo
+    );
 }
 
 /**
@@ -463,11 +457,8 @@ ditto
     }
 
     throw new InvalidCastException(
-        "Resolved runtime reference " ~
-        typeid(reference.get(locator)).toString() ~
-        " is not of expected type: " ~
-        fullyQualifiedName!T
-        );
+        "Resolved runtime reference is of ${actual} type, expected ${expected} type", null, typeid(T), reference.get(locator).classinfo
+    );
 }
 
 /**

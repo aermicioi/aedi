@@ -295,7 +295,7 @@ class MockObjectFactoryMethod {
     public {
         Object factory() @safe {
             import aermicioi.aedi.exception.di_exception;
-            throw new AediException("Well, I'll just fail everything.");
+            throw new AediException("Well, I'll just fail everything.", null);
         }
 
         void destruct(ref Object destruct) @trusted {

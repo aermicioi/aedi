@@ -275,3 +275,20 @@ unittest {
 
     assert(destroyed);
 }
+
+unittest {
+    import aermicioi.aedi.container.describing_container : DescribingContainer, Description, IdentityDescriber;
+    auto container = new DescribingContainer!SingletonContainer(new SingletonContainer, new IdentityDescriber!());
+
+    with (container.configure) {
+
+        register!Employee("john").describe("John", "Software engineer");
+        register!Employee("joe").describe("Joe", "Architecture owner");
+        register!Employee("doe");
+    }
+
+    assert(container.describe("john", null) == Description!string("john", "John", "Software engineer"));
+    assert(container.describe("joe", null) == Description!string("joe", "Joe", "Architecture owner"));
+    assert(container.describe("doe", null) == Description!string("doe", "doe", "doe part of aermicioi.aedi.container.singleton_container.SingletonContainer of object.Object"));
+    assert(container.describe("moe", null).isNull);
+}

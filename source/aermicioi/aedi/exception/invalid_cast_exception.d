@@ -37,13 +37,33 @@ It is thrown when a factory detects that fetched object from DI container cannot
 that should be passed to newly constructed object.
 **/
 @safe class InvalidCastException : AediException {
-	pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+    TypeInfo expected;
+    TypeInfo actual;
+
+	pure nothrow this(string msg, string identity, TypeInfo expected, TypeInfo actual, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
-        super(msg, file, line, next);
+        super(msg, identity, file, line, next);
+        this.expected = expected;
+        this.actual = actual;
     }
 
-    nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    nothrow this(string msg, string identity, TypeInfo expected, TypeInfo actual, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
-        super(msg, file, line, next);
+        super(msg, identity, file, line, next);
+        this.expected = expected;
+        this.actual = actual;
     }
+
+    override void pushMessage(scope void delegate(in char[]) sink) const @system {
+        import std.algorithm : substitute;
+        import std.utf : byChar;
+		auto substituted = this.msg.substitute("${identity}", identity, "${expected}", expected.toString, "${actual}", actual.toString).byChar;
+
+        while (!substituted.empty) {
+            auto buffer = BufferSink!(char[256])();
+            buffer.put(substituted);
+
+            sink(buffer.slice);
+        }
+	}
 }

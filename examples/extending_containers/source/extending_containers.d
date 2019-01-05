@@ -222,7 +222,7 @@ class MySingletonContainer : ConfigurableContainer {
                 writeln('\t'.repeat(levels), key, " component not found.");
 
                 if ((this.resolve(key) in this.factories) is null) {
-                    throw new NotFoundException("Object with id " ~ key ~ " not found.");
+                    throw new NotFoundException("Object with id ${identity} not found.", key);
                 }
 
                 writeln('\t'.repeat(levels), "Instantiating ", key, " component {");

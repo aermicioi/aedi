@@ -127,6 +127,7 @@ template SwitchableContainer(T) {
         InterfacesTuple!T),
         Locator!(),
         MutableDecorator!T,
+        Decorator!T,
         Switchable,
     );
 
@@ -208,36 +209,10 @@ template SwitchableContainer(T) {
             }
 
             static if (is(T : AliasAware!string)) {
-                /**
-                Alias identity to an alias_.
+                mixin AliasAwareMixin!T AliasScope;
 
-                Params:
-                	identity = originial identity which is to be aliased.
-                	alias_ = alias of identity.
-
-        		Returns:
-        			SwitchableContainer!T decorating decorated
-                **/
-                SwitchableContainer!T link(string identity, string alias_) {
-                    decorated.link(identity, alias_);
-
-                    return this;
-                }
-
-                /**
-                Removes alias.
-
-                Params:
-                	alias_ = alias to remove.
-
-                Returns:
-                    SwitchableContainer!T decorating decorated
-                **/
-                SwitchableContainer!T unlink(string alias_) {
-                    decorated.unlink(alias_);
-
-                    return this;
-                }
+                alias link = AliasScope.link;
+                alias unlink = AliasScope.unlink;
 
                 /**
                 Resolve an alias to original identity, if possible.
@@ -280,7 +255,7 @@ template SwitchableContainer(T) {
                     return decorated.get(identity);
                 }
 
-                throw new NotFoundException("Component with id " ~ identity ~ " not found.");
+                throw new NotFoundException("Component ${identity} not found.", identity);
             }
 
             /**

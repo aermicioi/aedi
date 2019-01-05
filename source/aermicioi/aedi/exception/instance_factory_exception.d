@@ -35,14 +35,30 @@ import aermicioi.aedi.exception.di_exception;
 Denotes an error that occurred during instantiation process by an object implementing InstanceFactory interface.
 **/
 @safe class InstanceFactoryException : AediException {
+	TypeInfo type;
 
-    pure nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+    pure nothrow this(string msg, string identity, TypeInfo type, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
-        super(msg, file, line, next);
+        super(msg, identity, file, line, next);
+		this.type = type;
     }
 
-    nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    nothrow this(string msg, string identity, TypeInfo type, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
-        super(msg, file, line, next);
+        super(msg, identity, file, line, next);
+		this.type = type;
     }
+
+	override void pushMessage(scope void delegate(in char[]) sink) const @system {
+        import std.algorithm : substitute;
+        import std.utf : byChar;
+		auto substituted = this.msg.substitute("${identity}", identity, "${type}", type.toString).byChar;
+
+        while (!substituted.empty) {
+            auto buffer = BufferSink!(char[256])();
+            buffer.put(substituted);
+
+            sink(buffer.slice);
+        }
+	}
 }

@@ -39,21 +39,33 @@ Exception denoting a circular dependency in DI container.
 It is thrown when a DI gets an InProgressException, or it detected a circular dependency in other way.
 **/
 @safe class CircularReferenceException : AediException {
-    private {
-        string[] keys;
-    }
-
+    string[] chain;
 
     public {
-
-        nothrow this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+        nothrow this(string msg, string identity, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
         {
-            super(msg, file, line, next);
+            super(msg, identity, file, line, next);
         }
 
-        nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+        nothrow this(string msg, string identity, Throwable next, string file = __FILE__, size_t line = __LINE__)
         {
-            super(msg, file, line, next);
+            super(msg, identity, file, line, next);
+        }
+
+        override void pushMessage(scope void delegate(in char[]) sink) const @system {
+            import std.algorithm : joiner, substitute;
+            import std.array : array;
+            import std.utf : byChar;
+
+            string[] chain = this.chain.dup;
+            auto substituted = this.msg.substitute("${chain}", chain.joiner(" -> ").byChar.array.idup, "${identity}", identity).byChar;
+
+            while (!substituted.empty) {
+                auto buffer = BufferSink!(char[256])();
+                buffer.put(substituted);
+
+                sink(buffer.slice);
+            }
         }
     }
 }

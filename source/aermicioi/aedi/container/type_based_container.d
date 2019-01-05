@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.container.type_based_container;
 
 import aermicioi.aedi.container.container;
+import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.storage;
@@ -199,7 +200,7 @@ template TypeBasedContainer(T) {
                     );
                 }
 
-                throw new NotFoundException("Component with id " ~ identity ~ " not found.");
+                throw new NotFoundException("Component ${identity} not found.", identity);
             }
 
             /**
@@ -225,82 +226,12 @@ template TypeBasedContainer(T) {
             }
 
             static if (is(T : AliasAware!string)) {
-                /**
-                Alias a key to an alias_.
-
-                Params:
-                	identity = the originial identity which is to be aliased.
-                	alias_ = the alias of identity.
-
-        		Returns:
-        			this
-                **/
-                TypeBasedContainer link(string identity, string alias_) {
-                    this.decorated.link(identity, alias_);
-
-                    return this;
-                }
-
-                /**
-                Removes alias.
-
-                Params:
-                	alias_ = alias to remove.
-
-                Returns:
-                    this
-
-                **/
-                TypeBasedContainer unlink(string alias_) {
-                    this.decorated.unlink(alias_);
-
-                    return this;
-                }
-
-                /**
-                Resolve an alias to original identity, if possible.
-
-                Params:
-                	alias_ = alias of original identity
-
-                Returns:
-                	Type the last identity in alias chain.
-
-                **/
-                const(string) resolve(in string alias_) const {
-                    return this.decorated_.resolve(alias_);
-                }
+                mixin AliasAwareMixin!T;
             }
 
             static if (is(T : FactoryLocator!ObjectFactory)) {
-                /**
-                Get factory for constructed component identified by identity.
 
-                Get factory for constructed component identified by identity.
-                Params:
-                	identity = the identity of component that factory constructs.
-
-                Throws:
-                	NotFoundException when factory for it is not found.
-
-                Returns:
-                	ObjectFactory the factory for constructed component.
-                **/
-                ObjectFactory getFactory(string identity) {
-                    return this.decorated.getFactory(identity);
-                }
-
-                /**
-                Get all factories available in decorated.
-
-                Get all factories available in decorated.
-
-                Returns:
-                	InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
-                **/
-                InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
-                    return this.decorated.getFactories();
-                }
+                mixin FactoryLocatorMixin!(typeof(this));
             }
         }
 
@@ -319,6 +250,4 @@ private {
             crawlClassInfo(class_.base, dg);
         }
     }
-
-
 }

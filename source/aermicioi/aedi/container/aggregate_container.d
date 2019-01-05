@@ -122,7 +122,7 @@ managed by it.
         	    }
         	}
 
-        	throw new NotFoundException("Component by id " ~ identity ~ " not found.");
+        	throw new NotFoundException("Component ${identity} not found.", identity);
         }
 
         /**

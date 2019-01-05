@@ -117,9 +117,10 @@ that is located in source locator by some identity.
 
             import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
             throw new InvalidCastException(
-                "Cannot destruct component " ~
-                typeid(T).toString() ~
-                " since passed component is not a proxysince passed component is not a proxy to it."
+                "Cannot destruct component ${identity} because it is not a proxied object. Expected ${expected} while got ${actual}",
+                null,
+                typeid(Proxy!T),
+                typeid(T)
             );
         }
 
@@ -477,10 +478,10 @@ to set proxied object's identity and locator.
 
             import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
             throw new InvalidCastException(
-                "Cannot destruct component of type " ~
-                component.classinfo.toString() ~
-                "because it is not managed by proxy factory for type " ~
-                typeid(T).toString()
+                "Cannot destruct component ${identity} because it is not managed by this proxy factory. Expected ${expected} while got ${actual}",
+                null,
+                typeid(Proxy!T),
+                component.classinfo
             );
         }
     }

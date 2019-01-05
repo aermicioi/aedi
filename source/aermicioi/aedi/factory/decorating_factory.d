@@ -472,12 +472,15 @@ when decorated factory threws some kind of exception.
             try {
                 return this.decorated.factory;
             } catch (Exception e) {
-                import std.conv : to;
+                import std.conv : to, text;
                 throw new AediException(
-                    "An error occured during instantiation of component registered in file: " ~
-                    this.file ~
-                    " at line " ~
-                    this.line.to!string,
+					text(
+						"An error occured during instantiation of component registered in file: ",
+						this.file,
+						" at line ",
+						this.line
+					),
+					null,
                     this.file,
                     this.line,
                     e
@@ -497,13 +500,16 @@ when decorated factory threws some kind of exception.
 
 				this.decorated.destruct(component);
 			} catch (Exception e) {
-				import std.conv : to;
+				import std.conv : to, text;
 
 				throw new AediException(
-                    "An error occured during destruction of component registered in file: " ~
-                    this.file ~
-                    " at line " ~
-                    this.line.to!string,
+					text(
+						"An error occured during destruction of component registered in file: ",
+						this.file,
+						" at line ",
+						this.line
+					),
+					null,
                     this.file,
                     this.line,
                     e

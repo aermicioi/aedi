@@ -685,7 +685,7 @@ Params:
                 mixin(q{__traits(getMember, obj, property)(} ~ compileArgumentsTuple!ArgTuple(q{ArgTuple}, q{this.args}, q{this.locator}) ~ q{);});
 
             } catch (Exception e) {
-                throw new PropertyConfigurerException("Error occurred during call of " ~ name!T ~ "." ~ property, e);
+                throw new PropertyConfigurerException("Error occurred while invoking method ${type}.${property} of ${identity} component ", null, property, typeid(T), e);
             }
         }
     }
@@ -747,7 +747,7 @@ replaced with value extracted from locator, and set to component's field.
                 );
             } catch (Exception e) {
 
-                throw new PropertyConfigurerException("Error occurred during set of " ~ name!T ~ "." ~ property, e);
+                throw new PropertyConfigurerException("Error occurred while assigning a value to ${type}.${property} of ${identity} component", null, property, typeid(T), e);
             }
         }
     }
@@ -792,7 +792,7 @@ Instantiates a component using it's constructor with no arguments.
                     return T.init;
                 }
             } catch (Exception e) {
-                throw new InstanceFactoryException("Error occurred during instantiation of " ~ name!T, e);
+                throw new InstanceFactoryException("Error occurred while default constructor was run for ${identity} of ${type} type", null, typeid(T), e);
             }
         }
     }
@@ -820,7 +820,7 @@ use those elaborate constructors.
         **/
         T factory() @safe {
 
-            throw new InstanceFactoryException("Component " ~ name!T ~ " has elaborate constructor, yet no instance constructor was provided.");
+            throw new InstanceFactoryException("Component ${identity} of ${type} has elaborate constructor, yet it wasn't configured to run it.", null, typeid(T));
         }
     }
 }
@@ -884,7 +884,7 @@ Params:
                 }
             } catch (Exception e) {
 
-                throw new InstanceFactoryException("Error occurred during instantiation of " ~ name!T, e);
+                throw new InstanceFactoryException("Error occurred while elaborate constructor was run on ${identity} of ${type} type", null, typeid(T), e);
             }
         }
     }
@@ -1018,14 +1018,16 @@ template FactoryMethodInstanceFactory(string method, T, Args...)
                             );
                     }
                 } catch (Exception e) {
-
+                    import std.conv : text;
                     throw new InstanceFactoryException(
-                        "Error occurred during instantiation of " ~
-                        name!T ~
-                        " using factory method of "
-                        ~ name!T ~
-                        "." ~
-                        method,
+                        text(
+                            "Error occurred during construction of ${type} using factory method of ",
+                            name!T,
+                            ".",
+                            method
+                        ),
+                        null,
+                        typeid(Z),
                         e
                     );
                 }
@@ -1133,9 +1135,7 @@ Params:
             } catch (Exception e) {
 
                 throw new InstanceFactoryException(
-                    "Error occurred during instantiation of " ~
-                    name!T ~
-                    " using callback factory",
+                    "Error occurred during construction of ${identity} of ${type} type using callback factory", null, typeid(T),
                     e
                 );
             }
@@ -1216,7 +1216,7 @@ Params:
 
                 return this.dg(this.locator_, object, args.expand);
             } catch (Exception e) {
-            	throw new PropertyConfigurerException("Error occurred during callback configuration of " ~ name!T, e);
+            	throw new PropertyConfigurerException("Error occurred while running a callback over ${identity} of ${type} component", null, null, typeid(T), e);
             }
         }
     }

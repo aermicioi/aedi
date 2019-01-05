@@ -137,10 +137,11 @@ Returns:
 @trusted auto ref locate(T : Object)(Locator!(Object, string) locator, string id) {
     import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
 
-    auto result = cast(T) locator.get(id);
+    Object obj = locator.get(id);
+    auto result = cast(T) obj;
 
     if (result is null) {
-        throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
+        throw new InvalidCastException("Requested component ${identity} is not of ${expected} type, but ${actual}", id, typeid(T), obj.classinfo);
     }
 
     return result;
@@ -181,7 +182,7 @@ ditto
         }
     }
 
-    throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
+    throw new InvalidCastException("Requested component ${identity} is not of ${expected} type, but ${actual}", id, typeid(T), obj.classinfo);
 }
 
 /**
@@ -211,7 +212,7 @@ ditto
         }
     }
 
-    throw new InvalidCastException("Requested object " ~ id ~ " is not of type " ~ typeid(T).toString());
+    throw new InvalidCastException("Requested component ${identity} is not of ${expected} type, but ${actual}", id, typeid(T), obj.classinfo);
 }
 
 /**
@@ -219,6 +220,10 @@ ditto
 **/
 @trusted auto ref locate(T)(Locator!(Object, string) locator) {
     import aermicioi.aedi.factory.reference : name;
+
+    if (locator.has(typeid(T).toString)) {
+        return locate!T(locator, typeid(T).toString);
+    }
 
     return locate!T(locator, name!T);
 }

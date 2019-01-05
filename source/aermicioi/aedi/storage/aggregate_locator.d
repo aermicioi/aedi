@@ -105,7 +105,7 @@ An implementation of AggregateLocator.
                 }
             }
 
-            throw new NotFoundException("Could not find an object with " ~ identity.to!string ~ " identity.");
+            throw new NotFoundException("Could not find component with ${identity} identity.", identity.to!string);
         }
 
         /**
@@ -148,7 +148,7 @@ An implementation of AggregateLocator.
                 return this.locators[key];
             }
 
-            throw new NotFoundException("Could not find any locator with identity of " ~ key);
+            throw new NotFoundException("Could not find any locator with identity ${identity}", key);
         }
 
         /**

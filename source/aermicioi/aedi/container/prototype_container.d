@@ -122,7 +122,7 @@ import std.typecons;
                 return obj;
             }
 
-            throw new NotFoundException("Component by id " ~ key ~ " not found");
+            throw new NotFoundException("Component ${identity} not found", key);
         }
 
         /**

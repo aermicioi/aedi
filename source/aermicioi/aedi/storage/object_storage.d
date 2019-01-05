@@ -67,7 +67,7 @@ import std.conv;
         Type get(KeyType identity) {
 
             if (!this.has(identity)) {
-                throw new NotFoundException("Element " ~ identity.to!string ~ " not found.");
+                throw new NotFoundException("Element ${identity} not found.", identity.to!string);
             }
 
             return this.values[this.resolve(identity)];

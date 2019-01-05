@@ -87,7 +87,7 @@ It delegates the task of serving an object to contained containers.
         	    }
         	}
 
-        	throw new NotFoundException("Component by id " ~ identity ~ " not found.");
+        	throw new NotFoundException("Component by ${identity} not found.", identity);
         }
 
         /**

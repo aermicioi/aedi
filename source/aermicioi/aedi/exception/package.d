@@ -34,7 +34,6 @@ public import aermicioi.aedi.exception.circular_reference_exception;
 public import aermicioi.aedi.exception.in_progress_exception;
 public import aermicioi.aedi.exception.not_found_exception;
 public import aermicioi.aedi.exception.invalid_cast_exception;
-public import aermicioi.aedi.exception.in_use_exception;
 public import aermicioi.aedi.exception.instance_factory_exception;
 public import aermicioi.aedi.exception.property_configurer_exception;
 public import aermicioi.aedi.exception.di_exception;

@@ -352,21 +352,36 @@ Returns:
 	factory
 **/
 auto tag(W : ConfigurationContextFactory!T, T, Z)(W factory, auto ref Z tag) {
+    Taggable!Z taggable;
 
-    auto taggable = findDecorator!(Taggable!Z, ObjectFactoryDecorator)(factory.wrapper);
+    import std.range : chain, only;
 
-    if (taggable is null) {
+    auto candidates = factory.wrapper
+        .decorators!ObjectFactory
+        .filterByInterface!(Taggable!Z)
+        .chain(factory.decorated.only.filterByInterface!(Taggable!Z));
+
+    if (candidates.empty) {
         auto taggableDecorator = new TaggableFactoryDecorator!(Object, Z);
         taggableDecorator.decorated = factory.wrapper;
         factory.wrapper = taggableDecorator;
 
         taggable = taggableDecorator;
         factory.storage.set(factory.wrapper, factory.identity);
+    } else {
+        taggable = candidates.front;
     }
 
     taggable.tag(tag);
 
     return factory;
+}
+
+auto describe(W : ConfigurationContextFactory!T, T)(W factory, string title, string description = null) {
+    import aermicioi.aedi.container.describing_container : IdentityDescriber;
+
+    IdentityDescriber!() describer = factory.locator.locate!(IdentityDescriber!());
+    describer.register(factory.identity, title, description);
 }
 
 /**
@@ -384,11 +399,12 @@ auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) @trusted {
     import aermicioi.aedi.factory.proxy_factory : ProxyFactory, ProxyObjectFactory;
     import aermicioi.aedi.container.proxy_container : ProxyContainer;
 
-    auto proxyAware = cast(ProxyContainer) factory.storage;
-    if (proxyAware !is null) {
-        proxyAware.set(
+    auto candidates = factory.storage.decorators!Container.filterByInterface!ProxyContainer;
+
+    if (!candidates.empty) {
+        candidates.front.set(
             new ProxyObjectWrappingFactory!T(
-                new ProxyFactory!T(factory.identity, proxyAware.decorated)
+                new ProxyFactory!T(factory.identity, candidates.front.decorated)
             ),
             factory.identity,
         );
@@ -470,10 +486,14 @@ Returns:
     factory
 **/
 auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) @trusted {
-    auto defferedExecutioinerAware = cast(DefferredExecutionerAware) factory.decorated;
-    if ((defferedExecutioinerAware !is null) && (factory.locator.has(defferedExecutionerIdentity))) {
+    auto candidates = factory.wrapper
+        .decorators!(Factory!T)
+        .filterByInterface!DefferredExecutionerAware
+        .chain(factory.decorated.only.filterByInterface!DefferredExecutionerAware);
 
-        defferedExecutioinerAware.executioner = factory.locator.locate!DefferredExecutioner(defferedExecutionerIdentity);
+    if (!candidates.empty) {
+
+        candidates.front.executioner = factory.locator.locate!DefferredExecutioner(defferedExecutionerIdentity);
     }
 
     return factory;

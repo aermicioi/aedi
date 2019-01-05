@@ -579,18 +579,18 @@ struct DefferredConfigurationContext(
         **/
         ConfigurationContextFactory!T register(T)(string identity) {
             import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+            import aermicioi.aedi.storage.decorator : decorators, filterByInterface;
 
             ConfigurationContextFactory!T factory = this.context.register!T(identity);
 
-            auto defferedExecutioinerAware = cast(DefferredExecutionerAware) factory.decorated;
-            if (defferedExecutioinerAware !is null) {
-                try {
+            auto candidates = factory.wrapper
+                .decorators!ObjectFactory
+                .filterByInterface!DefferredExecutionerAware
+                .chain(factory.decorated.only.filterByInterface!DefferredExecutionerAware);
 
-                    auto executioner = this.context.locator.locate!DefferredExecutioner();
-                    defferedExecutioinerAware.executioner = executioner;
-                } catch (NotFoundException e) {
-
-                }
+            if (!candidates.empty) {
+                auto executioner = this.context.locator.locate!DefferredExecutioner();
+                candidates.front.executioner = executioner;
             }
 
             return factory;

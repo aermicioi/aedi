@@ -203,6 +203,46 @@ auto aggregate(T...)(Container managed, string identity, T manageds) {
 	return container.aggregate(managed, identity, manageds);
 }
 
+/**
+Wrap up container into describing container.
+
+Wrap up container into describing container, that
+provides description of itself and underlying components
+through a set of Describer components.
+
+Params:
+	componentDescriber = describer for components container manages
+	fallbackComponentDescriber = fallback describer in case componentDescriber fails to describe particular component
+	containerDescriber = describer used to describe container itself
+
+Returns:
+	DescribingContainer!T
+**/
+auto describing(T : Container)(T container, Describer!() componentDescriber, Describer!() fallbackComponentDescriber, Describer!() containerDescriber) {
+	return new DescribingContainer!T(container, componentDescriber, containerDescriber, fallbackComponentDescriber);
+}
+
+/**
+ditto
+**/
+auto describing(T : Container)(T container, Describer!() componentDescriber, Describer!() containerDescriber) {
+	return new DescribingContainer!T(container, componentDescriber, containerDescriber);
+}
+
+/**
+ditto
+**/
+auto describing(T : Container)(T container, Describer!() componentDescriber) {
+	return new DescribingContainer!T(container, componentDescriber);
+}
+
+/**
+ditto
+**/
+auto describing(T : Container)(T container) {
+	return new DescribingContainer!T(container);
+}
+
 private {
 
 	auto aggregate(T...)(AggregateContainer container, Container managed, string identity, T manageds) {

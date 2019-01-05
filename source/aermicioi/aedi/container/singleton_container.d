@@ -113,7 +113,7 @@ import std.typecons;
 
             if (!this.singletons.has(key)) {
                 if (!this.factories.has(key)) {
-                    throw new NotFoundException("Component with id " ~ key ~ " not found.");
+                    throw new NotFoundException("Component ${identity} not found.", key);
                 }
 
                 this.singletons.set(

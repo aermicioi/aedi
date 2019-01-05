@@ -29,6 +29,8 @@ Authors:
 **/
 module aermicioi.aedi.storage.decorator;
 
+import std.range.primitives : isInputRange, isForwardRange, ElementType;
+
 /**
 Provides the underlying decorated object.
 **/
@@ -71,29 +73,116 @@ Allows to get and set decorated object.
 }
 
 /**
-Find a decorator in decorator chain that implements Needle type.
-
-Find a decorator in decorator chain that implements Needle type.
+Treat component as a chain of decorated entities and express this as a range of decorators.
 
 Params:
-	Needle = the type searched decorator should implement
-	Haystack = type of the chain of decorators through which to traverse
-	decorated = top of decorator chain.
+	ComponentType = The original type of component attempted to interpret as a range of decorators.
+	DecoratorType = type each decorator in decorator chain.
+	component = component to express as a range of decorators.
 
 Returns:
-	Decorator or null if not found.
+	DecoratorChain!(ComponentType, DecoratorType) the range.
 **/
-Needle findDecorator(Needle, Haystack : Decorator!Z, Z, T)(T decorated) @trusted {
+DecoratorChain!(ComponentType, DecoratorType) decorators(DecoratorType, ComponentType)(ComponentType component) {
+	return DecoratorChain!(ComponentType, DecoratorType)(component);
+}
 
-    Haystack decorator = cast(Haystack) decorated;
-    Needle needle = cast(Needle) decorated;
+/**
+ditto
+**/
+@safe struct DecoratorChain(ComponentType, DecoratorType)
+if (is(ComponentType == class) || is(ComponentType == interface)) {
 
-    while ((needle is null) && (decorator !is null)) {
-        decorator = cast(Haystack) decorator.decorated;
-        needle = cast(Needle) decorator;
-    }
+	Decorator!DecoratorType current;
 
-    return needle;
+	this(ComponentType initial) @trusted {
+		current = cast(Decorator!DecoratorType) initial;
+	}
+
+	this(Decorator!DecoratorType copy) {
+		current = copy;
+	}
+
+	bool empty() {
+		return current is null;
+	}
+
+	Decorator!DecoratorType front() {
+		return current;
+	}
+
+	void popFront() @trusted {
+		current = cast(Decorator!DecoratorType) current.decorated;
+	}
+
+	typeof(this) save() {
+		return typeof(this)(current);
+	}
+}
+
+/**
+Given a range of objects filter them by Interface they are implementing.
+
+Params:
+	Interface = interface by which to filter the range
+	range = range of objects to filter
+
+Returns:
+	InterfaceFilter!(Range, Interface) a range of filtered objects by Interface
+**/
+InterfaceFilter!(Range, Interface) filterByInterface(Interface, Range)(auto ref Range range) {
+	return InterfaceFilter!(Range, Interface)(range);
+}
+
+/**
+ditto
+**/
+@safe struct InterfaceFilter(Range, Interface)
+if (isForwardRange!Range && (is(ElementType!Range == class) || is(ElementType!Range == interface))) {
+
+	Range range;
+	Interface current;
+
+	this(this) {
+		range = range.save;
+	}
+
+	this(ref Range range) {
+		this.range = range.save;
+		this.popFront;
+	}
+
+	private this(ref Range range, Interface current) {
+		this.range = range.save;
+		this.current = current;
+	}
+
+	bool empty() {
+		return current is null;
+	}
+
+	Interface front() {
+		return current;
+	}
+
+	void popFront() @trusted {
+		while (!range.empty) {
+			auto front = range.front;
+			range.popFront;
+
+			current = cast(Interface) front;
+
+			if (current !is null) {
+				return;
+			}
+		}
+
+		current = null;
+	}
+
+	typeof(this) save() {
+		return typeof(this)(range, current);
+	}
 }
 
 /**

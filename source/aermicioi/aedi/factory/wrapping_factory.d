@@ -222,11 +222,7 @@ derived from Object.
 
             import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
             throw new InvalidCastException(
-                "Cannot destruct component of type " ~
-                component.classinfo.toString() ~
-                " that is not managed by factory of " ~
-                typeid(Z).toString() ~
-                " components."
+                "Cannot destruct component of type ${actual} expected component of ${expected} type", null, typeid(Z), component.classinfo
             );
         }
 

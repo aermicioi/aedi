@@ -31,6 +31,7 @@ module aermicioi.aedi.container.value_container;
 
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.exception.not_found_exception;
@@ -105,7 +106,7 @@ Value container for instantiated components.
                 return this.values.get(identity);
             }
 
-            throw new NotFoundException("Component by id " ~ identity ~ " not found.");
+            throw new NotFoundException("Component by ${identity} not found.", identity);
         }
 
         /**
@@ -143,7 +144,7 @@ Value container for instantiated components.
         Destruct all managed components. The method denotes the end of container lifetime, and therefore destruction of all managed components
         by it.
         **/
-        Container terminate() {
+        ValueContainer terminate() {
 
 			// We do nothing since none of contained are instantiated by container.
 			return this;
