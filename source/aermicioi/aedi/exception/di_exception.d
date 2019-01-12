@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.exception.di_exception;
 
 import std.exception;
+import aermicioi.aedi.util.range : BufferSink;
 
 @safe:
 
@@ -102,96 +103,4 @@ class AediException : Exception {
     }
 
     alias toString = typeof(super).toString;
-}
-
-/**
-Buffering output range into a static array
-
-Parameters:
-    T = static array buffer.
-**/
-struct BufferSink(T : Z[N], Z, size_t N) {
-    import std.range;
-
-    private T buffer;
-    private size_t fillage;
-
-    void put(R)(ref R range)
-        if (isInputRange!R && is(ElementType!R == Z)){
-
-        if (range.empty) {
-            return;
-        }
-
-        foreach (index, ref slot; buffer) {
-            if (range.empty) {
-                break;
-            }
-
-            slot = range.front;
-            range.popFront;
-            fillage = index;
-        }
-
-        ++fillage;
-    }
-
-    /**
-    Get buffered data.
-
-    Returns:
-        Z[] a slice of static array
-    **/
-    Z[] slice() {
-        return buffer[0 .. fillage];
-    }
-}
-
-/**
-A forward range representing an exception chain.
-
-Params:
-    throwable = starting point of exception chain
-
-Returns:
-    a forward range of exceptions
-**/
-auto exceptions(Throwable throwable) {
-    return ExceptionChain(throwable);
-}
-
-/**
-ditto
-**/
-@safe struct ExceptionChain {
-
-    private Throwable current;
-
-    public {
-        this(Throwable exception) {
-            this.current = exception;
-        }
-
-        private this(ref ExceptionChain chain) {
-            this.current = chain.current;
-        }
-
-        Throwable front() {
-            return current;
-        }
-
-        bool empty() {
-            return current is null;
-        }
-
-        void popFront() {
-            if (!empty) {
-                current = current.next;
-            }
-        }
-
-        typeof(this) save() {
-            return ExceptionChain(this);
-        }
-    }
 }

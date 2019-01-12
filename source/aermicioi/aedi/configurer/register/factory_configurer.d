@@ -43,7 +43,7 @@ import aermicioi.aedi.storage.allocator_aware;
 import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.storage;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 public import aermicioi.aedi.factory.reference : lref, anonymous;
 
 import std.meta;
@@ -356,6 +356,7 @@ auto tag(W : ConfigurationContextFactory!T, T, Z)(W factory, auto ref Z tag) {
     Taggable!Z taggable;
 
     import std.range : chain, only;
+    import aermicioi.aedi.util.range : filterByInterface;
 
     auto candidates = factory.wrapper
         .decorators!ObjectFactory
@@ -425,6 +426,7 @@ Returns:
 auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) @trusted {
     import aermicioi.aedi.factory.proxy_factory : ProxyFactory, ProxyObjectFactory;
     import aermicioi.aedi.container.proxy_container : ProxyContainer;
+    import aermicioi.aedi.util.range : filterByInterface;
 
     auto candidates = factory.storage.decorators!Container.filterByInterface!ProxyContainer;
 
@@ -513,6 +515,7 @@ Returns:
     factory
 **/
 auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) @trusted {
+    import aermicioi.aedi.util.range : filterByInterface;
     auto candidates = factory.wrapper
         .decorators!(Factory!T)
         .filterByInterface!DefferredExecutionerAware

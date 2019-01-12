@@ -41,7 +41,7 @@ import aermicioi.aedi.factory.reference;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.factory.proxy_factory;
 import aermicioi.aedi.exception;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 import aermicioi.aedi.factory.wrapping_factory : WrappingFactory;
 
 import std.traits;
@@ -872,7 +872,7 @@ A default implementation of component storing policy that looks for @qualifier a
 ContainerAdder that chains a set of ContainerAdders on a symbol.
 **/
 @safe struct ChainedContainerAdder(ContainerAdderPolicies...) {
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
 
     /**
     Check if at least one ContainerAdder supports passed symbol

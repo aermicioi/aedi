@@ -116,7 +116,7 @@ Mixin containing default forwarding allocator properties for decorating componen
 **/
 @safe mixin template AllocatorAwareDecoratorMixin(T : AllocatorAware!Z, Z)
     if (is(T : Decorator!X, X)) {
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
     import std.meta;
     import std.traits;
 

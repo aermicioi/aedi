@@ -11,7 +11,7 @@ import aermicioi.aedi.storage.locator;
 
 import std.meta;
 import std.traits;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 
 /**
 Decorating container that executes deffered tasks after a request is served from exterior.

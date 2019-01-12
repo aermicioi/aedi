@@ -43,7 +43,7 @@ import aermicioi.aedi.factory.reference;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.factory.proxy_factory;
 import aermicioi.aedi.exception;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 
 import std.traits;
 import std.meta;

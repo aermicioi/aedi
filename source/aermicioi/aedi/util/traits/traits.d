@@ -28,7 +28,7 @@ License:
 Authors:
 	Alexandru Ermicioi
 **/
-module aermicioi.util.traits.traits;
+module aermicioi.aedi.util.traits.traits;
 import std.traits;
 import std.typetuple;
 import std.algorithm;
@@ -270,7 +270,7 @@ public {
     }
 
     template getMembersWithProtection(T, string member, string protection = "public") {
-        import aermicioi.util.traits.partial : chain, eq;
+        import aermicioi.aedi.util.traits.partial : chain, eq;
 
         alias getMembersWithProtection = Filter!(
             chain!(
@@ -314,7 +314,7 @@ public {
     template isField(T, string field) {
 
         auto isField() {
-            import aermicioi.util.traits.partial : eq;
+            import aermicioi.aedi.util.traits.partial : eq;
             static if (Filter!(eq!field, FieldNameTuple!T).length > 0) {
                 return true;
             } else {

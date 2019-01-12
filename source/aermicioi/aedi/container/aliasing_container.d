@@ -46,7 +46,7 @@ Decorating container adding ability to alias contained element a new identity.
 template AliasingContainer(T) {
     import std.meta;
     import std.traits;
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
 
     /**
     Set which the aliasing decorated will decorate for T. By default

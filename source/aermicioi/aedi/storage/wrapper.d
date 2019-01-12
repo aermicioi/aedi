@@ -93,7 +93,7 @@ ditto
 **/
 class CastableWrapperImpl(T, Castables...) : Wrapper!T, staticMap!(toCastable, Castables) {
     import std.meta;
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
     mixin WrapperMixin!T;
 
     mixin CastableMixin!(Castables);

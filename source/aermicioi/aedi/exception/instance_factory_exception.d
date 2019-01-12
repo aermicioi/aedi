@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.exception.instance_factory_exception;
 
 import aermicioi.aedi.exception.di_exception;
+import aermicioi.aedi.util.range : BufferSink;
 
 /**
 Denotes an error that occurred during instantiation process by an object implementing InstanceFactory interface.

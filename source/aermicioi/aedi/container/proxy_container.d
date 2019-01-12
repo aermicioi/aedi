@@ -43,7 +43,7 @@ import std.range;
 import std.typecons;
 import std.meta;
 import std.traits;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 
 /**
 TODO: Add description of what this is and why it was designed as such.

@@ -39,7 +39,7 @@ import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.allocator_aware;
 import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.storage.wrapper;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 
 
 import std.conv : to;
@@ -1622,7 +1622,7 @@ template isArgumentListCompatible(alias func, ArgTuple...)
 }
 
 mixin template assertFieldCompatible(T, string field, Arg) {
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
     import std.traits;
     import std.meta;
 
@@ -1637,7 +1637,7 @@ enum bool isFieldCompatible(T, string field, Arg) =
     is(Arg : RuntimeReference) ? true : isImplicitlyConvertible!(Arg, typeof(getMember!(T, field)));
 
 mixin template assertObjectConstructorCompatible(T, Args...) {
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
     import std.traits;
     import std.meta;
 
@@ -1653,7 +1653,7 @@ enum bool isObjectConstructorCompatible(T, Args...) = isMethodCompatible!(T, "__
 mixin template assertObjectMethodCompatible(T, string method, Args...) {
     import std.range : only;
     import std.array : array;
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
     import std.traits;
     import std.meta;
 

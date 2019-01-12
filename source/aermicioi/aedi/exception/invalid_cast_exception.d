@@ -31,6 +31,7 @@ Authors:
 module aermicioi.aedi.exception.invalid_cast_exception;
 
 import aermicioi.aedi.exception.di_exception;
+import aermicioi.aedi.util.range : BufferSink;
 
 /**
 It is thrown when a factory detects that fetched object from DI container cannot be casted to required interface/class

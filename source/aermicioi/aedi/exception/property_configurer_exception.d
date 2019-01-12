@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.exception.property_configurer_exception;
 
 import aermicioi.aedi.exception.di_exception;
+import aermicioi.aedi.util.range : BufferSink;
 
 /**
 Denotes an error that occurred during configuration process done by an object which is a subclass of

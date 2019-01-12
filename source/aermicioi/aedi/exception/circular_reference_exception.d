@@ -31,6 +31,7 @@ Authors:
 module aermicioi.aedi.exception.circular_reference_exception;
 
 import aermicioi.aedi.exception.di_exception;
+import aermicioi.aedi.util.range : BufferSink;
 
 /**
 Exception denoting a circular dependency in DI container.

@@ -102,7 +102,7 @@ template SwitchableContainer(T)
 {
     import std.meta;
     import std.traits;
-    import aermicioi.util.traits;
+    import aermicioi.aedi.util.traits;
 
     /**
     Set which the switchable decorated will decorate for T. By default

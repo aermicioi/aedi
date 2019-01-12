@@ -27,9 +27,9 @@ License:
 Authors:
 	aermicioi
 **/
-module aermicioi.util.traits.partial;
+module aermicioi.aedi.util.traits.partial;
 
-import aermicioi.util.traits.traits;
+import aermicioi.aedi.util.traits.traits;
 import std.meta;
 import std.traits;
 

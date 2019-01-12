@@ -38,7 +38,7 @@ import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.exception.di_exception;
 import aermicioi.aedi.storage.locator_aware;
 
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 
 import std.algorithm;
 import std.meta;

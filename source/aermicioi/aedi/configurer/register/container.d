@@ -32,7 +32,7 @@ module aermicioi.aedi.configurer.register.container;
 import aermicioi.aedi.container;
 import std.traits;
 import std.meta;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 
 @safe:
 

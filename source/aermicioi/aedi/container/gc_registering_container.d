@@ -37,7 +37,7 @@ import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception.not_found_exception;
-import aermicioi.util.traits;
+import aermicioi.aedi.util.traits;
 import std.meta;
 import std.traits;
 

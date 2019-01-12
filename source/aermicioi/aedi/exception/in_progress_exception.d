@@ -31,6 +31,7 @@ Authors:
 module aermicioi.aedi.exception.in_progress_exception;
 
 import aermicioi.aedi.exception.di_exception;
+import aermicioi.aedi.util.range : BufferSink;
 
 /**
 Thrown when a new object is requested from factory when it is already in process of creating another one.
