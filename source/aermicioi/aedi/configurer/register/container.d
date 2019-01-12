@@ -218,7 +218,7 @@ Params:
 Returns:
 	DescribingContainer!T
 **/
-auto describing(T : Container)(T container, Describer!() componentDescriber, Describer!() fallbackComponentDescriber, Describer!() containerDescriber) {
+auto describing(T : Container)(T container, Describer!() componentDescriber, Describer!() containerDescriber, Describer!() fallbackComponentDescriber) {
 	return new DescribingContainer!T(container, componentDescriber, containerDescriber, fallbackComponentDescriber);
 }
 
@@ -232,15 +232,15 @@ auto describing(T : Container)(T container, Describer!() componentDescriber, Des
 /**
 ditto
 **/
-auto describing(T : Container)(T container, Describer!() componentDescriber) {
-	return new DescribingContainer!T(container, componentDescriber);
+auto describing(T : Container)(T container, Describer!() componentDescriber, string title, string description) {
+	return new DescribingContainer!T(container, componentDescriber, new StaticDescriber!()(typeid(T).toString, title, description));
 }
 
 /**
 ditto
 **/
-auto describing(T : Container)(T container) {
-	return new DescribingContainer!T(container);
+auto describing(T : Container)(T container, string title = null, string description = null) {
+	return new DescribingContainer!T(container, new IdentityDescriber!(), new StaticDescriber!()(typeid(T).toString, title, description));
 }
 
 private {

@@ -129,7 +129,6 @@ template SubscribableContainer(T)
         InterfacesTuple!T),
         Container,
         Subscribable!ContainerInstantiationEventType,
-        MutableDecorator!T,
         Decorator!Container
     );
 
@@ -138,7 +137,6 @@ template SubscribableContainer(T)
         private
         {
             void delegate() @safe[][ContainerInstantiationEventType] subscribers;
-            T decorated_;
         }
 
         public

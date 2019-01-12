@@ -320,6 +320,7 @@ struct ValueRegistrationContext {
         Storage for already instantiated components.
         **/
         Storage!(Object, string) storage;
+        Locator!() locator;
 
         /**
         Register a component into value container by identity, type or interface.
@@ -335,7 +336,7 @@ struct ValueRegistrationContext {
         Returns:
         	ValueRegistrationContext
         **/
-        ref ValueRegistrationContext register(T)(auto ref T value, string identity) {
+        ValueContext register(T)(auto ref T value, string identity) {
             static if (is(T : Object)) {
                 storage.set(value, identity);
             } else {
@@ -344,22 +345,29 @@ struct ValueRegistrationContext {
                 storage.set(new WrapperImpl!T(value), identity);
             }
 
-            return this;
+            return ValueContext(identity, storage, locator);
         }
 
         /**
         ditto
         **/
-        ref ValueRegistrationContext register(T)(auto ref T value) {
+        ValueContext register(T)(auto ref T value) {
             return register!T(value, fullyQualifiedName!T);
         }
 
         /**
         ditto
         **/
-        ref ValueRegistrationContext register(Interface, T : Interface)(auto ref T value) {
+        ValueContext register(Interface, T : Interface)(auto ref T value) {
             return register!T(value, fullyQualifiedName!Interface);
         }
+    }
+
+    static struct ValueContext {
+
+        string identity;
+        Storage!(Object, string) storage;
+        Locator!() locator;
     }
 }
 
@@ -377,6 +385,23 @@ Returns:
 **/
 ValueRegistrationContext configure(Storage!(Object, string) storage) {
     return ValueRegistrationContext(storage);
+}
+
+/**
+Start registering instantiated components into a value container.
+
+Start registering instantiated components into a value container.
+Description
+
+Params:
+    locator = container that has the storage
+	storage = identity of storage to use
+
+Returns:
+	ValueRegistrationContext context that provides register api, using storage to store registered components.
+**/
+ValueRegistrationContext configureValueContainer(Locator!() locator, string storage) {
+    return ValueRegistrationContext(locator.locate!(Storage!(Object, string))(storage), locator);
 }
 
 /**

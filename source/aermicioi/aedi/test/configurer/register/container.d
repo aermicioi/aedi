@@ -117,3 +117,10 @@ unittest
 
     assert(typeid(container) is typeid(AggregateContainer));
 }
+
+unittest
+{
+    auto container = singleton().describing();
+
+    assert(typeid(container) is typeid(DescribingContainer!SingletonContainer));
+}

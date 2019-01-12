@@ -104,6 +104,12 @@ class AediException : Exception {
     alias toString = typeof(super).toString;
 }
 
+/**
+Buffering output range into a static array
+
+Parameters:
+    T = static array buffer.
+**/
 struct BufferSink(T : Z[N], Z, size_t N) {
     import std.range;
 
@@ -130,7 +136,62 @@ struct BufferSink(T : Z[N], Z, size_t N) {
         ++fillage;
     }
 
+    /**
+    Get buffered data.
+
+    Returns:
+        Z[] a slice of static array
+    **/
     Z[] slice() {
         return buffer[0 .. fillage];
+    }
+}
+
+/**
+A forward range representing an exception chain.
+
+Params:
+    throwable = starting point of exception chain
+
+Returns:
+    a forward range of exceptions
+**/
+auto exceptions(Throwable throwable) {
+    return ExceptionChain(throwable);
+}
+
+/**
+ditto
+**/
+@safe struct ExceptionChain {
+
+    private Throwable current;
+
+    public {
+        this(Throwable exception) {
+            this.current = exception;
+        }
+
+        private this(ref ExceptionChain chain) {
+            this.current = chain.current;
+        }
+
+        Throwable front() {
+            return current;
+        }
+
+        bool empty() {
+            return current is null;
+        }
+
+        void popFront() {
+            if (!empty) {
+                current = current.next;
+            }
+        }
+
+        typeof(this) save() {
+            return ExceptionChain(this);
+        }
     }
 }

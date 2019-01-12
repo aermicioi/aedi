@@ -20,5 +20,8 @@
 		"aedi" : {
 			"path" : "../../"
 		}
-	}
+	},
+	"dflags": [
+		"link-debuglib"
+	]
 }

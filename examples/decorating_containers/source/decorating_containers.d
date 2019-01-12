@@ -9,6 +9,17 @@ Aim:
 The aim of library is to provide a dependency injection solution that is
 feature rich, easy to use, easy to learn, and easy to extend up to your needs.
 
+At certian point of time the manufacturer decided that their car factory should provide cars with different engines,
+electric/diesel/gasoline based on user preference. Therefore the application itself needed to be reconfigured to
+satisfy user needs.
+
+The workflow needed to implement in application in order to allow 3 different configurations is
+shown below and consists of following steps:
+$(OL
+    $(LI read profile argument from command line or environment )
+    $(LI switch on it, and register diesel/gasoline/electric engine by Engine interface depending on selected profile )
+)
+
 Aedi does provide basic containers singleton and prototype, which can be combined into some-
 thing more complex. Though, on top of their behavior additional one can be built, such as a container
 that can be enabled/disabled, or a container that adds observer pattern. Out of the box framework does provide
@@ -21,9 +32,52 @@ $(UL
     $(LI typed - serves components based on their implemented interfaces)
     $(LI proxy - serves component proxies instead of original ones)
     $(LI deffered - provides deffered construction of components)
+    $(LI describing - allows to register description for components that can be used later for help information)
 )
 
-Each decorating container listed below will be explained in detail, followed by a short explanation of what current example does.
+Following snippet of code shows all decorating containers in use except of proxy one.
+------------------
+auto decorated() {
+    auto gasoline = singleton.typed.switchable.enabled(false);
+    auto electric = singleton.typed.switchable.enabled(false);
+    auto diesel = singleton.typed.switchable.enabled(false);
+
+    auto cont = aggregate(
+        singleton, "singleton",
+        prototype, "prototype",
+        values, "parameters",
+        gasoline, "gasoline",
+        electric, "electric",
+        diesel, "diesel"
+    ).aliasing.gcRegistered.deffered.describing("Car factory", "Car factory, please see available contents of our factory");
+
+    return cont
+        .subscribable
+        .subscribe(
+            ContainerInstantiationEventType.pre,
+            {
+                cont.locate!Switchable(cont.locate!string("profile")).enabled = true;
+            }
+        );
+}
+------------------
+
+The profile based container is assembled from 3 typed and switchable containers joined together into a subscribable
+composite container with gc component registration, construction of deffered components and describing capabilities.
+When the application is booted up, the code from $(D_INLINECODE main(string[] args)) loads into container
+"profile" argument. Afterwards components are registered into container, and for each profile,
+the right engine is registered in respective gasoline, electric, diesel containers. Once this
+is finished, the container is instantiated using $(D_INLINECODE intantiate) method. During instantiation phase,
+subscribable composite container fires an pre-instantiation event on which, a delegate is attached, that
+checks for "profile" argument, and enables the container identified by value in profile container.
+Afterwards construction of components proceeds. When car is constructed typed container jumps in and
+provides an implenentation of $(D_INLINECODE Engine) for car depending on enabled container. When
+construction arrives at a Tire, a circular dependency is detected, and construction of a component is
+deffered at later stage in order to break dependency chain. Once component is constructed, it is registered
+with global gc instance in order to avoid destruction of gc managed components while they are still referenced
+by non-gc-managed components. Once instantiation is finished, car is fetched from container and displayed in console.
+
+Each of decorating container shown in example above will be explained in detail below.
 
 Aliasing:
 
@@ -72,17 +126,13 @@ $(OL
 )
 An example of such listeners can be like in listing below, which will enable a container before instantiation based on profile argument
 -----------------
-cont.subscribable.subscribe(
-    ContainerInstantiationEventType.pre,
-    {
-        if (cont.has(cont.locate!string("profile"))) {
+cont.subscribable
+    .subscribe(
+        ContainerInstantiationEventType.pre,
+        {
             cont.locate!Switchable(cont.locate!string("profile")).enabled = true;
-            return;
         }
-
-        throw new Exception("No engine profile selected. Specify it with -p");
-    }
-);
+    );
 -----------------
 
 Typed:
@@ -115,62 +165,111 @@ configuration context (simply append it after $(D_INLINECODE container.configure
 dependency. A car has a dependency on four tires, while each tire has a dependency on a car instance, resulting in a circular dependency.
 Removing $(D_INLINECODE deffered) or $(D_INLINECODE withConfigurationDefferring) will result in circular dependency exception thrown by container.
 
-Example:
-Such behavior can be useful, like in car company example, that at certian point of time decided that their application should provide
-upon start cars with different engines, electric/diesel/gasoline.
+Describing:
 
-The workflow needed to implement in application in order to allow 3 different configurations is
-shown below and consists of following steps:
-$(OL
-    $(LI read profile argument from command line or environment )
-    $(LI switch on it, and register diesel/gasoline/electric engine by Engine interface depending on selected profile )
-)
-
-Following snippet of code shows all decorating containers in use except of proxy one.
-
-------------------
-auto decorated() {
-    auto gasoline = singleton.typed.switchable.enabled(false);
-    auto electric = singleton.typed.switchable.enabled(false);
-    auto diesel = singleton.typed.switchable.enabled(false);
-
-    auto cont = aggregate(
+Describing container, adds ability to store description for the container itself, and components that are managed in decorated container. Main purpose
+of this type of container is to be used in storing description that will be used for help information (usually displayed in command line).
+--------------------------
+auto cont = aggregate(
         singleton, "singleton",
         prototype, "prototype",
         values, "parameters",
         gasoline, "gasoline",
         electric, "electric",
         diesel, "diesel"
-    ).aliasing.gcRegistered.deffered;
+    ).aliasing.gcRegistered.deffered.describing("Car factory", "Car factory, please see available contents of our factory");
+--------------------------
 
-    return cont.subscribable.subscribe(
-        ContainerInstantiationEventType.pre,
-        {
-            if (cont.has(cont.locate!string("profile"))) {
-                cont.locate!Switchable(cont.locate!string("profile")).enabled = true;
-                return;
-            }
+Registering a description can happen in two ways:
+$(OL
+    $(LI By using $(D_INLINECODE .describe) that adds a description on registered component))
+    $(LI adding description directly to identity describer)
+)
 
-            throw new Exception("No engine profile selected. Specify it with -p");
-        }
-    );
+Both ways are shown in example below:
+--------------------------
+with (cont.configureValueContainer("parameters")) {
+
+    register(verbose, "verbose").describe("verbose errors", "whether to show or not appearing errors.");
+
+    if (profile !is null) {
+        register(profile, "profile");
+    }
+
+    with (cont.locate!(IdentityDescriber!())) {
+        register("profile", "Car enginge type", "Type of engine to select while building a car (gasoline|diesel|electric|ecological).");
+    }
 }
-------------------
+--------------------------
 
-The profile based container is assembled from 3 typed and switchable containers, and a subscribable
-composite container with gc component registration and construction of deffered components.
-When the application is booted up, the code from $(D_INLINECODE main(string[] args)) loads into container
-"profile" argument. Afterwards components are registered into container, and for each profile,
-the right engine is registered in respective gasoline, electric, diesel containers. Once this
-is finished, the container is instantiated using $(D_INLINECODE intantiate) method. During instantiation phase,
-subscribable composite container fires an pre-instantiation event on which, a delegate is attached, that
-checks for "profile" argument, and enables the container identified by value in profile container.
-Afterwards construction of components proceeds. When car is constructed typed container jumps in and
-provides an implenentation of $(D_INLINECODE Engine) for car depending on enabled container. When
-construction arrives at a Tire, a circular dependency is detected, and construction of a component is
-deffered at later stage in order to break dependency chain. Once component is constructed, it is registered
-with global gc instance in order to avoid destruction of gc managed components while they are still referenced
-by non-managed components. Once instantiation is finished, car is fetched from container and displayed in console.
+The first line is using first option for registering descriptions, where $(D_INLINECODE .describe) method will query locator for $(D_INLINECODE IdentityDescriber!())
+component which hosts those descriptions and then will register the description in it if found. If not a $(D_INLINECODE NotFoundException)  will be thrown.
+
+Notice that $(D_INLINECODE profile) is wrapped in a if conditional. This is done intenionally in the example to simulate a missing profile setting
+when none is passed through command line, however the same situation could happen with $(D_INLINECODE switchable) container where even if component
+is registered it could not be available at run time.
+
+Last $(D_INLINECODE with) statement is the second variant of configuration, where instead of using $(D_INLINECODE .describe) entire registration of description
+is done manually. It is better to use first method for registering descriptions, while the latter only in cases when first is not possible, just like in the
+example where missing property is simulated. This will work with $(D_INLINECODE switchable) container since we do register those components, yet they won't
+be available at runtime.
+
+Second registration version used $(D_INLINECODE IdentityDescriber!()) component, which itself is a component that describing container delegates the task of
+describing components. Besides $(D_INLINECODE IdentityDescriber!()) used as main describer, container has also a describer for itself or decorated container,
+and a fallback describer that is used in case main one can't describe a component. All three of them are of $(D_INLINECODE Describer!()) interface, and it is
+possible to pass them in $(D_INLINECODE describing) container as arguments. By default following implementations are available:
+$(OL
+    $(LI $(D_INLINECODE IdentityDescriber!()) - a describer that describes data based upon identity of component)
+    $(LI $(D_INLINECODE TypeDescriber!()) - a describer that uses a template and formatter for identity and component itself to generate a description)
+    $(LI $(D_INLINECODE StaticDescriber!()) - a describer that will provide same description no matter what is passed)
+    $(LI $(D_INLINECODE NullDescriber!()) - a describer that does not describe anyhting)
+)
+
+Rendering of stored description can happen like in example below:
+--------------------------
+if (help.helpWanted) {
+    defaultGetoptPrinter(
+        cont.locate!(Describer!()).describe(null, cont).description,
+        cont.locate!(DescriptionsProvider!string)
+            .provide
+            .map!(description => Option(null, description.identity, text(description.title, " - ", description.description)))
+            .array
+    );
+    return;
+}
+
+try {
+
+    cont.instantiate();
+
+    cont.locate!Car.drive(profile);
+} catch (AediException e) {
+    foreach (throwable; e.exceptions.filterByInterface!NotFoundException) {
+        defaultGetoptPrinter(
+            text("Missing \"", e.identity, "\" for proper functioning, please see detailed info of missing piece below. For more detailed options run with --help"),
+            cont.locate!(Describer!()).describe(e.identity, null)
+                .only
+                .filter!(description => !description.isNull)
+                .map!(description => Option(null, description.identity, text(description.title, " - ", description.description), true))
+                .array
+        );
+
+        break;
+    }
+
+    if (cont.locate!bool("verbose")) {
+        throw e;
+    }
+}
+--------------------------
+
+In case if help is required, or in other words all descriptions registered at certain point, a $(D_INLINECODE DescriptionsProvider!string) should be
+located fetched from container and asked to provide all available descriptions. Coincidentally $(D_INLINECODE IdentityDescriber!()) implements also
+$(D_INLINECODE DescriptionsProvider!string) and therefore it will be fetched from container once asked by provider interface it implements.
+
+Since $(D_INLINECODE describing) container is mostly geared towards being queried for description based on identity of a component and component itself,
+it is also possible to provide targeted info per problematic aspect encountered during application running, such as missing component in container, profile for
+example. Try - catch statement in example uses this functionality to print message about missing component, and its description.
 
 Try running this example, pass as argument $(D_INLINECODE --profile) with value of
 $(D_INLINECODE gasoline), $(D_INLINECODE electric), $(D_INLINECODE diesel).
@@ -210,6 +309,9 @@ module decorating_containers;
 import aermicioi.aedi;
 import std.stdio;
 import std.algorithm;
+import std.range;
+import std.array;
+import std.conv : text;
 import std.experimental.allocator.mallocator;
 import std.experimental.allocator;
 
@@ -535,19 +637,16 @@ auto decorated() {
         gasoline, "gasoline",
         electric, "electric",
         diesel, "diesel"
-    ).aliasing.gcRegistered.deffered;
+    ).aliasing.gcRegistered.deffered.describing("Car factory", "Car factory, please see available contents of our factory");
 
-    return cont.subscribable.subscribe(
-        ContainerInstantiationEventType.pre,
-        {
-            if (cont.has(cont.locate!string("profile"))) {
+    return cont
+        .subscribable
+        .subscribe(
+            ContainerInstantiationEventType.pre,
+            {
                 cont.locate!Switchable(cont.locate!string("profile")).enabled = true;
-                return;
             }
-
-            throw new Exception("No engine profile selected. Specify it with -p");
-        }
-    );
+        );
 }
 
 void main(string[] args) {
@@ -557,14 +656,24 @@ void main(string[] args) {
 
     import std.getopt;
     string profile;
+    bool verbose;
 
     auto help = getopt(args,
-        "p|profile", &profile
+        "p|profile", &profile,
+        "v|verbose", &verbose
     );
 
-    with (cont.locate!ValueContainer("parameters").configure) {
+    with (cont.configureValueContainer("parameters")) {
 
-        register(profile, "profile");
+        register(verbose, "verbose").describe("verbose errors", "whether to show or not appearing errors.");
+
+        if (profile !is null) {
+            register(profile, "profile");
+        }
+
+        with (cont.locate!(IdentityDescriber!())) {
+            register("profile", "Car enginge type", "Type of engine to select while building a car (gasoline|diesel|electric|ecological).");
+        }
     }
 
     with (cont.configure("singleton", Mallocator.instance.allocatorObject)) {
@@ -573,7 +682,8 @@ void main(string[] args) {
         register!Size
             .set!"width"(200UL)
             .set!"height"(150UL)
-            .set!"length"(300UL);
+            .set!"length"(300UL)
+            .describe("Car size", "Rough estimations of car size that will be produced");
 
         register!Car
             .autowire
@@ -581,7 +691,8 @@ void main(string[] args) {
             .set!"frontLeft"(lref!Tire)
             .set!"frontRight"(lref!Tire)
             .set!"backLeft"(lref!Tire)
-            .set!"backRight"(lref!Tire);
+            .set!"backRight"(lref!Tire)
+            .describe("The car", "The car our factory constructed");
     }
 
     with (cont.configure("prototype").withConfigurationDefferring) {
@@ -589,7 +700,8 @@ void main(string[] args) {
             .autowire!"car"
             .set!"size"(17)
             .set!"pressure"(3.0)
-            .set!"vendor"("divine tire");
+            .set!"vendor"("Divine tire")
+            .describe("Divine tire", "A template of a divine tire used in our car.");
     }
 
     cont.configure("diesel").register!DieselEngine;
@@ -598,7 +710,38 @@ void main(string[] args) {
 
     cont.link("electric", "ecological");
 
-    cont.instantiate();
+    if (help.helpWanted) {
+        defaultGetoptPrinter(
+            cont.locate!(Describer!()).describe(null, cont).description,
+            cont.locate!(DescriptionsProvider!string)
+                .provide
+                .map!(description => Option(null, description.identity, text(description.title, " - ", description.description)))
+                .array
+        );
+        return;
+    }
 
-    cont.locate!Car.drive(profile);
+    try {
+
+        cont.instantiate();
+
+        cont.locate!Car.drive(profile);
+    } catch (AediException e) {
+        foreach (throwable; e.exceptions.filterByInterface!NotFoundException) {
+            defaultGetoptPrinter(
+                text("Missing \"", e.identity, "\" for proper functioning, please see detailed info of missing piece below. For more detailed options run with --help"),
+                cont.locate!(Describer!()).describe(e.identity, null)
+                    .only
+                    .filter!(description => !description.isNull)
+                    .map!(description => Option(null, description.identity, text(description.title, " - ", description.description), true))
+                    .array
+            );
+
+            break;
+        }
+
+        if (cont.locate!bool("verbose")) {
+            throw e;
+        }
+    }
 }

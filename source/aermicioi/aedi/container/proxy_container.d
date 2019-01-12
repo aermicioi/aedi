@@ -101,7 +101,6 @@ template ProxyContainerImpl(T)
                 InterfacesTuple!T
             ),
             ProxyContainer,
-            MutableDecorator!T,
             Decorator!Container
         );
 
@@ -112,8 +111,6 @@ template ProxyContainerImpl(T)
     {
         private
         {
-            T decorated_;
-
             ObjectStorage!(ProxyObjectFactory, string) proxyFactories;
             ObjectStorage!(Object, string) proxies;
         }

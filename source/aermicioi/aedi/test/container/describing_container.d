@@ -139,7 +139,7 @@ unittest {
     assert(container.describe(null, container.decorated) == Description!string("singleton", "Singleton container", "A container that instantiates and keeps managed components until it is terminated"));
 
     assert(container.has(typeid(Describer!()).toString));
-    assert(container.get(typeid(Describer!()).toString) is main);
+    assert(container.get(typeid(Describer!()).toString) is container);
 
     assert(container.has(typeid(IdentityDescriber!()).toString));
     assert(container.get(typeid(IdentityDescriber!()).toString) is main);

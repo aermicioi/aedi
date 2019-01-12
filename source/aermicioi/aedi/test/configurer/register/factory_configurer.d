@@ -278,6 +278,7 @@ unittest {
 
 unittest {
     import aermicioi.aedi.container.describing_container : DescribingContainer, Description, IdentityDescriber;
+    import std.conv : text;
     auto container = new DescribingContainer!SingletonContainer(new SingletonContainer, new IdentityDescriber!());
 
     with (container.configure) {
@@ -290,5 +291,5 @@ unittest {
     assert(container.describe("john", null) == Description!string("john", "John", "Software engineer"));
     assert(container.describe("joe", null) == Description!string("joe", "Joe", "Architecture owner"));
     assert(container.describe("doe", null) == Description!string("doe", "doe", "doe part of aermicioi.aedi.container.singleton_container.SingletonContainer of object.Object"));
-    assert(container.describe("moe", null).isNull);
+    assert(container.describe("moe", null) == Description!string("moe", "moe", "moe part of aermicioi.aedi.container.singleton_container.SingletonContainer of object.Object"));
 }

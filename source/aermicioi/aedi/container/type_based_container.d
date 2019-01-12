@@ -76,7 +76,6 @@ template TypeBasedContainer(T) {
         NoDuplicates!(
             Container,
             Storage!(ObjectFactory, string),
-            MutableDecorator!T,
             Decorator!Container,
             Filter!(
                 templateOr!(

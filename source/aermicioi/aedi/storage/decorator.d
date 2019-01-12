@@ -92,14 +92,19 @@ ditto
 **/
 @safe struct DecoratorChain(ComponentType, DecoratorType)
 if (is(ComponentType == class) || is(ComponentType == interface)) {
+	import std.traits : Unqual, QualifierOf;
+	import std.typecons : Rebindable;
 
-	Decorator!DecoratorType current;
+	alias QualifierOfComponentType = QualifierOf!ComponentType;
+	alias QualifiedDecoratorType = QualifierOfComponentType!(Decorator!DecoratorType);
+
+	Rebindable!(QualifiedDecoratorType) current;
 
 	this(ComponentType initial) @trusted {
-		current = cast(Decorator!DecoratorType) initial;
+		current = cast(QualifiedDecoratorType) initial;
 	}
 
-	this(Decorator!DecoratorType copy) {
+	this(QualifiedDecoratorType copy) {
 		current = copy;
 	}
 
@@ -107,12 +112,12 @@ if (is(ComponentType == class) || is(ComponentType == interface)) {
 		return current is null;
 	}
 
-	Decorator!DecoratorType front() {
+	QualifiedDecoratorType front() {
 		return current;
 	}
 
 	void popFront() @trusted {
-		current = cast(Decorator!DecoratorType) current.decorated;
+		current = cast(QualifiedDecoratorType) current.decorated;
 	}
 
 	typeof(this) save() {
@@ -217,7 +222,8 @@ Mixin implementing MutableDecorator for a decorated element of T.
 			T
 		**/
 		inout(T) decorated() @safe nothrow pure inout {
-			return this.decorated_;
+			auto t = this.decorated_;
+			return t;
 		}
 	}
 }

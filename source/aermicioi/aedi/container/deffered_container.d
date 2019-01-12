@@ -57,7 +57,6 @@ template DefferedContainer(T)
         ),
         InterfacesTuple!T),
         Container,
-        MutableDecorator!T,
         Decorator!Container
     );
 

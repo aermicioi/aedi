@@ -86,6 +86,20 @@ Description of a component.
 }
 
 /**
+Provides a set of descriptions used for help information.
+**/
+@safe interface DescriptionsProvider(IdentityType) {
+
+    /**
+    Provide a list of descriptions for usage.
+
+    Returns:
+        A list of descriptions.
+    **/
+    const(Description!IdentityType)[] provide() const @safe;
+}
+
+/**
 Interface for component that is able to provide description for passed components.
 **/
 @safe interface Describer(ComponentType = Object, IdentityType = string) {
@@ -116,7 +130,7 @@ Interface for component that is able to provide description for passed component
 /**
 Describer that stores a list of descriptions based on identity, based on which it is describing passed components.
 **/
-@safe class IdentityDescriber(ComponentType = Object, IdentityType = string) : Describer!(ComponentType, IdentityType) {
+@safe class IdentityDescriber(ComponentType = Object, IdentityType = string) : Describer!(ComponentType, IdentityType), DescriptionsProvider!IdentityType {
     import std.typecons : Nullable, nullable;
 
     private {
@@ -204,6 +218,16 @@ Describer that stores a list of descriptions based on identity, based on which i
         ditto
         **/
         alias describe = Describer!(ComponentType, IdentityType).describe;
+
+        /**
+        Provide a list of descriptions for usage.
+
+        Returns:
+            A list of descriptions.
+        **/
+        const(Description!IdentityType)[] provide() const @safe {
+            return this.descriptions;
+        }
     }
 }
 
@@ -397,7 +421,6 @@ template DescribingContainer(T)
         InterfacesTuple!T),
         Container,
         Describer!(Object, string),
-        MutableDecorator!T,
         Decorator!Container,
     );
 
@@ -426,12 +449,14 @@ template DescribingContainer(T)
 
             alias describe = Describer!(Object, string).describe;
             Nullable!(const(Description!string)) describe(const ref string identity, const ref Object component) const @safe {
-                if ((this is component) || (this.decorated is component)) {
-                    return container.describe(null, component);
+                if (component is decorated) {
+                    return container.describe(null, this.decorated);
                 }
 
-                if (!this.has(identity)) {
-                    return Nullable!(const Description!string)();
+                foreach (decorator; component.decorators!Container) {
+                    if (this is decorator) {
+                        return container.describe(null, this.decorated);
+                    }
                 }
 
                 auto result = main.describe(identity, component);
@@ -456,23 +481,33 @@ template DescribingContainer(T)
             **/
             Object get(string key)
             {
+                if (key == typeid(DescriptionsProvider!string).toString) {
+                    foreach (candidate; [main, container, fallback]) {
+                        DescriptionsProvider!string subject = (() @trusted => cast(DescriptionsProvider!string) candidate)();
+
+                        if (subject !is null) {
+                            Object returnable = (() @trusted => cast(Object) subject)();
+
+                            if (returnable is null) {
+                                import aermicioi.aedi.storage.wrapper : WrapperImpl;
+                                returnable = new WrapperImpl!(DescriptionsProvider!string)(subject);
+                            }
+
+                            return returnable;
+                        }
+                    }
+                }
+
+                if (key == typeid(Describer!()).toString) {
+                    return this;
+                }
+
                 foreach (candidate; [ main, container, fallback ]) {
                     Object tested = (() @trusted => cast(Object) candidate)();
 
                     if ((tested !is null) && (tested.classinfo.toString == key)) {
                         return tested;
                     }
-                }
-
-                if (key == typeid(Describer!()).toString) {
-                    Object result = (() @trusted => cast(Object) main)();
-
-                    if (result is null) {
-                        import aermicioi.aedi.storage.wrapper : WrapperImpl;
-                        result = new WrapperImpl!(Describer!())(main);
-                    }
-
-                    return result;
                 }
 
                 return this.decorated.get(key);
@@ -488,6 +523,21 @@ template DescribingContainer(T)
             **/
             bool has(in string key) inout
             {
+                if (key == typeid(DescriptionsProvider!string).toString) {
+                    foreach (candidate; [main, container, fallback]) {
+                        DescriptionsProvider!string subject = (() @trusted => cast(DescriptionsProvider!string) candidate)();
+
+                        if (subject !is null) {
+                            return true;
+                        }
+                    }
+                }
+
+                if (key == typeid(Describer!()).toString) {
+                    return true;
+                }
+
+
                 foreach (candidate; [ main, container, fallback ]) {
                     Object tested = (() @trusted => cast(Object) candidate)();
 
@@ -496,16 +546,12 @@ template DescribingContainer(T)
                     }
                 }
 
-                if (key == typeid(Describer!()).toString) {
-                    return true;
-                }
-
                 return this.decorated.has(key);
             }
 
             static if (is(T : Storage!(ObjectFactory, string)))
             {
-                mixin StorageMixin!(typeof(this));
+                mixin StorageMixin!(typeof(this)) StorageScope;
             }
 
             static if (is(T : AliasAware!string))

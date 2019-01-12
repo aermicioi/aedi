@@ -88,16 +88,11 @@ template GcRegisteringContainer(T)
         ),
         InterfacesTuple!T),
         Container,
-        MutableDecorator!T,
         Decorator!Container
     );
 
     @safe class GcRegisteringContainer : InheritanceSet
     {
-        private
-        {
-            T decorated_;
-        }
 
         public
         {

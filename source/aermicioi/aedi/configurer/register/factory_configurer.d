@@ -34,6 +34,7 @@ module aermicioi.aedi.configurer.register.factory_configurer;
 
 
 import aermicioi.aedi.configurer.register.configuration_context_factory;
+import aermicioi.aedi.configurer.register.context : ValueRegistrationContext;
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.container.proxy_container;
 import aermicioi.aedi.exception;
@@ -377,11 +378,37 @@ auto tag(W : ConfigurationContextFactory!T, T, Z)(W factory, auto ref Z tag) {
     return factory;
 }
 
+/**
+Register a description for component
+
+Params:
+    factory = configuration context for component
+    instance = configuration context for comopnent that is already insantiated
+    title = title for component
+    description = description for component
+
+Returns:
+    Configuration context
+**/
 auto describe(W : ConfigurationContextFactory!T, T)(W factory, string title, string description = null) {
     import aermicioi.aedi.container.describing_container : IdentityDescriber;
 
     IdentityDescriber!() describer = factory.locator.locate!(IdentityDescriber!());
     describer.register(factory.identity, title, description);
+
+    return factory;
+}
+
+/**
+ditto
+**/
+auto describe(ValueRegistrationContext.ValueContext instance, string title, string description = null) {
+    import aermicioi.aedi.container.describing_container : IdentityDescriber;
+
+    IdentityDescriber!() describer = instance.locator.locate!(IdentityDescriber!());
+    describer.register(instance.identity, title, description);
+
+    return instance;
 }
 
 /**

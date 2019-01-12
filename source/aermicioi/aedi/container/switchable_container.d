@@ -44,11 +44,13 @@ import std.typecons;
 /**
 Interface that allows object to be switchable in off and on state.
 **/
-@safe interface Switchable {
+@safe interface Switchable
+{
 
-    public @property {
+    public @property
+    {
 
-    	/**
+        /**
     	Get the state of object.
 
     	Get the state of object. Whether is enabled or not.
@@ -56,9 +58,9 @@ Interface that allows object to be switchable in off and on state.
     	Returns:
         	bool true if enabled or false if not.
     	**/
-    	inout(bool) enabled() @safe nothrow inout;
+        inout(bool) enabled() @safe nothrow inout;
 
-    	/**
+        /**
     	Set the state of object.
 
     	Set the state of object. Whether is enabled or not.
@@ -66,7 +68,7 @@ Interface that allows object to be switchable in off and on state.
     	Params:
         	enable = true to enable, false to disable.
     	**/
-    	Switchable enabled(bool enable) @safe nothrow;
+        Switchable enabled(bool enable) @safe nothrow;
     }
 }
 
@@ -96,7 +98,8 @@ Params:
     T = The decorated that switchable decorated will decorate.
 
 **/
-template SwitchableContainer(T) {
+template SwitchableContainer(T)
+{
     import std.meta;
     import std.traits;
     import aermicioi.util.traits;
@@ -126,7 +129,6 @@ template SwitchableContainer(T) {
         ),
         InterfacesTuple!T),
         Locator!(),
-        MutableDecorator!T,
         Decorator!T,
         Switchable,
     );
@@ -136,40 +138,40 @@ template SwitchableContainer(T) {
     **/
     @safe class SwitchableContainer : InheritanceSet {
         private {
-            T decorated_;
-
             bool enabled_;
         }
 
         public {
 
-            /**
-        	Set the state of decorated.
+            @property {
+                /**
+            	Set the state of decorated.
 
-        	Set the state of decorated. Whether is enabled or disabled.
+            	Set the state of decorated. Whether is enabled or disabled.
 
-        	Params:
-            	enabled = true to enable, false to disable.
-        	**/
-            SwitchableContainer!T enabled(bool enabled) @safe nothrow {
-            	this.enabled_ = enabled;
+                Params:
+                    enabled = true to enable, false to disable.
+                **/
+                SwitchableContainer!T enabled(bool enabled) @safe nothrow {
+            	    this.enabled_ = enabled;
 
-            	return this;
+                    return this;
+                }
+
+                /**
+            	Get the state of decorated (enabled/disabled).
+
+            	Get the state of decorated (enabled/disabled).
+
+            	Returns:
+                	bool true if enabled or false if not.
+            	**/
+                inout(bool) enabled() @safe nothrow inout {
+                    return this.enabled_;
+                }
+
+                mixin MutableDecoratorMixin!T;
             }
-
-            /**
-        	Get the state of decorated (enabled/disabled).
-
-        	Get the state of decorated (enabled/disabled).
-
-        	Returns:
-            	bool true if enabled or false if not.
-        	**/
-            inout(bool) enabled() @safe nothrow inout {
-            	return this.enabled_;
-            }
-
-            mixin MutableDecoratorMixin!T;
 
             static if (is(T : Container)) {
 
@@ -208,7 +210,8 @@ template SwitchableContainer(T) {
                 mixin StorageMixin!(typeof(this));
             }
 
-            static if (is(T : AliasAware!string)) {
+            static if (is(T : AliasAware!string))
+            {
                 mixin AliasAwareMixin!T AliasScope;
 
                 alias link = AliasScope.link;

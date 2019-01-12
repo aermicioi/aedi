@@ -70,7 +70,6 @@ template AliasingContainer(T) {
         InterfacesTuple!T),
         Locator!(),
         AliasAware!string,
-        MutableDecorator!T,
         Decorator!Container
     );
 
