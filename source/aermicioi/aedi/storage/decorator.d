@@ -95,31 +95,58 @@ if (is(ComponentType == class) || is(ComponentType == interface)) {
 	import std.traits : Unqual, QualifierOf;
 	import std.typecons : Rebindable;
 
-	alias QualifierOfComponentType = QualifierOf!ComponentType;
-	alias QualifiedDecoratorType = QualifierOfComponentType!(Decorator!DecoratorType);
+	private alias QualifierOfComponentType = QualifierOf!ComponentType;
+	private alias QualifiedDecoratorType = QualifierOfComponentType!(Decorator!DecoratorType);
 
-	Rebindable!(QualifiedDecoratorType) current;
+	private Rebindable!(QualifiedDecoratorType) current;
 
+	/**
+	Constructor for decorator chain
+
+	Params:
+		initial = starting point of decorated component
+	**/
 	this(ComponentType initial) @trusted {
 		current = cast(QualifiedDecoratorType) initial;
 	}
 
-	this(QualifiedDecoratorType copy) {
+	private this(QualifiedDecoratorType copy) {
 		current = copy;
 	}
 
+	/**
+	Whether empty or not
+
+	Returns:
+		true if empty false otherwise
+	**/
 	bool empty() {
 		return current is null;
 	}
 
+	/**
+	The first decorator in chain of decorators.
+
+	Returns:
+		Decorated component with storage class preserved.
+	**/
 	QualifiedDecoratorType front() {
 		return current;
 	}
 
+	/**
+	Move to next decorator in chain
+	**/
 	void popFront() @trusted {
 		current = cast(QualifiedDecoratorType) current.decorated;
 	}
 
+	/**
+	Save decorator range.
+
+	Returns:
+		A copy of current range
+	**/
 	typeof(this) save() {
 		return typeof(this)(current);
 	}

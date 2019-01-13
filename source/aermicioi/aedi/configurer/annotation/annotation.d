@@ -98,6 +98,9 @@ Params:
 **/
 struct ValueAnnotation(Value) {
 
+    /**
+    value = value that should be component created with
+    **/
     Value value;
 }
 
@@ -127,6 +130,9 @@ Params:
 struct AllocatorAnnotation(T = RCIAllocator)
     if (!hasStaticMember!(T, "instance")) {
 
+    /**
+    Allocator to use for component allocation.
+    **/
     T allocator;
 
     /**
@@ -140,9 +146,15 @@ struct AllocatorAnnotation(T = RCIAllocator)
     }
 }
 
+/**
+ditto
+**/
 struct AllocatorAnnotation(T)
     if (hasStaticMember!(T, "instance")) {
 
+    /**
+    Allocator to use for component allocation.
+    **/
     T allocator;
 
     /**
@@ -200,7 +212,11 @@ Params:
     Args = tuple of argument types for arguments to be passed into a constructor.
 **/
 struct ConstructorAnnotation(Args...) {
-    Tuple!Args args;
+
+    /**
+    List of arguments for constructor
+    **/
+    Args args;
 
     /**
     Constructor accepting a list of arguments, that will be passed to constructor.
@@ -239,7 +255,11 @@ Params:
     Args = the argument types of arguments passed to method
 **/
 struct SetterAnnotation(Args...) {
-    Tuple!Args args;
+
+    /**
+    Arguments passed to method
+    **/
+    Args args;
 
     /**
     Constructor accepting a list of arguments, that will be passed to method, or set to a field.
@@ -277,7 +297,15 @@ Params:
 **/
 struct CallbackFactoryAnnotation(Z, Dg, Args...)
     if ((is(Dg == Z delegate (RCIAllocator, Locator!(), Args)) || is(Dg == Z function (RCIAllocator, Locator!(), Args)))) {
-    Tuple!Args args;
+
+    /**
+	Arguments that can be passed to delegate.
+    **/
+    Args args;
+
+    /**
+    Delegate that is used to create component
+    **/
     Dg dg;
 
     /**
@@ -330,7 +358,15 @@ struct CallbackConfigurerAnnotation(Z, Dg, Args...)
         is(Dg == void delegate (Locator!(), ref Z, Args)) ||
         is(Dg == void function (Locator!(), ref Z, Args))
     ){
-    Tuple!Args args;
+
+    /**
+    Args that can be passed to delegate
+    **/
+    Args args;
+
+    /**
+    Delegate that is used to configure component
+    **/
     Dg dg;
 
     /**
@@ -416,6 +452,9 @@ enum bool isQualifierAnnotation(alias T) = isQualifierAnnotation!(toType!T);
 An annotation used to provide custom identity for an object in container.
 **/
 struct QualifierAnnotation {
+    /**
+    Identity of component
+    **/
     string id;
 }
 
@@ -463,6 +502,9 @@ enum bool isContainedAnnotation(alias T) = isContainedAnnotation!(toType!T);
 When objects are registered into a component container, this annotation marks in which sub-container it is required to store.
 **/
 struct ContainedAnnotation {
+    /**
+    The id of container which will manage component.
+    **/
     string id;
 }
 
@@ -496,7 +538,14 @@ Params:
     args = arguments passed to callback to destroy the component
 **/
 struct CallbackDestructor(T, Dg : void delegate(RCIAllocator, ref T destructable, Args), Args...) {
+    /**
+    Callback used to destroy the component
+    **/
     Dg dg;
+
+    /**
+    Arguments passed to callback to destroy the component
+    **/
     Args args;
 }
 
@@ -522,10 +571,13 @@ Use method from instance of type T to destroy a component of type Z
 
 Params:
     method = method used to destroy component of type Z
-
+    args = list of arguments to pass to destructor method
 **/
 struct DestructorMethod(string method, T, Z, Args...) {
-    Dg dg;
+
+    /**
+    List of arguments to pass to destructor method
+    **/
     Args args;
 }
 

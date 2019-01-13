@@ -38,6 +38,7 @@ import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.util.traits;
+import aermicioi.aedi.util.range : inheritance;
 
 import std.algorithm;
 import std.array;
@@ -128,15 +129,13 @@ template TypeBasedContainer(T) {
 
                 ClassInfo info = cast(ClassInfo) factory.type;
                 if (info !is null) {
-                    info.crawlClassInfo(
-                        (TypeInfo_Class crawled) @safe {
-                            if (!this.candidates.has(crawled.toString())) {
-                                this.candidates.set(new RedBlackTree!string, crawled.toString());
-                            }
-
-                            this.candidates.get(crawled.toString()).insert(identity);
+                    foreach (TypeInfo inherited; info.inheritance) {
+                        if (!this.candidates.has(inherited.toString())) {
+                            this.candidates.set(new RedBlackTree!string, inherited.toString());
                         }
-                    );
+
+                        this.candidates.get(inherited.toString()).insert(identity);
+                    }
                 }
 
                 return this;
@@ -217,7 +216,7 @@ template TypeBasedContainer(T) {
         		bool true if an object by identity is present in TypeBasedContainer.
             **/
             bool has(in string identity) inout {
-                if (this.decorated_.has(identity)) {
+                if (this.decorated.has(identity)) {
                     return true;
                 }
 
@@ -234,19 +233,5 @@ template TypeBasedContainer(T) {
             }
         }
 
-    }
-}
-
-private {
-    void crawlClassInfo(TypeInfo_Class class_, void delegate (TypeInfo_Class) @safe dg) @safe {
-        dg(class_);
-
-        foreach (iface; class_.interfaces) {
-            crawlClassInfo(iface.classinfo, dg);
-        }
-
-        if (class_.base !is null) {
-            crawlClassInfo(class_.base, dg);
-        }
     }
 }

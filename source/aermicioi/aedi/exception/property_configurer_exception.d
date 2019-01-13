@@ -38,9 +38,22 @@ PropertyConfigurer.
 **/
 @safe class PropertyConfigurerException : AediException {
 
+	/**
+	Type of offending component
+	**/
 	TypeInfo type;
+
+	/**
+	Property of offending component where exception was thrown
+	**/
 	string property;
 
+	/**
+     * Creates a new instance of Exception. The nextInChain parameter is used
+     * internally and should always be $(D null) when passed by user code.
+     * This constructor does not automatically throw the newly-created
+     * Exception; the $(D throw) statement should be used for that purpose.
+     */
     pure nothrow this(string msg, string identity, string property, TypeInfo type, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         super(msg, identity, file, line, next);
@@ -48,6 +61,9 @@ PropertyConfigurer.
 		this.type = type;
     }
 
+	/**
+	ditto
+	**/
     nothrow this(string msg, string identity, string property, TypeInfo type, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, identity, file, line, next);
@@ -56,7 +72,7 @@ PropertyConfigurer.
     }
 
 	override void pushMessage(scope void delegate(in char[]) sink) const @system {
-		import std.algorithm;
+		import std.algorithm : substitute;
         import std.utf : byChar;
         auto substituted = this.msg.substitute("${property}", property, "${identity}", identity, "${type}", type.toString).byChar;
 

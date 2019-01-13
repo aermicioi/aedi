@@ -43,34 +43,61 @@ Used as well for general types of exceptions that do not fit in certain
 category.
 **/
 class AediException : Exception {
+
+    /**
+    Identity of offending component.
+    **/
     string identity;
 
+    /**
+     * Creates a new instance of Exception. The nextInChain parameter is used
+     * internally and should always be $(D null) when passed by user code.
+     * This constructor does not automatically throw the newly-created
+     * Exception; the $(D throw) statement should be used for that purpose.
+     */
     pure nothrow this(string msg, string identity, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         this.identity = identity;
         super(msg, file, line, next);
     }
 
+    /**
+    ditto
+    **/
     nothrow this(string msg, string identity, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         this.identity = identity;
         super(msg, file, line, next);
     }
 
-	void pushMessage(scope void delegate(in char[]) sink) const @system {
+    mixin AdvancedExceptionPrinting;
+
+    /**
+    A special function used to print customized message using built-in properties, with as less as possible allocations.
+
+    Params:
+        sink = sink where message will end.
+    **/
+    void pushMessage(scope void delegate(in char[]) sink) const @system {
         import std.algorithm : substitute;
         import std.utf : byChar;
 		auto substituted = this.msg.substitute("${identity}", identity).byChar;
 
         while (!substituted.empty) {
             auto buffer = BufferSink!(char[256])();
-            import std.range;
             buffer.put(substituted);
 
             sink(buffer.slice);
         }
-	}
+    }
 
+    alias toString = typeof(super).toString;
+}
+
+/**
+A mixin injecting modified version of toString which uses pushMessage instead of msg.
+**/
+mixin template AdvancedExceptionPrinting() {
 	override void toString(scope void delegate(in char[]) sink) const @system
     {
         import core.internal.string : unsignedToTempString;
@@ -101,6 +128,4 @@ class AediException : Exception {
             }
         }
     }
-
-    alias toString = typeof(super).toString;
 }

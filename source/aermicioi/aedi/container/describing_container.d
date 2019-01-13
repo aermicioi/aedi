@@ -297,7 +297,15 @@ Describer that creates descriptions on the fly based on passed identity and comp
             );
         }
 
-        alias describe = Describer!(ComponentType, IdentityType).describe;
+        /**
+        Describe a component based on it's identity and itself using generic identity and type formatter in title and description templates.
+
+        Params:
+            identity = identity of component being described
+            component = component that is described
+        Returns:
+            A description or empty if it is not describable by this describer
+        **/
         Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
             import std.algorithm.iteration : substitute;
             import std.array : array;
@@ -309,6 +317,11 @@ Describer that creates descriptions on the fly based on passed identity and comp
                 description.substitute("${identity}", identityFormatter(identity), "${component}", componentFormatter(component)).byChar.array.idup,
             )).nullable;
         }
+
+        /**
+        ditto
+        **/
+        alias describe = Describer!(ComponentType, IdentityType).describe;
     }
 }
 
@@ -350,7 +363,15 @@ A describer that provides same description for any component
             this(IdentityType.init, title, description);
         }
 
-        alias describe = Describer!(ComponentType, IdentityType).describe;
+        /**
+        Give same description for any passed component.
+
+        Params:
+            identity = identity of component being described
+            component = component that is described
+        Returns:
+            A description or empty if it is not describable by this describer
+        **/
         Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
             if (identity != IdentityType.init) {
 
@@ -359,6 +380,11 @@ A describer that provides same description for any component
 
             return this.description.nullable;
         }
+
+        /**
+        ditto
+        **/
+        alias describe = Describer!(ComponentType, IdentityType).describe;
     }
 }
 
@@ -367,10 +393,23 @@ A describer that provides empty descriptions (i.e. no descriptions at all)
 **/
 @safe class NullDescriber(ComponentType = Object, IdentityType = string) : Describer!(ComponentType, IdentityType) {
     public {
-        alias describe = Describer!(ComponentType, IdentityType).describe;
+        /**
+        Give no description at all.
+
+        Params:
+            identity = identity of component being described
+            component = component that is described
+        Returns:
+            A description or empty if it is not describable by this describer
+        **/
         Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
             return Nullable!(const(Description!IdentityType))();
         }
+
+        /**
+        ditto
+        **/
+        alias describe = Describer!(ComponentType, IdentityType).describe;
     }
 }
 

@@ -101,7 +101,7 @@ Create a GenericFactory!T if T is annotated with @component annotation.
 
             return null;
         }
-    };
+    }
 }
 
 /**
@@ -236,19 +236,18 @@ Set callback instance factory from @callbac annotation into GenericFactory!Z
         locator = locator used by factory
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
-        import std.experimental.allocator;
 
-        foreach (CallbackFactory; tuple(getCallbackFactories!Z).expand) {
+        foreach (CallbackFactory; tuple(getCallbackFactories!Z)) {
             debug(annotationScanDebug) pragma(msg,
                 "Found callback factory for ",
                 Z,
                 " provisioning with ",
                 typeof(CallbackFactory.dg),
                 "(",
-                typeof(CallbackFactory.args.expand),
+                typeof(CallbackFactory.args),
                 ")"
             );
-            instantiator.setInstanceFactory(callbackFactory(CallbackFactory.dg, CallbackFactory.args.expand));
+            instantiator.setInstanceFactory(callbackFactory(CallbackFactory.dg, CallbackFactory.args));
         }
     }
 }
@@ -270,9 +269,7 @@ Set value factory that takes component from @value annotation and provides it as
         locator = locator used by factory
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
-        import std.experimental.allocator;
-
-        foreach (ValueAnnotation; tuple(getValueFactories!Z).expand) {
+        foreach (ValueAnnotation; tuple(getValueFactories!Z)) {
             debug(annotationScanDebug) pragma(msg,
                 "Found value factory for ",
                 Z,
@@ -304,7 +301,7 @@ A policy that uses annotations that implement isConfigurerPolicy interface to co
         locator = locator used by factory
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
-        foreach (Generic; tuple(getGenerics!(Z, T)).expand) {
+        foreach (Generic; tuple(getGenerics!(Z, T))) {
             debug(annotationScanDebug) pragma(msg, "Found annotation implementing configurer annotation contract ", typeof(Generic), " applying to ", Z, " factory");
             Generic.configure!(T)(instantiator, locator);
         }
@@ -333,7 +330,7 @@ A policy that configures factory to use callback to destroy created components.
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
-        foreach (CallbackDestructor; tuple!(getCallbackDestructors!(Z, T)).expand) {
+        foreach (CallbackDestructor; tuple!(getCallbackDestructors!(Z, T))) {
             debug(annotationsScanDebug) pragma(msg, "Found callback destructor for " ~ fullyQualifiedName!Z);
             instantiator.setInstanceDestructor(callbackDestructor(CallbackDestructor.dg, CallbackDestructor.args));
         }
@@ -469,7 +466,7 @@ Method configurator policy that scans only constructors for @constructor annotat
                 foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
                     debug(annotationScanDebug) pragma(msg, "Found elaborate constructor for ", Z, " provisioning with ", toType!Configurer);
                     instantiator.setInstanceFactory(
-                        constructorBasedFactory!Z(Configurer.args.expand)
+                        constructorBasedFactory!Z(Configurer.args)
                     );
                 }
             }
@@ -535,8 +532,8 @@ Field configurator policy that will set a field annotated @setter annotation to 
         );
 
         foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-            debug(annotationScanDebug) pragma(msg, "Setting field ", member, " of ", Z, " to ", staticMap!(toType, Configurer.args.expand));
-            instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(Configurer.args.expand));
+            debug(annotationScanDebug) pragma(msg, "Setting field ", member, " of ", Z, " to ", staticMap!(toType, Configurer.args));
+            instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(Configurer.args));
         }
     }
 }
@@ -563,8 +560,8 @@ Field configurator policy that will set a field to value returned by a callback 
         );
 
         foreach (Callback; tuple(staticMap!(toValue, Callbacks))) {
-            debug(annotationScanDebug) pragma(msg, "Calling callback on field ", member, " of ", Z, " to ", staticMap!(toType, Callback.args.expand));
-            instantiator.addPropertyConfigurer(callbackConfigurer!Z(Callback.dg, Callback.args.expand));
+            debug(annotationScanDebug) pragma(msg, "Calling callback on field ", member, " of ", Z, " to ", staticMap!(toType, Callback.args));
+            instantiator.addPropertyConfigurer(callbackConfigurer!Z(Callback.dg, Callback.args));
         }
     }
 }
@@ -634,8 +631,8 @@ Method configurator policy that will call a method with resolved arguments from 
             );
 
             foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-                debug(annotationScanDebug) pragma(msg, "Calling method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args.expand));
-                instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(Configurer.args.expand));
+                debug(annotationScanDebug) pragma(msg, "Calling method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args));
+                instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(Configurer.args));
             }
         }
     }
@@ -665,8 +662,8 @@ Method configurator policy that will call callback from @callback annotated meth
             );
 
             foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
-                debug(annotationScanDebug) pragma(msg, "Calling callback on method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args.expand));
-                instantiator.addPropertyConfigurer(callbackConfigurer!Z(Configurer.dg, Configurer.args.expand));
+                debug(annotationScanDebug) pragma(msg, "Calling callback on method ", member, " of ", Z, " with ", staticMap!(toType, Configurer.args));
+                instantiator.addPropertyConfigurer(callbackConfigurer!Z(Configurer.dg, Configurer.args));
             }
         }
     }
@@ -872,7 +869,7 @@ A default implementation of component storing policy that looks for @qualifier a
 ContainerAdder that chains a set of ContainerAdders on a symbol.
 **/
 @safe struct ChainedContainerAdder(ContainerAdderPolicies...) {
-    import aermicioi.aedi.util.traits;
+    import aermicioi.aedi.util.traits : getMember;
 
     /**
     Check if at least one ContainerAdder supports passed symbol

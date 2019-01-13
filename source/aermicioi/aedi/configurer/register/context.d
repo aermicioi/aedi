@@ -320,6 +320,10 @@ struct ValueRegistrationContext {
         Storage for already instantiated components.
         **/
         Storage!(Object, string) storage;
+
+        /**
+        Locator used for configuration purposes of features outside value container, yet related to the managed components.
+        **/
         Locator!() locator;
 
         /**
@@ -363,10 +367,24 @@ struct ValueRegistrationContext {
         }
     }
 
+    /**
+    Value context useable for further configuration of container
+    **/
     static struct ValueContext {
 
+        /**
+        Identity of managed component
+        **/
         string identity;
+
+        /**
+        Storage of component
+        **/
         Storage!(Object, string) storage;
+
+        /**
+        Locator of components. Used for configuration of features not directly related to value container.
+        **/
         Locator!() locator;
     }
 }

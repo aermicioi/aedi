@@ -39,14 +39,26 @@ Thrown when a new object is requested from factory when it is already in process
 Usually it tells the DI that there is a circular dependency when it tries to construct a object.
 **/
 @safe class InProgressException : AediException {
+    /**
+    Type of component on which this exception was thrown
+    **/
     TypeInfo type;
 
+    /**
+     * Creates a new instance of Exception. The nextInChain parameter is used
+     * internally and should always be $(D null) when passed by user code.
+     * This constructor does not automatically throw the newly-created
+     * Exception; the $(D throw) statement should be used for that purpose.
+     */
 	pure nothrow this(string msg, string identity, TypeInfo type, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         super(msg, identity, file, line, next);
         this.type = type;
     }
 
+    /**
+    ditto
+    **/
     nothrow this(string msg, string identity, TypeInfo type, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, identity, file, line, next);

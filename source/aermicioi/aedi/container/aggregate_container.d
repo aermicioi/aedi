@@ -34,8 +34,10 @@ import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.exception.not_found_exception;
+import aermicioi.aedi.util.range;
 import std.range.interfaces;
 import std.typecons;
+import std.range : chain;
 
 /**
 Aggregate container, that delegates the task of locating to containers
@@ -116,6 +118,16 @@ managed by it.
                 }
             }
 
+            foreach (container; this.containers.contents) {
+                foreach (type; typeid(container).inheritance.chain(
+                    typeid((() @trusted => cast(Object) container)()).inheritance)
+                ) {
+                    if (type.name == identity) {
+                        return (() scope @trusted => cast(Object) this.containers.get(identity))();
+                    }
+                }
+            }
+
         	foreach (container; this.containers) {
         	    if (container.has(identity)) {
         	        return container.get(identity);
@@ -139,6 +151,16 @@ managed by it.
         bool has(in string identity) inout {
             if (this.containers.has(identity)) {
                 return true;
+            }
+
+            foreach (container; this.containers.contents) {
+                foreach (type; typeid(container).inheritance.chain(
+                    typeid((() @trusted => cast(Object) container)()).inheritance)
+                ) {
+                    if (type.name == identity) {
+                        return true;
+                    }
+                }
             }
 
             foreach (container; this.containers.contents) {

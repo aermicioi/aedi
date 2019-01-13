@@ -34,9 +34,9 @@ import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.exception.not_found_exception;
+import aermicioi.aedi.util.range : inheritance;
 import std.range.interfaces;
 import std.typecons;
-import std.container;
 
 /**
 An aggregate container with knowledge of concrete types of aggregated containers.
@@ -82,6 +82,12 @@ It delegates the task of serving an object to contained containers.
         Object get(string identity) {
 
         	foreach (container; this.containers) {
+                foreach (type; typeid(container).inheritance) {
+                    if (type.name == identity) {
+                        return container;
+                    }
+                }
+
         	    if (container.has(identity)) {
         	        return container.get(identity);
         	    }
@@ -104,6 +110,12 @@ It delegates the task of serving an object to contained containers.
         bool has(in string identity) inout {
 
             foreach (container; this.containers) {
+                foreach (type; typeid(container).inheritance) {
+                    if (type.name == identity) {
+                        return true;
+                    }
+                }
+
                 if (container.has(identity)) {
                     return true;
                 }

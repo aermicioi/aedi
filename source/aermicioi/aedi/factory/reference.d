@@ -400,7 +400,7 @@ ditto
 @trusted auto resolve(T)(RuntimeReference reference, Locator!() locator)
     if (is(T == interface)) {
 
-    Object obj = reference.get(locator);
+    const Object obj = reference.get(locator);
     {
         T result = cast(T) obj;
 
@@ -437,7 +437,7 @@ ditto
 @trusted auto resolve(T)(RuntimeReference reference, Locator!() locator)
     if (!is(T == interface)) {
 
-    Object obj = reference.get(locator);
+    const Object obj = reference.get(locator);
 
     {
         Wrapper!T result = cast(Wrapper!T) obj;

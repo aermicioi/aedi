@@ -243,6 +243,29 @@ auto describing(T : Container)(T container, string title = null, string descript
 	return new DescribingContainer!T(container, new IdentityDescriber!(), new StaticDescriber!()(typeid(T).toString, title, description));
 }
 
+/**
+A prebuilt container with all features enabled.
+
+Params:
+	title = container title.
+	description = container description.
+
+Returns:
+	Prebuild container from singleton, prototype, and values containers.
+**/
+auto application(string title, string description) {
+	return aggregate(
+		singleton.typed, "singleton",
+		prototype.typed, "prototype",
+		values, "parameters"
+	)
+	.aliasing
+	.gcRegistered
+	.deffered
+	.describing(title, description)
+	.subscribable;
+}
+
 private {
 
 	auto aggregate(T...)(AggregateContainer container, Container managed, string identity, T manageds) {

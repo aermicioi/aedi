@@ -9,11 +9,15 @@ Parameters:
     T = static array buffer.
 **/
 struct BufferSink(T : Z[N], Z, size_t N) {
-    import std.range;
-
     private T buffer;
     private size_t fillage;
 
+    /**
+    Pull elements out of range and save them in buffer
+
+    Params:
+        range = range from which to pull out elements.
+    **/
     void put(R)(ref R range)
         if (isInputRange!R && is(ElementType!R == Z)){
 
@@ -66,6 +70,12 @@ ditto
     private Throwable current;
 
     public {
+        /**
+        Constructor for exception chain
+
+        Params:
+            exception = initial exception in chain of exceptions
+        **/
         this(Throwable exception) {
             this.current = exception;
         }
@@ -74,20 +84,41 @@ ditto
             this.current = chain.current;
         }
 
+        /**
+        Get current throwable in exception chain
+
+        Returns:
+            current throwable
+        **/
         Throwable front() {
             return current;
         }
 
+        /**
+        Check if exception chain exhausted or not.
+
+        Returns:
+            true if exausted false otherwise
+        **/
         bool empty() {
             return current is null;
         }
 
+        /**
+        Move to next exception in chain
+        **/
         void popFront() {
             if (!empty) {
                 current = current.next;
             }
         }
 
+        /**
+        Save exception chain at current point.
+
+        Returns:
+            A copy of current exception chain
+        **/
         typeof(this) save() {
             return ExceptionChain(this);
         }
@@ -114,13 +145,19 @@ ditto
 @safe struct InterfaceFilter(Range, Interface)
 if (isForwardRange!Range && (is(ElementType!Range == class) || is(ElementType!Range == interface))) {
 
-	Range range;
-	Interface current;
+	private Range range;
+	private Interface current;
 
 	this(this) {
 		range = range.save;
 	}
 
+    /**
+    Constructor for interface filtering range
+
+    Params:
+        range = range to filter out.
+    **/
 	this(ref Range range) {
 		this.range = range.save;
 		this.popFront;
@@ -131,14 +168,29 @@ if (isForwardRange!Range && (is(ElementType!Range == class) || is(ElementType!Ra
 		this.current = current;
 	}
 
+    /**
+    Whether there are more elements that implement interface or not.
+
+    Returns:
+        true if there are no more elements implementing interface
+    **/
 	bool empty() {
 		return current is null;
 	}
 
+    /**
+    Get current implementing element
+
+    Returns:
+        current element that implements interface
+    **/
 	Interface front() {
 		return current;
 	}
 
+    /**
+    Move to next element implementing interface.
+    **/
 	void popFront() @trusted {
 		while (!range.empty) {
 			auto front = range.front;
@@ -154,7 +206,101 @@ if (isForwardRange!Range && (is(ElementType!Range == class) || is(ElementType!Ra
 		current = null;
 	}
 
+    /**
+    Save range at current point.
+
+    Returns:
+        A copy of current range.
+    **/
 	typeof(this) save() {
 		return typeof(this)(range, current);
 	}
+}
+
+/**
+Create a range of all base classes and interfaces a component implements.
+
+Warning no order of inherited interfaces and classes is guaranteed.
+
+Params:
+    classinfo = typeinfo of component for which to create inheritance chain.
+
+Returns:
+    A range of ClassInfo elements.
+**/
+auto inheritance(ClassInfo classinfo) {
+    return InheritanceRange(classinfo);
+}
+
+/**
+ditto
+**/
+@safe struct InheritanceRange {
+    import std.container : RedBlackTree;
+    private {
+        RedBlackTree!(ClassInfo, (f, s) => (f is null ? "" : f.name) < (s is null ? "" : s.name)) stack;
+        RedBlackTree!(ClassInfo, (f, s) => (f is null ? "" : f.name) < (s is null ? "" : s.name)) processed;
+    }
+
+    /**
+    Constructor for inheritance range
+
+    Params:
+        component = component for which to create inheritance range.
+    **/
+    this(ClassInfo component) {
+        stack = new typeof(this.stack)(component);
+        processed = new typeof(this.processed)();
+    }
+
+    private this(ref InheritanceRange range) {
+        this.stack = range.stack.dup;
+        this.processed = range.processed.dup;
+    }
+
+    /**
+    Get current element in range.
+
+    Returns:
+        Current type that component inherits.
+    **/
+    ClassInfo front() {
+        return stack.front;
+    }
+
+    /**
+    Whether there are more inherited types or not.
+
+    Returns:
+        true if not.
+    **/
+    bool empty() {
+        return stack.empty;
+    }
+
+    /**
+    Move to next inherited type.
+    **/
+    void popFront() {
+        import std.algorithm.iteration : map, filter;
+        ClassInfo removed = stack.front;
+        stack.removeFront;
+        processed.insert(removed);
+
+        stack.insert(removed.interfaces.map!(iface => iface.classinfo).filter!(iface => iface !in processed));
+        if ((removed.base !is null) && (removed.base !in processed)) {
+
+            stack.insert(removed.base);
+        }
+    }
+
+    /**
+    Save range at current state.
+
+    Returns:
+        A copy of range.
+    **/
+    InheritanceRange save() {
+        return InheritanceRange(this);
+    }
 }

@@ -32,7 +32,8 @@ module aermicioi.aedi.storage.object_storage;
 
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.storage.alias_aware;
-import aermicioi.aedi.storage.container;
+import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.storage.storage;
 
 import std.conv;
 
@@ -41,7 +42,7 @@ import std.conv;
 
  Stores Type elements by KeyType identity in.
 **/
-@safe class ObjectStorage(Type = Object, KeyType = string) : Container!(Type, KeyType), AliasAware!(KeyType) {
+@safe class ObjectStorage(Type = Object, KeyType = string) : Locator!(Type, KeyType), Storage!(Type, KeyType), AliasAware!(KeyType) {
 
     private {
 

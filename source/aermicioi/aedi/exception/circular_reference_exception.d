@@ -40,14 +40,26 @@ Exception denoting a circular dependency in DI container.
 It is thrown when a DI gets an InProgressException, or it detected a circular dependency in other way.
 **/
 @safe class CircularReferenceException : AediException {
+    /**
+    The circular dependency chain found in container.
+    **/
     string[] chain;
 
     public {
+        /**
+        * Creates a new instance of Exception. The nextInChain parameter is used
+        * internally and should always be $(D null) when passed by user code.
+        * This constructor does not automatically throw the newly-created
+        * Exception; the $(D throw) statement should be used for that purpose.
+        */
         nothrow this(string msg, string identity, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
         {
             super(msg, identity, file, line, next);
         }
 
+        /**
+        ditto
+        **/
         nothrow this(string msg, string identity, Throwable next, string file = __FILE__, size_t line = __LINE__)
         {
             super(msg, identity, file, line, next);

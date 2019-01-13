@@ -38,9 +38,22 @@ It is thrown when a factory detects that fetched object from DI container cannot
 that should be passed to newly constructed object.
 **/
 @safe class InvalidCastException : AediException {
+    /**
+    Expected casting type.
+    **/
     TypeInfo expected;
+
+    /**
+    Actual type of casted component
+    **/
     TypeInfo actual;
 
+    /**
+     * Creates a new instance of Exception. The nextInChain parameter is used
+     * internally and should always be $(D null) when passed by user code.
+     * This constructor does not automatically throw the newly-created
+     * Exception; the $(D throw) statement should be used for that purpose.
+     */
 	pure nothrow this(string msg, string identity, TypeInfo expected, TypeInfo actual, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
     {
         super(msg, identity, file, line, next);
@@ -48,6 +61,9 @@ that should be passed to newly constructed object.
         this.actual = actual;
     }
 
+    /**
+    ditto
+    **/
     nothrow this(string msg, string identity, TypeInfo expected, TypeInfo actual, Throwable next, string file = __FILE__, size_t line = __LINE__)
     {
         super(msg, identity, file, line, next);

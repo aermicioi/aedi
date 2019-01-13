@@ -574,5 +574,5 @@ ditto
 **/
 auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) {
 
-    return factory;
+    return factory.defferredConfiguration(defferedExecutionerIdentity);
 }
