@@ -582,7 +582,7 @@ Standard implementation of DefferredExecutioner interface.
 }
 
 /**
-ParameterHolder Stores a set of Args for futher usage in it's sub@safe classes.
+ParameterHolder Stores a set of Args for futher usage in it's subclasses.
 
 Params:
     Args = a type tuple of args that ParameterHolder can hold.
@@ -590,27 +590,10 @@ Params:
 mixin template ParameterHolder(Args...) {
 
     protected {
-        Tuple!Args args_;
+        Args args;
     }
 
     public {
-
-        static if (Args.length > 0) {
-
-            /**
-            Set args
-
-            Params:
-                args = arguments that parameter holder should hold.
-            Returns:
-                typeof(this)
-            **/
-            typeof(this) args(ref Args args) @safe nothrow {
-            	this.args_ = tuple(args);
-
-            	return this;
-            }
-        }
 
         /**
         Get args
@@ -618,8 +601,8 @@ mixin template ParameterHolder(Args...) {
         Returns:
             Tuple!Args arguments stored by argument holder
         **/
-        Tuple!Args args() @safe nothrow {
-        	return this.args_;
+        Tuple!Args arguments()() @safe nothrow {
+        	return tuple(this.args);
         }
 
     }
@@ -655,7 +638,7 @@ Params:
                 args = list of arguments passed to T's method
         **/
         this(ref Args args) @safe {
-            this.args(args);
+            this.args = args;
         }
 
         /**
@@ -726,7 +709,7 @@ replaced with value extracted from locator, and set to component's field.
                 arg = list of arguments passed to T's method
         **/
         this(ref Arg arg) @safe {
-            this.args(arg);
+            this.args[0] = arg;
         }
 
         /**
@@ -853,7 +836,7 @@ Params:
                 args = arguments used for constructor
         **/
         this(ref Args args) @safe {
-            this.args(args);
+            this.args = args;
         }
 
         /**
@@ -1122,7 +1105,7 @@ Params:
         **/
         this(Dg dg, ref Args args) @safe {
             this.dg = dg;
-            this.args(args);
+            this.args = args;
         }
 
         /**
@@ -1131,7 +1114,7 @@ Params:
         T factory() @trusted {
             try {
 
-                return this.dg(this.allocator, this.locator, args.expand);
+                return this.dg(this.allocator, this.locator, args);
             } catch (Exception e) {
 
                 throw new InstanceFactoryException(
@@ -1201,7 +1184,7 @@ Params:
         **/
         this(Dg dg, ref Args args) @safe {
             this.dg = dg;
-            this.args(args);
+            this.args = args;
         }
 
         /**
@@ -1214,7 +1197,7 @@ Params:
 
             try {
 
-                return this.dg(this.locator_, object, args.expand);
+                return this.dg(this.locator_, object, args);
             } catch (Exception e) {
             	throw new PropertyConfigurerException("Error occurred while running a callback over ${identity} of ${type} component", null, null, typeid(T), e);
             }
@@ -1439,7 +1422,7 @@ Instance destructor that uses a callback to destroy and deallocate components of
             destructable = element to be destructed and deallocated using stored allocator
         **/
         void destruct(ref T destructable) @trusted {
-            this.dg()(this.allocator, destructable, this.args.expand);
+            this.dg()(this.allocator, destructable, this.args);
         }
     }
 }
@@ -1457,7 +1440,7 @@ CallbackInstaceDestructor!(T, Dg, Args) callbackInstanceDestructor
 
     static if (Args.length > 0) {
 
-        callbackInstanceDestructor.args(args);
+        callbackInstanceDestructor.args = args;
     }
 
     return callbackInstanceDestructor;
@@ -1522,9 +1505,9 @@ template FactoryMethodInstanceDestructor(string method, T, Z, Args...)
             **/
             void destruct(ref Z destructable) @trusted {
                 static if (!isStaticFunction!(Compatible)) {
-                    __traits(getMember, this.destructor, method)(destructable, this.args.expand);
+                    __traits(getMember, this.destructor, method)(destructable, this.args);
                 } else {
-                    __traits(getMember, T, method)(destructable, this.args.expand);
+                    __traits(getMember, T, method)(destructable, this.args);
                 }
             }
         }
