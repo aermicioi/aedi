@@ -448,6 +448,7 @@ enum bool isQualifierAnnotation(T) = is(T : QualifierAnnotation);
 ditto
 **/
 enum bool isQualifierAnnotation(alias T) = isQualifierAnnotation!(toType!T);
+
 /**
 An annotation used to provide custom identity for an object in container.
 **/
@@ -466,7 +467,7 @@ This function is a convenince function to automatically infer required types for
 Params:
     id = identity of object in container
 **/
-auto qualifier(string id) {
+QualifierAnnotation qualifier(string id) {
     return QualifierAnnotation(id);
 }
 
@@ -516,7 +517,7 @@ This function is a convenince function to automatically infer required types for
 Params:
     id = identity of container where to store the object.
 **/
-auto contained(string id) {
+ContainedAnnotation contained(string id) {
     return ContainedAnnotation(id);
 }
 

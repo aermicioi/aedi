@@ -552,7 +552,7 @@ class MethodFactoryComponent {
     }
 
     @component
-    static StaticFactoryMethodCreatedMock factoryMock() {
+    static StaticFactoryMethodCreatedMock factoryMockStatic() {
         return new StaticFactoryMethodCreatedMock(int.max);
     }
 }

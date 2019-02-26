@@ -37,6 +37,7 @@ import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.wrapper;
 import std.traits;
+import std.conv : text;
 
 /**
 Represents a reference that some component is dependent on it.
@@ -131,6 +132,10 @@ find it and serve.
         Object get(Locator!() locator) {
             return locator.get(this.identity);
         }
+
+        override string toString() const {
+            return text("IdRef(", identity_, ")");
+        }
     }
 }
 
@@ -175,6 +180,10 @@ Reference to a component stored in a locator by it's type.
 
                 return locator.get(fullyQualifiedName!T);
             }
+        }
+
+        override string toString() {
+            return text("TypeRef(", typeid(T), ")");
         }
     }
 }
@@ -238,7 +247,14 @@ factory, and will serve it to requestor.
             Object the actual object, or component that is wrapped in Wrapper object.
         **/
         Object get(Locator!() locator) {
+            this.factory.locator = locator;
+            scope(exit) this.factory.locator = null;
+
             return this.factory.factory;
+        }
+
+        override string toString() {
+            return text("AnonRef(", factory.type, ")");
         }
     }
 }
@@ -362,6 +378,94 @@ ditto
                 return this.alternative.get(locator);
             }
         }
+
+        override string toString() @trusted {
+            return text("OptRef(", this.original, ", ", this.alternative, ")");
+        }
+    }
+}
+
+/**
+Create a reference with type enforcement.
+
+The resulting reference will check for returned object to be compliant
+with specified T type, otherwise a not found exception is thrown.
+
+Params:
+    reference = reference to be enforced with expected type
+    T = expected type returned from container
+
+Returns:
+    TypeEnforcedRuntimeReference!T enforced reference with type.
+**/
+auto typeEnforcedRef(T)(RuntimeReference reference) {
+    return new TypeEnforcedRuntimeReference!T(reference);
+}
+
+/**
+ditto
+**/
+@safe class TypeEnforcedRuntimeReference(T) : RuntimeReference {
+    private {
+        RuntimeReference reference;
+    }
+
+    public {
+        /**
+        Constructor for enforced type reference accepting reference to be enforced.
+
+        Params:
+            reference = reference to enforce with type
+        **/
+        this(RuntimeReference reference)
+        in (reference !is null, "Expected a reference, not null value") {
+            this.reference = reference;
+        }
+
+        /**
+        Resolve the reference, to referenced component.
+
+        Resolve the reference, to referenced component.
+
+        Params:
+            locator = an optional source of components used to resolve reference
+
+        Returns:
+            Object the actual object, or component that is wrapped in Wrapper object.
+        **/
+        Object get(Locator!() locator) @trusted {
+            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+
+            Object value = this.reference.get(locator);
+
+            static if (is(T == class) || is(T == interface)) {
+                T casted = cast(T) value;
+
+                if (casted !is null) {
+                    return value;
+                }
+
+                Wrapper!T wrapped = cast(Wrapper!T) value;
+                if (wrapped !is null) {
+                    return value;
+                }
+            } else {
+
+                Wrapper!T wrapped = cast(Wrapper!T) value;
+
+                if (wrapped !is null) {
+                    return value;
+                }
+            }
+
+            throw new NotFoundException(text(
+                "The component was found using ", this.reference, " however it wasn't of expected type ", typeid(T), " but of ", value, "."
+            ), null);
+        }
+
+        override string toString() @trusted {
+            return text("TypeEnfRef!(", typeid(T), ")(", this.reference, ")");
+        }
     }
 }
 
@@ -482,4 +586,53 @@ ditto
 **/
 template name(T) {
     alias name = fullyQualifiedName!T;
+}
+
+RuntimeReference withDefault(T)(RuntimeReference reference, T defaults) {
+    import aermicioi.aedi.factory.generic_factory : genericFactory, ValueInstanceFactory;
+    auto factory = genericFactory!T(null);
+
+    factory.setInstanceFactory(new ValueInstanceFactory!T(defaults));
+    return reference.alternate(factory.anonymous);
+}
+
+auto transformToReference(string reference, string symbol) {
+    string delegate (string) toTypeGen = (s) => "toType!(" ~ s ~ ")";
+    string delegate (string, string) typeEnforcedRefGen = (t, s) => "typeEnforcedRef!(" ~ toTypeGen(t) ~ ")(" ~ s ~ ")";
+    string delegate (string) identifierGen = (s) => "__traits(identifier, " ~ s ~ ")";
+    string delegate (string) lrefGen = (s) => s ~ ".lref";
+    string delegate (string) typeLrefGen = (s) => "lref!(" ~ s ~ ")";
+    string delegate (string, string) alternateGen = (f, s) => f ~ ".alternate(" ~ s ~ ")";
+    return "
+        import aermicioi.aedi.util.traits : toType;
+        static if (is(typeof(" ~ identifierGen(symbol) ~ "))) {
+            " ~ reference ~ " = " ~ alternateGen(typeEnforcedRefGen(symbol, lrefGen(identifierGen(symbol))), typeEnforcedRefGen(symbol, typeLrefGen(toTypeGen(symbol)))) ~ ";
+        }
+
+        if (" ~ reference ~ " is null) {
+            " ~ reference ~ " = " ~ typeLrefGen(toTypeGen(symbol)) ~ ";
+        }
+
+        static if (is(typeof(((" ~ symbol ~ " arg) => arg[0])()))) {
+            import aermicioi.aedi.factory.reference : withDefault;
+            " ~ reference ~ " = " ~ reference ~ ".withDefault(((" ~ symbol ~ " arg) => arg[0])());
+        }
+    ";
+}
+
+auto makeFunctionParameterReferences(alias FunctionType, alias transformer = transformToReference)() {
+    static if (is(FunctionTypeOf!FunctionType params == __parameters)) {
+        import std.meta : Repeat;
+        import std.conv : to;
+        import std.typecons : tuple;
+        import aermicioi.aedi.util.traits : toType;
+
+        Repeat!(params.length, RuntimeReference) references;
+
+        static foreach (index, reference; references) {
+            mixin(transformer("references[" ~ index.to!string ~ "]", "params[" ~ index.to!string ~ ".." ~ (index + 1).to!string ~ "]"));
+        }
+
+        return tuple(references);
+    }
 }

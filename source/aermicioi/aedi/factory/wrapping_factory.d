@@ -76,10 +76,7 @@ derived from Object.
                 typeof(this)
             **/
             typeof(this) allocator(RCIAllocator allocator) @safe nothrow
-            in {
-                assert(allocator !is null);
-            }
-            body {
+            in (allocator !is null, "Expected an allocator, not null.") {
                 this.allocator_ = allocator;
                 this.decorated.allocator = allocator;
 
@@ -105,10 +102,7 @@ derived from Object.
             	this
             **/
         	WrappingFactory!(T, Z) decorated(T decorated) @safe nothrow pure
-            in {
-                assert(decorated !is null);
-            }
-            body {
+            in (decorated !is null, "Expected a factory to decorate for type " ~ typeid(T).toString ~ " not null.") {
         		this.decorated_ = decorated;
 
         		return this;

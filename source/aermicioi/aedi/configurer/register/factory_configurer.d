@@ -121,6 +121,16 @@ Z factoryMethod(T, string method, Z : InstanceFactoryAware!X, X, Args...)(Z fact
 }
 
 /**
+ditto
+**/
+Z factoryMethod(Dg, Z : InstanceFactoryAware!X, X, Args...)(Z factory, Dg func, auto ref Args args)
+    if (isSomeFunction!Dg && is(ReturnType!Dg == X)) {
+
+    factory.setInstanceFactory(functionInstanceFactory(func, args));
+    return factory;
+}
+
+/**
 Invoke component's method with supplied args.
 
 Configures component's factory to call specified method with passed args.
@@ -268,13 +278,7 @@ auto autowire(Z : InstanceFactoryAware!T, T)(Z factory)
 
     alias ctor = getMembersWithProtection!(T, "__ctor", "public")[0];
 
-    Repeat!(Parameters!ctor.length, RuntimeReference) arguments;
-
-    static foreach (index, argument; arguments) {
-        argument = ParameterIdentifierTuple!ctor[index].lref.alternate(lref!(Parameters!ctor[index]));
-    }
-
-    return factory.construct(arguments);
+    return factory.construct(makeFunctionParameterReferences!ctor.expand);
 }
 
 /**
@@ -284,19 +288,13 @@ auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
     if (getMembersWithProtection!(T, member, "public").length > 0) {
     alias method = getMembersWithProtection!(T, member, "public")[0];
 
-    Repeat!(Parameters!method.length, RuntimeReference) arguments;
-
-    static foreach (index, argument; arguments) {
-        argument = ParameterIdentifierTuple!method[index].lref.alternate(
-            lref!(Parameters!method[index])
-        );
-    }
+    auto arguments = makeFunctionParameterReferences!method;
 
     static if (arguments.length == 1) {
         arguments[0] = __traits(identifier, method).lref.alternate(arguments[0]);
     }
 
-    return factory.set!(member)(arguments);
+    return factory.set!(member)(arguments.expand);
 }
 
 /**
@@ -325,7 +323,9 @@ Params:
     value = default value used to instantiate component
 **/
 auto value(Z : InstanceFactoryAware!T, T)(Z factory, auto ref T value) {
-    return factory.setInstanceFactory(new ValueInstanceFactory!T(value));
+    factory.setInstanceFactory(new ValueInstanceFactory!T(value));
+
+    return factory;
 }
 
 /**
@@ -337,7 +337,9 @@ Params:
     delegated = the factory used by factory to instantiate an object.
 **/
 auto parent(Z : InstanceFactoryAware!T, T, X : Factory!W, W : T)(Z factory, X delegated) {
-    return factory.setInstanceFactory(new DelegatingInstanceFactory!(T, W)(delegated));
+    factory.setInstanceFactory(new DelegatingInstanceFactory!(T, W)(delegated));
+
+    return factory;
 }
 /**
 Tag constructed component with some information.
@@ -410,6 +412,34 @@ auto describe(ValueRegistrationContext.ValueContext instance, string title, stri
     describer.register(instance.identity, title, description);
 
     return instance;
+}
+
+/**
+Run annotation processor over a component and scan it for configuration or new components.
+
+Params:
+    factory = component factory to run scanning over
+
+Returns:
+    factory
+**/
+auto scan(W : GenericFactory!T, T)(W factory)
+    if (!is(W : ConfigurationContextFactory!T, T)) {
+    import aermicioi.aedi.configurer.annotation.component_scan : ConfiguratorPolicyImpl;
+    ConfiguratorPolicyImpl.configure(factory, factory.locator);
+
+    return factory;
+}
+
+/**
+ditto
+**/
+auto scan(W : ConfigurationContextFactory!T, T)(W factory) {
+    import aermicioi.aedi.configurer.annotation.component_scan : ContainerAdderImpl, ConfiguratorPolicyImpl;
+    ContainerAdderImpl!().scan!T(factory.locator, factory.storage);
+    ConfiguratorPolicyImpl.configure(factory, factory.locator);
+
+    return factory;
 }
 
 /**

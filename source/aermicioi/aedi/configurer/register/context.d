@@ -599,10 +599,7 @@ struct DefferredConfigurationContext(
             locator = locator used to get registered component's dependencies
         **/
         this(R context, string executionerIdentity)
-        in {
-            assert(executionerIdentity !is null);
-        }
-        body {
+        in (executionerIdentity !is null, "Expected identity of deferred executioner where to store deffered actions") {
             this.context = context;
             this.executionerIdentity = executionerIdentity;
         }
@@ -694,10 +691,7 @@ struct DefferredConfigurationContext(
             locator = locator used to get registered component's dependencies
         **/
         this(R context, string executionerIdentity)
-        in {
-            assert(executionerIdentity !is null);
-        }
-        body {
+        in (executionerIdentity !is null, "Expected identity of deferred executioner where to store deffered actions") {
             this.context = context;
             this.executionerIdentity = executionerIdentity;
         }
@@ -841,10 +835,7 @@ struct DefferredConstructionContext(
             locator = locator used to get registered component's dependencies
         **/
         this(R context, string executionerIdentity)
-        in {
-            assert(executionerIdentity !is null);
-        }
-        body {
+        in (executionerIdentity !is null, "Expected identity of deferred executioner where to store deffered actions") {
             this.executionerIdentity = executionerIdentity;
         }
 

@@ -420,12 +420,12 @@ class Company : Identifiable!ulong {
 
     public {
 
-        this() {
+        this() @safe {
 
         }
 
         @constructor(20)
-        this(ulong id) {
+        this(ulong id) @safe {
             this.id = id;
         }
 
@@ -458,13 +458,13 @@ class Company : Identifiable!ulong {
             return this;
         }
 
-        Company id(ulong id) {
+        Company id(ulong id) @safe {
         	this.id_ = id;
 
         	return this;
         }
 
-        ulong id() {
+        ulong id() @safe {
         	return this.id_;
         }
 
@@ -730,10 +730,6 @@ class FixtureFactory {
     }
 
     public {
-        static this() {
-            company = new Company(20);
-        }
-
         @autowired
         this(Job job) {
             this.job = job;
@@ -750,7 +746,11 @@ class FixtureFactory {
         	company_ = company;
         }
 
-        static Company company() @safe nothrow {
+        static Company company() @safe {
+            if (company_ is null) {
+                company_ = new Company(20);
+            }
+
         	return company_;
         }
 
@@ -775,9 +775,6 @@ struct StructFixtureFactory {
     }
 
     public {
-        static this() {
-            company = new Company(20);
-        }
 
         @constructor(lref!Job)
         this(Job job) {
@@ -796,7 +793,11 @@ struct StructFixtureFactory {
         	company_ = company;
         }
 
-        static Company company() @safe nothrow {
+        static Company company() @safe {
+            if (company_ is null) {
+                company_ = new Company(20);
+            }
+
         	return company_;
         }
 

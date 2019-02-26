@@ -85,7 +85,7 @@ ditto
             in {
                 static if (is(Z == class) || is(Z == interface)) {
 
-                    assert(allocator !is null);
+                    assert(allocator !is null, "Expected an allocator, not null.");
                 }
             }
             body {
@@ -101,10 +101,7 @@ ditto
                 Z
             **/
             inout(Z) allocator() @safe nothrow inout
-            out(allocator) {
-                assert(!allocator.isNull);
-            }
-            body {
+            out(allocator; !allocator.isNull, "Allocator wasn't set yet. Please provide an allocator before it is queried for usage.") {
                 return this.allocator_;
             }
         }

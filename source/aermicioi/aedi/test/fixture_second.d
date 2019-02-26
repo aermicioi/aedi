@@ -48,12 +48,12 @@ class Company : Identifiable!ulong {
 
     public {
 
-        this() {
+        this() @safe {
 
         }
 
         @constructor(20)
-        this(ulong id) {
+        this(ulong id) @safe {
             this.id = id;
         }
 
@@ -86,13 +86,13 @@ class Company : Identifiable!ulong {
             return this;
         }
 
-        Company id(ulong id) {
+        Company id(ulong id) @safe {
         	this.id_ = id;
 
         	return this;
         }
 
-        ulong id() {
+        ulong id() @safe {
         	return this.id_;
         }
 
@@ -325,10 +325,6 @@ class FixtureFactory {
     }
 
     public {
-        static this() {
-            company = new Company(20);
-        }
-
         @fact(function (RCIAllocator alloc, Locator!() loc, Job job) {
             return new FixtureFactory(job);
         }, new Job("Tested name", Currency(2000)))
@@ -348,7 +344,11 @@ class FixtureFactory {
         	company_ = company;
         }
 
-        static Company company() @safe nothrow {
+        static Company company() @safe {
+            if (company_ is null) {
+                company_ = new Company(20);
+            }
+
         	return company_;
         }
 
@@ -383,9 +383,6 @@ struct StructFixtureFactory {
     }
 
     public {
-        static this() {
-            company = new Company(20);
-        }
 //        Delegates that have context of a class, cannot exist, so do not attempt to use @fact with a delegate.
 //        @fact(delegate (Locator!() loc) {
 //            return StructFixtureFactory(new Job("Tested name", Currency(2000)));
@@ -409,7 +406,11 @@ struct StructFixtureFactory {
         	company_ = company;
         }
 
-        static Company company() @safe nothrow {
+        static Company company() @safe {
+            if (company_ is null) {
+                company_ = new Company(20);
+            }
+
         	return company_;
         }
 

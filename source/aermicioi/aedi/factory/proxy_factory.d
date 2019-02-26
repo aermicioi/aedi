@@ -464,10 +464,7 @@ to set proxied object's identity and locator.
 
         **/
         void destruct(ref Object component) @safe
-        in {
-            assert(component !is null);
-        }
-        body {
+        in (component !is null, "Cannot destroy a null component, expected component of type " ~ typeid(T).toString) {
             T proxy = cast(T) component;
 
             if (proxy !is null) {

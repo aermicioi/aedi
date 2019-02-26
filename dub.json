@@ -19,7 +19,7 @@
 			"name": "unittest",
 			"targetType": "library",
 			"debugVersions": [
-				"annotationScanDebug"
+				"annotationScanDebug", "trace"
 			]
 		}
 	]

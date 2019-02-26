@@ -38,6 +38,7 @@ import aermicioi.aedi.util.range;
 import std.range.interfaces;
 import std.typecons;
 import std.range : chain;
+import std.algorithm : filter, map;
 
 /**
 Aggregate container, that delegates the task of locating to containers
@@ -47,17 +48,15 @@ managed by it.
 @safe class AggregateContainer : Container, Storage!(Container, string), AggregateLocator!(Object, string) {
 
     private {
-        ObjectStorage!(Container, string) containers;
+        struct Entry {
+            Container container;
+            string identity;
+        }
+
+        Entry[] containers;
     }
 
     public {
-
-        /**
-         * Default constructor for AggregateContainer
-        **/
-        this() {
-            this.containers = new ObjectStorage!(Container, string);
-        }
 
         /**
         Set a container into aggregate container
@@ -73,7 +72,7 @@ managed by it.
         	AggregateContainer
         **/
         AggregateContainer set(Container container, string identity) {
-        	this.containers.set(container, identity);
+        	this.containers ~= Entry(container, identity);
 
         	return this;
         }
@@ -90,7 +89,8 @@ managed by it.
         	AggregateContainer
         **/
         AggregateContainer remove(string identity) {
-        	this.containers.remove(identity);
+            import std.array : array;
+        	this.containers = this.containers.filter!(entry => entry.identity != identity).array;
 
         	return this;
         }
@@ -110,25 +110,25 @@ managed by it.
         	Object the object contained in one of containers or a container itself.
         **/
         Object get(string identity) {
-            if (this.containers.has(identity)) {
-                Object container = (() scope @trusted => cast(Object) this.containers.get(identity))();
+            foreach (entry; this.containers.filter!(entry => entry.identity == identity)) {
+                Object container = (() scope @trusted => cast(Object) entry.container)();
 
                 if (container !is null) {
                     return container;
                 }
             }
 
-            foreach (container; this.containers.contents) {
+            foreach (container; this.containers.map!(entry => entry.container)) {
                 foreach (type; typeid(container).inheritance.chain(
                     typeid((() @trusted => cast(Object) container)()).inheritance)
                 ) {
                     if (type.name == identity) {
-                        return (() scope @trusted => cast(Object) this.containers.get(identity))();
+                        return (() scope @trusted => cast(Object) container)();
                     }
                 }
             }
 
-        	foreach (container; this.containers) {
+        	foreach (container; this.containers.map!(entry => entry.container)) {
         	    if (container.has(identity)) {
         	        return container.get(identity);
         	    }
@@ -149,13 +149,15 @@ managed by it.
         	bool true if exists, false otherwise
         **/
         bool has(in string identity) inout {
-            if (this.containers.has(identity)) {
-                return true;
+            foreach (entry; this.containers) {
+                if (entry.identity == identity) {
+                    return true;
+                }
             }
 
-            foreach (container; this.containers.contents) {
-                foreach (type; typeid(container).inheritance.chain(
-                    typeid((() @trusted => cast(Object) container)()).inheritance)
+            foreach (entry; this.containers) {
+                foreach (type; typeid(entry.container).inheritance.chain(
+                    typeid((() @trusted => cast(Object) entry.container)()).inheritance)
                 ) {
                     if (type.name == identity) {
                         return true;
@@ -163,8 +165,8 @@ managed by it.
                 }
             }
 
-            foreach (container; this.containers.contents) {
-                if (container.has(identity)) {
+            foreach (entry; this.containers) {
+                if (entry.container.has(identity)) {
                     return true;
                 }
             }
@@ -182,7 +184,7 @@ managed by it.
         **/
         AggregateContainer instantiate() {
 
-            foreach (container; this.containers) {
+            foreach (container; this.containers.map!(entry => entry.container)) {
                 container.instantiate;
             }
 
@@ -196,7 +198,7 @@ managed by it.
         by it.
         **/
         AggregateContainer terminate() {
-            foreach (container; this.containers) {
+            foreach (container; this.containers.map!(entry => entry.container)) {
                 container.terminate;
             }
 
@@ -207,11 +209,11 @@ managed by it.
         Get a specific container.
 
         Params:
-            key = the container identity.
+            identity = the container identity.
         **/
-        Locator!(Object, string) getLocator(string key) {
+        Locator!(Object, string) getLocator(string identity) {
 
-            return this.containers.get(key);
+            return this.containers.filter!(entry => entry.identity = identity).front.container;
         }
 
         /**
@@ -223,8 +225,8 @@ managed by it.
         InputRange!(Tuple!(Locator!(Object, string), string)) getLocators() {
             import std.algorithm : map;
 
-            return this.containers.contents.byKeyValue.map!(
-                a => tuple(cast(Locator!()) a.value, a.key)
+            return this.containers.map!(
+                entry => tuple(cast(Locator!()) entry.container, entry.identity)
             ).inputRangeObject;
         }
 
@@ -234,9 +236,15 @@ managed by it.
         Params:
         	key = the identity of container in aggregate container
         **/
-        bool hasLocator(string key) inout {
+        bool hasLocator(string identity) inout {
 
-            return this.containers.has(key);
+            foreach (entry; this.containers) {
+                if (entry.identity == identity) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

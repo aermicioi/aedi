@@ -323,11 +323,17 @@ public {
         }
     }
 
+    template toType(T) {
+        alias toType = T;
+    }
+
     template toType(alias T) {
-        static if (is(typeof({T x;}))) {
-            alias toType = T;
-        } else {
+        static if (is(typeof(T))) {
+
             alias toType = typeof(T);
+        } static if (is(T)) {
+
+            alias toType = T;
         }
     }
 

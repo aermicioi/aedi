@@ -40,9 +40,11 @@ import aermicioi.aedi.storage.allocator_aware;
 import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.storage.wrapper;
 import aermicioi.aedi.util.traits;
+import aermicioi.aedi.util.formatting : separated, wrapped;
 
 
 import std.conv : to;
+import std.experimental.logger;
 import std.meta;
 import std.traits;
 import std.typecons;
@@ -299,36 +301,30 @@ A concrete implementation of GenericFactory interface.
             T instantiated component
         **/
         T factory() @safe {
+            debug(trace) trace("Instantiating component of type ", typeid(T));
             T instance = this.factory_.factory();
 
-            foreach (key, configurer; this.configurers) {
+            foreach (configurer; this.configurers) {
 
                 try {
 
+                    debug(trace) trace("Running ", configurer, " configurer over instantiated component.");
                     configurer.configure(instance);
                 } catch (AediException exception) {
 
                     if (this.executioner !is null) {
+                        import aermicioi.aedi.util.range : filterByInterface, exceptions;
 
-                        Throwable current = exception;
+                        auto candidates = exception.exceptions.filterByInterface!CircularReferenceException;
 
-                        while (current !is null) {
-                            CircularReferenceException e = cast(CircularReferenceException) current;
-
-                            if (e !is null) {
-                                this.executioner.add(() {
-                                    configurer.configure(instance);
-                                });
-
-                                break;
-                            }
-
-                            current = current.next;
-                        }
-
-                        if (current is null) {
+                        if (candidates.empty) {
                             throw exception;
                         }
+
+                        debug(trace) trace("Defferring configuration of ", typeid(T), " at later stage in construction to avoid circular reference exception.");
+                        this.executioner.add(() {
+                            configurer.configure(instance);
+                        });
                     } else {
 
                         throw exception;
@@ -349,6 +345,7 @@ A concrete implementation of GenericFactory interface.
 
         **/
         void destruct(ref T component) @safe {
+            debug(trace) trace("Destroying component of type ", typeid(T));
             this.destructor_.destruct(component);
         }
 
@@ -389,10 +386,7 @@ A concrete implementation of GenericFactory interface.
                 typeof(this)
             **/
             typeof(this) setInstanceDestructor(InstanceDestructor!T destructor) @safe
-            in {
-                assert(destructor !is null);
-            }
-            body {
+            in (destructor !is null, "Expected a destructor for component " ~ typeid(T).toString ~ " to be passed not null.") {
                 this.destructor_ = destructor;
 
                 this.destructor_.allocator = this.allocator;
@@ -411,10 +405,7 @@ A concrete implementation of GenericFactory interface.
     			The InstanceFactoryAware
             **/
             GenericFactory!T setInstanceFactory(InstanceFactory!T factory) @safe
-            in {
-                assert(factory !is null);
-            }
-            body {
+            in (factory !is null, "Expected for instance factory to be passed for component " ~ typeid(T).toString ~ " not null.") {
                 this.factory_ = factory;
 
                 this.factory_.allocator = this.allocator;
@@ -571,6 +562,7 @@ Standard implementation of DefferredExecutioner interface.
         **/
         DefferredExecutioner execute() @trusted {
             foreach (dg; this.deffered) {
+                debug(trace) trace("Executing deferred action ", typeid(dg));
                 dg();
             }
 
@@ -665,6 +657,7 @@ Params:
                     )[0]
                 );
 
+                debug(trace) trace("Calling method ", property, " over ", typeid(T), " with arguments of ",   ", ".separated(this.args).wrapped);
                 mixin(q{__traits(getMember, obj, property)(} ~ compileArgumentsTuple!ArgTuple(q{ArgTuple}, q{this.args}, q{this.locator}) ~ q{);});
 
             } catch (Exception e) {
@@ -723,6 +716,7 @@ replaced with value extracted from locator, and set to component's field.
 
             try {
 
+                debug(trace) trace("Assigning to field ", property, " of ", typeid(T), " value of ", this.args[0]);
                 __traits(getMember, obj, property) = args[0].resolve!(
                     typeof(__traits(getMember, obj, property))
                 )(
@@ -769,6 +763,8 @@ Instantiates a component using it's constructor with no arguments.
         T factory() @trusted {
 
             try {
+                debug(trace) trace("Instantiating ", typeid(T), " using default constructor or value.");
+
                 static if (is(T == class) && !isAbstractClass!T) {
                     return this.allocator.make!T();
                 } else {
@@ -860,6 +856,7 @@ Params:
                     )[0]
                 );
 
+                debug(trace) trace("Instantiating ", typeid(T), " using constructor with arguments of ",   ", ".separated(this.args).wrapped);
                 static if (is(T : Object)) {
                     mixin(q{return this.allocator.make!T(} ~ compileArgumentsTuple!ConstructorArgs(q{ConstructorArgs}, q{this.args}, q{this.locator}) ~ q{);});
                 } else {
@@ -884,6 +881,75 @@ auto constructorBasedFactory(T, Args...)(auto ref Args args) {
 }
 
 /**
+Instantiates a component using a function/delegate with args
+
+Encapsulates construction of component using a function, with args.
+Arguments from argument list that are RuntimeReferences, are automatically
+replaced with component extracted from locator.
+
+Params:
+    Dg = type of function or delegate
+    Args = arguments mixed with references used to resolve function arguments
+**/
+template FunctionInstanceFactory(Dg, Args...)
+    if (isSomeFunction!Dg) {
+
+    alias Z = ReturnType!Dg;
+    alias Params = Parameters!Dg;
+
+    @safe class FunctionInstanceFactory : InstanceFactory!Z {
+        mixin AllocatorAwareMixin!(typeof(this));
+        mixin LocatorAwareMixin!(typeof(this));
+        mixin ParameterHolder!Args;
+
+        private {
+            Dg dg;
+        }
+
+        this(Dg dg, Args args)
+            in (dg !is null, "Cannot have a null function factory, required " ~ typeid(Dg).toString ~ " function.") {
+            this.dg = dg;
+            this.args = args;
+        }
+
+        /**
+        Create a new instance of object of type T.
+
+        Returns:
+            T instantiated component
+        **/
+        Z factory() @trusted {
+            try {
+                debug(trace) trace("Instantiating ", typeid(Z), " using function/delegate ", typeid(Dg), " with arguments of ",   ", ".separated(this.args).wrapped);
+                mixin(
+                    q{return dg(} ~
+                    compileArgumentsTuple!Params(q{Params}, q{this.args}, q{this.locator}) ~
+                    q{);}
+                );
+            } catch (Exception e) {
+                import std.conv : text;
+                throw new InstanceFactoryException(
+                    text(
+                        "Error occurred during construction of ${type} using function/delegate ",
+                        typeid(Dg).toString
+                    ),
+                    null,
+                    typeid(Z),
+                    e
+                );
+            }
+        }
+    }
+}
+
+/**
+ditto
+**/
+auto functionInstanceFactory(Dg, Args...)(Dg dg, Args args) {
+    return new FunctionInstanceFactory!(Dg, Args)(dg, args);
+}
+
+/**
 Instantiates a component using a method from other component (factory method pattern).
 
 Encapsulates construction of component using factory method.
@@ -901,119 +967,66 @@ Params:
 **/
 
 template FactoryMethodBasedFactory(T, string method, W, Args...) {
-    alias FirstTemplate = FactoryMethodInstanceFactory!(method, T, Args);
-
-    alias FactoryMethodBasedFactory = FirstTemplate!W;
+    alias FactoryMethodBasedFactory = FactoryMethodInstanceFactory!(method, T, W, Args);
 }
 
 /**
 ditto
 **/
-template FactoryMethodInstanceFactory(string method, T, Args...)
+template FactoryMethodInstanceFactory(string method, T, W, Args...)
     if (
         isMethodCompatible!(T, method, Args) &&
-        isAggregateType!(ReturnType!(getCompatibleOverload!(T, method, Args)))
+        isAggregateType!(ReturnType!(getCompatibleOverload!(T, method, Args))) &&
+        (is(W : RuntimeReference) || is(W : T))
     ) {
 
-    template FactoryMethodInstanceFactory(W = T)
-        if (is(W : RuntimeReference) || is(W : T)) {
+    alias Compatible = getCompatibleOverload!(T, method, Args);
+    alias Z = ReturnType!Compatible;
+    alias Params = Parameters!Compatible;
 
-        alias Compatible = getCompatibleOverload!(T, method, Args);
-        alias Z = ReturnType!Compatible;
-        alias Params = Parameters!Compatible;
+    @safe class FactoryMethodInstanceFactory : InstanceFactory!Z {
 
-        @safe class FactoryMethodInstanceFactory : InstanceFactory!Z {
+        mixin AllocatorAwareMixin!(typeof(this));
+        mixin LocatorAwareMixin!(typeof(this));
+        mixin ParameterHolder!Args;
+        W componentFactory;
 
-            mixin AllocatorAwareMixin!(typeof(this));
-            mixin LocatorAwareMixin!(typeof(this));
-            mixin ParameterHolder!Args;
+        this(W componentFactory, Args args)
+            in ((is(typeof(componentFactory is null) : bool) && (componentFactory !is W.init))
+                || !is(typeof(componentFactory is null) : bool),
+                "Cannot instantiate a component using a factory method when factory itself is not provided. Expected " ~ typeid(T).toString) {
 
-            static if (!isStaticFunction!(Compatible)) {
+            this.componentFactory = componentFactory;
+            this.args = args;
+        }
 
-                private {
-                    W factoryMethodComponent_;
-                }
+        /**
+        Create a new instance of object of type T.
 
-                // invariant {
-
-                // }
-
-                @property {
-
-                    this(ref W factoryMethodComponent) @safe {
-                        this.factoryMethodComponent = factoryMethodComponent;
-                    }
-
-                    /**
-                    Set factoryMethodComponent
-
-                    Params:
-                        factoryMethodComponent = the component used to instantiate components of type Z.
-
-                    Returns:
-                        typeof(this)
-                    **/
-                    typeof(this) factoryMethodComponent(W factoryMethodComponent) @safe nothrow pure
-                    in {
-                         static if (is(W == class) || is(W == interface)) {
-                            assert(factoryMethodComponent !is null);
-                        }
-                    }
-                    body {
-                        this.factoryMethodComponent_ = factoryMethodComponent;
-
-                        return this;
-                    }
-
-                    /**
-                    Get factoryMethodComponent
-
-                    Returns:
-                        W
-                    **/
-                    W factoryMethodComponent() @safe nothrow pure {
-                        return this.factoryMethodComponent_;
-                    }
-                }
-            }
-
-            /**
-            Create a new instance of object of type T.
-
-            Returns:
-                T instantiated component
-            **/
-            Z factory() @trusted {
-                try {
-                    static if (!__traits(isStaticFunction, Compatible)) {
-
-                        mixin(
-                            q{return __traits(getMember, this.factoryMethodComponent.resolve!(T)(this.locator), method)(} ~
-                            compileArgumentsTuple!Params(q{Params}, q{this.args}, q{this.locator}) ~
-                            q{);}
-                            );
-                    } else {
-
-                        mixin(
-                            q{return __traits(getMember, T, method)(} ~
-                            compileArgumentsTuple!Params(q{Params}, q{this.args}, q{this.locator}) ~
-                            q{);}
-                            );
-                    }
-                } catch (Exception e) {
-                    import std.conv : text;
-                    throw new InstanceFactoryException(
-                        text(
-                            "Error occurred during construction of ${type} using factory method of ",
-                            name!T,
-                            ".",
-                            method
-                        ),
-                        null,
-                        typeid(Z),
-                        e
+        Returns:
+            T instantiated component
+        **/
+        Z factory() @trusted {
+            try {
+                debug(trace) trace("Instantiating ", typeid(Z), " using factory method ", method, " of ", typeid(T), " with arguments of ",   ", ".separated(this.args).wrapped);
+                mixin(
+                    q{return __traits(getMember, this.componentFactory.resolve!T(this.locator), method)(} ~
+                    compileArgumentsTuple!Params(q{Params}, q{this.args}, q{this.locator}) ~
+                    q{);}
                     );
-                }
+            } catch (Exception e) {
+                import std.conv : text;
+                throw new InstanceFactoryException(
+                    text(
+                        "Error occurred during construction of ${type} using factory method of ",
+                        name!T,
+                        ".",
+                        method
+                    ),
+                    null,
+                    typeid(Z),
+                    e
+                );
             }
         }
     }
@@ -1026,7 +1039,6 @@ auto factoryMethodBasedFactory
         (T, string method, Args...)
         (Args args)
 {
-
     static if (
             (Args.length > 0) &&
             (
@@ -1036,39 +1048,17 @@ auto factoryMethodBasedFactory
             isNonStaticMethodCompatible!(T, method, Args[1 .. $])
         ) {
 
-        auto f()(Args[0] fact, Args[1 .. $] args)
-        {
-
-            alias FactoryMethodInstanceFactoryInitial = FactoryMethodInstanceFactory!(method, T, Args[1 .. $]);
-            auto factory = new FactoryMethodInstanceFactoryInitial!(Args[0])(fact);
-
-            static if (Args[1 .. $].length > 0) {
-                factory.args = args;
-            }
-
-            return factory;
-        }
-    }
-
-    static if (
+        return new FactoryMethodInstanceFactory!(method, T, Args)(args);
+    } else static if (
             isStaticMethodCompatible!(T, method, Args)
         ) {
 
-        auto f()(Args args)
-            {
+        alias overload = getCompatibleOverload!(T, method, Args);
+        return functionInstanceFactory(&overload, args);
+    } else {
 
-            alias FactoryMethodInstanceFactoryInitial = FactoryMethodInstanceFactory!(method, T, Args);
-            auto factory = new FactoryMethodInstanceFactoryInitial!T;
-
-            static if (Args.length > 0) {
-                factory.args = args;
-            }
-
-            return factory;
-        }
+        return null;
     }
-
-    return f(args);
 }
 
 
@@ -1113,7 +1103,7 @@ Params:
         **/
         T factory() @trusted {
             try {
-
+                debug(trace) trace("Instantiating ", typeid(T), " using function/delegate ", typeid(Dg), " with arguments of ",   ", ".separated(this.args).wrapped);
                 return this.dg(this.allocator, this.locator, args);
             } catch (Exception e) {
 
@@ -1196,7 +1186,7 @@ Params:
         void configure(ref T object) @trusted {
 
             try {
-
+                debug(trace) trace("Configuring ", typeid(T), " using function/delegate ", typeid(Dg), " with arguments of ",   ", ".separated(this.args).wrapped);
                 return this.dg(this.locator_, object, args);
             } catch (Exception e) {
             	throw new PropertyConfigurerException("Error occurred while running a callback over ${identity} of ${type} component", null, null, typeid(T), e);
@@ -1299,6 +1289,7 @@ multiple times.
             T instantiated component
         **/
         T factory() @safe {
+            debug(trace) trace("Providing existing ", typeid(T), " as instantiated component.");
             return this.initial();
         }
     }
@@ -1345,6 +1336,7 @@ to some third party factory.
             T instantiated component
         **/
         T factory() @safe {
+            debug(trace) trace("Delegating contruction of ", typeid(T), " to third party factory.");
             return this.decorated.factory();
         }
     }
@@ -1368,7 +1360,7 @@ Default implementation of destructor that calls dispose upon @safe classes only.
         import std.experimental.allocator : dispose;
 
         static if (is(T == class)) {
-
+            debug(trace) trace("Destroying existing component of ", typeid(T));
             this.allocator.dispose(component);
         }
 
@@ -1422,6 +1414,7 @@ Instance destructor that uses a callback to destroy and deallocate components of
             destructable = element to be destructed and deallocated using stored allocator
         **/
         void destruct(ref T destructable) @trusted {
+            debug(trace) trace("Destroying ", typeid(T), " using function/delegate ", typeid(Dg), " with arguments of ",   ", ".separated(this.args).wrapped);
             this.dg()(this.allocator, destructable, this.args);
         }
     }
@@ -1504,6 +1497,7 @@ template FactoryMethodInstanceDestructor(string method, T, Z, Args...)
                 destructable = element to be destructed and deallocated using stored allocator
             **/
             void destruct(ref Z destructable) @trusted {
+                debug(trace) trace("Destroying ", typeid(Z), " using destruction method ", method, " of ", typeid(T), " with arguments of ",   ", ".separated(this.args).wrapped);
                 static if (!isStaticFunction!(Compatible)) {
                     __traits(getMember, this.destructor, method)(destructable, this.args);
                 } else {
@@ -1635,6 +1629,7 @@ enum bool isObjectConstructorCompatible(T, Args...) = isMethodCompatible!(T, "__
 
 mixin template assertObjectMethodCompatible(T, string method, Args...) {
     import std.range : only;
+    import std.algorithm : joiner;
     import std.array : array;
     import aermicioi.aedi.util.traits;
     import std.traits;
@@ -1644,7 +1639,7 @@ mixin template assertObjectMethodCompatible(T, string method, Args...) {
     static assert(isProtection!(T, method, "public"), name!T ~ "'s method " ~ method ~ " is not public");
     static assert(isSomeFunction!(__traits(getMember, T, method)), name!T ~ "'s member " ~ method ~ " is not a function, probably a field, or a template.");
     static assert(variadicFunctionStyle!(__traits(getMember, T, method)) == Variadic.no, name!T ~ "'s method " ~ method ~ "is variadic function. Only non-variadic methods are supported.");
-    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(T, method)).length == 1, name!T ~ "'s " ~ method ~ " doesn't have overload matching passed arguments (" ~ only(staticMap!(name, Args)).joiner(", ").array ~ "), or has several overloads that match.");
+    static assert(Filter!(partialSuffixed!(isArgumentListCompatible, Args), getOverloads!(T, method)).length == 1, name!T ~ "'s " ~ method ~ " doesn't have overload matching passed arguments (" ~ only("", staticMap!(name, Args)).joiner(", ").array ~ "), or has several overloads that match.");
 }
 
 enum bool isObjectMethodCompatible(T, string method, Args...) = isMethodCompatible!(T, method, Args);
@@ -1710,43 +1705,32 @@ private {
 
     enum bool isStruct(T) = is(T == struct);
 
-    alias hasDefaultCtor =
-        partialSuffixed!(
-            templateOr!(
-                templateNot!hasMember,
-                chain!(
-                    isStruct,
-                    get!0
-                ),
-                templateAnd!(
-                    partialSuffixed!(
-                        isProtection,
-                        "public"
-                    ),
-                    chain!(
-                        partialPrefixed!(
-                            anySatisfy,
-                            eq!0
-                        ),
-                        partialPrefixed!(
-                            staticMap,
-                            arity
-                        ),
-                        chain!(
-                            partialPrefixed!(
-                                Filter,
-                                partialSuffixed!(
-                                    isProtection,
-                                    "public"
-                                )
-                            ),
-                            getOverloads
-                        )
-                    )
-                )
-            ),
-            "__ctor"
-        );
+
+    template hasDefaultCtor(T) {
+        static if (!__traits(hasMember, T, "__ctor")) {
+            enum found = true;
+        }
+
+        static if (!is(typeof(found)) && is(T == struct)) {
+            enum found = true;
+        }
+
+        static if (!is(typeof(found)) && isProtection!(T, "__ctor", "public")) {
+            static foreach (overload; __traits(getOverloads, T, "__ctor")) {
+                static if (!is(typeof(found)) && (variadicFunctionStyle!overload == Variadic.no)) {
+                    static if (arity!overload == 0) {
+                        enum found = true;
+                    }
+                }
+            }
+        }
+
+        static if (!is(typeof(found))) {
+            enum found = false;
+        }
+
+        enum hasDefaultCtor = found;
+    }
 }
 
 private {
