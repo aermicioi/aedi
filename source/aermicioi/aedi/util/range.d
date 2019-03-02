@@ -236,10 +236,9 @@ auto inheritance(ClassInfo classinfo) {
 ditto
 **/
 @safe struct InheritanceRange {
-    import std.container : RedBlackTree;
     private {
-        RedBlackTree!(ClassInfo, (f, s) => (f is null ? "" : f.name) < (s is null ? "" : s.name)) stack;
-        RedBlackTree!(ClassInfo, (f, s) => (f is null ? "" : f.name) < (s is null ? "" : s.name)) processed;
+        ClassInfo[] stack;
+        ClassInfo[] processed;
     }
 
     /**
@@ -249,13 +248,12 @@ ditto
         component = component for which to create inheritance range.
     **/
     this(ClassInfo component) {
-        stack = new typeof(this.stack)(component);
-        processed = new typeof(this.processed)();
+        stack = [ component ];
     }
 
     private this(ref InheritanceRange range) {
-        this.stack = range.stack.dup;
-        this.processed = range.processed.dup;
+        this.stack = range.stack[];
+        this.processed = range.processed[];
     }
 
     /**
@@ -283,14 +281,21 @@ ditto
     **/
     void popFront() {
         import std.algorithm.iteration : map, filter;
+        import std.algorithm.searching : canFind;
+        import std.range : chain, only;
         ClassInfo removed = stack.front;
-        stack.removeFront;
-        processed.insert(removed);
+        stack.popFront;
+        processed ~= removed;
 
-        stack.insert(removed.interfaces.map!(iface => iface.classinfo).filter!(iface => iface !in processed));
-        if ((removed.base !is null) && (removed.base !in processed)) {
-
-            stack.insert(removed.base);
+        foreach (
+            unprocessed;
+            removed.interfaces
+                .map!(iface => iface.classinfo)
+                .chain(removed.base.only)
+                .filter!(iface => iface !is null)
+                .filter!(iface => !processed.canFind!((f, s) => f is s)(iface))
+        ) {
+            stack ~= unprocessed;
         }
     }
 

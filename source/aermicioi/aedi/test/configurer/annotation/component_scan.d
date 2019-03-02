@@ -319,6 +319,8 @@ unittest {
 
 class AutowiredMethodScannerMock {
 
+    private int doe;
+
     public {
         int i_;
 
@@ -339,6 +341,7 @@ unittest {
 }
 
 class AutowiredFieldScannerMock {
+    private int doe;
 
     public {
         @autowired
