@@ -116,114 +116,36 @@ Exposes, and allows to set a list of containers into it.
 }
 
 /**
-Given a locator, locates an object and attempts to convert to T type.
+Given a locator, locates an object and attempts to downcast to T type.
 
-Given a locator, locates an object and attempts to convert to T type.
-When an object of T type is located, it is simply casted to T type.
-When an value of T type is located, the func attempts to cast the requested object to
-Wrapper!T, and will return it, instead of T directly.
-In case of failure an InvalidCastException is thrown in debug environment.
+See:
+    aermicioi.aedi.storage.wrapper : unwrap for downcasting semantics.
 
 Params:
 	locator = the locator that contains the component with id as identity
 	id = identity of object contained in locator
 
 Throws:
-	InvalidCastException in debug mode when actual type of object is not of type that is requested.
+	InvalidCastException when actual type of object is not of type that is requested.
 
 Returns:
 	Object casted to desired type.
 **/
-@trusted auto ref locate(T : Object)(Locator!(Object, string) locator, string id) {
-    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
-
-    Object obj = locator.get(id);
-    auto result = cast(T) obj;
-
-    if (result is null) {
-        throw new InvalidCastException("Requested component ${identity} is not of ${expected} type, but ${actual}", id, typeid(T), obj.classinfo);
-    }
-
-    return result;
-}
-
-/**
-ditto
-**/
-@trusted auto ref locate(T)(Locator!(Object, string) locator, string id)
-    if (is(T == interface)) {
-    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
-    import aermicioi.aedi.storage.wrapper : Wrapper, Castable;
-
-    auto obj = locator.get(id);
-
-    {
-        auto result = cast(T) obj;
-
-        if (result !is null) {
-            return result;
-        }
-    }
-
-    {
-        auto result = cast(Wrapper!T) obj;
-
-        if (result !is null) {
-            return result.value;
-        }
-    }
-
-    {
-        auto result = cast(Castable!T) obj;
-
-        if (result !is null) {
-
-            return result.casted;
-        }
-    }
-
-    throw new InvalidCastException("Requested component ${identity} is not of ${expected} type, but ${actual}", id, typeid(T), obj.classinfo);
-}
-
-/**
-ditto
-**/
-@trusted auto ref locate(T)(Locator!(Object, string) locator, string id)
-    if(!is(T == interface)) {
-    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
-    import aermicioi.aedi.storage.wrapper : Wrapper, Castable;
-
-    auto obj = locator.get(id);
-    {
-        auto result = cast(Wrapper!T) obj;
-
-        if (result !is null) {
-
-            return result.value;
-        }
-    }
-
-    {
-        auto result = cast(Castable!T) obj;
-
-        if (result !is null) {
-
-            return result.casted;
-        }
-    }
-
-    throw new InvalidCastException("Requested component ${identity} is not of ${expected} type, but ${actual}", id, typeid(T), obj.classinfo);
+@trusted auto ref locate(T)(Locator!(Object, string) locator, string id) {
+    import aermicioi.aedi.storage.wrapper : unwrap;
+    return locator.get(id).unwrap!T;
 }
 
 /**
 ditto
 **/
 @trusted auto ref locate(T)(Locator!(Object, string) locator) {
-    import aermicioi.aedi.factory.reference : name;
+    import std.traits : fullyQualifiedName;
+    string id = typeid(T).toString;
 
-    if (locator.has(typeid(T).toString)) {
-        return locate!T(locator, typeid(T).toString);
+    if (!locator.has(id)) {
+        id = fullyQualifiedName!T;
     }
 
-    return locate!T(locator, name!T);
+    return locator.locate!T(id);
 }

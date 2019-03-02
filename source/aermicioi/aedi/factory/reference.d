@@ -35,7 +35,6 @@ module aermicioi.aedi.factory.reference;
 import aermicioi.aedi.exception.invalid_cast_exception;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.locator;
-import aermicioi.aedi.storage.wrapper;
 import std.traits;
 import std.conv : text;
 
@@ -435,32 +434,21 @@ ditto
         **/
         Object get(Locator!() locator) @trusted {
             import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+            import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
+            import aermicioi.aedi.storage.wrapper : unwrap;
 
             Object value = this.reference.get(locator);
 
-            static if (is(T == class) || is(T == interface)) {
-                T casted = cast(T) value;
+            try {
+                cast(void) value.unwrap!T;
+            } catch (InvalidCastException exception) {
 
-                if (casted !is null) {
-                    return value;
-                }
-
-                Wrapper!T wrapped = cast(Wrapper!T) value;
-                if (wrapped !is null) {
-                    return value;
-                }
-            } else {
-
-                Wrapper!T wrapped = cast(Wrapper!T) value;
-
-                if (wrapped !is null) {
-                    return value;
-                }
+                throw new NotFoundException(text(
+                    "The component was found using ", this.reference, " however it wasn't of expected type ", typeid(T), " but of ", value, "."
+                ), null, exception);
             }
 
-            throw new NotFoundException(text(
-                "The component was found using ", this.reference, " however it wasn't of expected type ", typeid(T), " but of ", value, "."
-            ), null);
+            return value;
         }
 
         override string toString() @trusted {
@@ -472,7 +460,8 @@ ditto
 /**
 Resolve a reference, and attempt to convert to component of type T.
 
-Resolve a reference, and attempt to convert to component of type T.
+See:
+    aermicioi.aedi.storage.wrapper : unwrap for downcasting semantics.
 
 Params:
 	T = the expected type of resolved component.
@@ -485,84 +474,9 @@ Returns:
 	T referenced object
 	Wrapper!T referenced component that is not of Object subclass.
 **/
-@trusted auto resolve(T : Object)(RuntimeReference reference, Locator!() locator)
-body {
-    T result = cast(T) reference.get(locator);
-
-    if (result !is null) {
-        return result;
-    }
-
-    throw new InvalidCastException(
-        "Resolved runtime reference is of ${actual} type, expected ${expected} type", null, typeid(T), reference.get(locator).classinfo
-    );
-}
-
-/**
-ditto
-**/
-@trusted auto resolve(T)(RuntimeReference reference, Locator!() locator)
-    if (is(T == interface)) {
-
-    const Object obj = reference.get(locator);
-    {
-        T result = cast(T) obj;
-
-        if (result !is null) {
-            return result;
-        }
-    }
-
-    {
-        Wrapper!T result = cast(Wrapper!T) obj;
-
-        if (result !is null) {
-            return result.value;
-        }
-    }
-
-    {
-        Castable!T result = cast(Castable!T) obj;
-
-        if (result !is null) {
-
-            return result.casted;
-        }
-    }
-
-    throw new InvalidCastException(
-        "Resolved runtime reference is of ${actual} type, expected ${expected} type", null, typeid(T), reference.get(locator).classinfo
-    );
-}
-
-/**
-ditto
-**/
-@trusted auto resolve(T)(RuntimeReference reference, Locator!() locator)
-    if (!is(T == interface)) {
-
-    const Object obj = reference.get(locator);
-
-    {
-        Wrapper!T result = cast(Wrapper!T) obj;
-
-        if (result !is null) {
-            return result.value;
-        }
-    }
-
-    {
-        Castable!T result = cast(Castable!T) obj;
-
-        if (result !is null) {
-
-            return result.casted;
-        }
-    }
-
-    throw new InvalidCastException(
-        "Resolved runtime reference is of ${actual} type, expected ${expected} type", null, typeid(T), reference.get(locator).classinfo
-    );
+@trusted auto resolve(T)(RuntimeReference reference, Locator!() locator) {
+    import aermicioi.aedi.storage.wrapper : unwrap;
+    return reference.get(locator).unwrap!T;
 }
 
 /**

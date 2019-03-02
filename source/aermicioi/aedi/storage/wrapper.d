@@ -97,6 +97,110 @@ class CastableWrapperImpl(T, Castables...) : Wrapper!T, staticMap!(toCastable, C
     mixin CastableMixin!(Castables);
 }
 
+/**
+Downcast an object to component of T type.
+
+This family of functions are aware of Wrapper!T and Castable!T interfaces, and
+therefore will use them in downcasting process to T component. In case if T is
+of class or interface type, the object is attempted to be downcast to T type first
+if it fails, it will continue to cast to Wrapper!T and then Castable!T to find whether
+component is downcastable to T type. If so, component of T type is returned, otherwise
+an exception is thrown. For non referenced types, direct downcast is ignored and only
+casting to Wrapper!T and Castable!T is attempted. In case if passed component is
+an object implementing Wrapper!T or Castable!T, contents of those wrappers is returned.
+For a component that does not implement those types, component itself will be returned.
+
+Params:
+	T = the expected type of resolved component.
+	component = component to be downcasted.
+
+Throws:
+	InvalidCastException when resolved component is not of expected type.
+
+Returns:
+	T referenced object
+**/
+@trusted T unwrap(T)(inout(Object) component)
+    if (is(T == class) || is(T == interface)) {
+    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
+
+    {
+        T result = cast(T) component;
+
+        if (result !is null) {
+            return result;
+        }
+    }
+
+    {
+        Wrapper!T result = cast(Wrapper!T) component;
+
+        if (result !is null) {
+            return result.value;
+        }
+    }
+
+    {
+        Castable!T result = cast(Castable!T) component;
+
+        if (result !is null) {
+
+            return result.casted;
+        }
+    }
+
+    throw new InvalidCastException("Could not downcast component of ${actual} type, expected ${expected} type", null, typeid(T), component.classinfo);
+}
+
+/**
+ditto
+**/
+@trusted T unwrap(T)(inout(Object) component)
+    if (!(is(T == class) || is(T == interface))) {
+    import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
+
+    {
+        Wrapper!T result = cast(Wrapper!T) component;
+
+        if (result !is null) {
+            return result.value;
+        }
+    }
+
+    {
+        Castable!T result = cast(Castable!T) component;
+
+        if (result !is null) {
+
+            return result.casted;
+        }
+    }
+
+    throw new InvalidCastException("Could not downcast component of ${actual} type, expected ${expected} type", null, typeid(T), component.classinfo);
+}
+
+/**
+ditto
+**/
+@safe Z unwrap(T : Castable!Z, Z)(T castable) {
+    return castable.casted;
+}
+
+/**
+ditto
+**/
+@safe Z unwrap(T : Wrapper!Z, Z)(T wrapper) {
+
+    return wrapper.value;
+}
+
+/**
+ditto
+**/
+@safe T unwrap(T)(auto ref T wrapped) {
+    return wrapped;
+}
+
 private {
 
     mixin template WrapperMixin(T) {
