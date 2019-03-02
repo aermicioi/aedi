@@ -42,7 +42,6 @@ import std.meta;
 import std.traits;
 
 import std.range.interfaces;
-import std.typecons;
 
 /**
 Interface for objects that can be subscribed to specific events emmited by them.

@@ -32,9 +32,9 @@ module aermicioi.aedi.storage.aggregate_locator;
 
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.util.typecons : Pair, pair;
 import std.conv : to;
 import std.range.interfaces;
-import std.typecons;
 
 /**
 An implementation of AggregateLocator.
@@ -155,13 +155,13 @@ An implementation of AggregateLocator.
         Get all locators in aggregate locator
 
         Returns:
-        	InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
+        	InputRange!(Pair!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
         **/
-        InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) getLocators() {
+        InputRange!(Pair!(Locator!(Type, KeyType), LocatorKeyType)) getLocators() {
             import std.algorithm : map;
 
             return this.locators.byKeyValue.map!(
-                a => tuple(a.value, a.key)
+                a => pair(a.value, a.key)
             ).inputRangeObject;
         }
 

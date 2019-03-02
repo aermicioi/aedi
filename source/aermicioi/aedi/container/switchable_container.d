@@ -39,7 +39,6 @@ import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.storage.alias_aware;
 
 import std.range.interfaces;
-import std.typecons;
 
 /**
 Interface that allows object to be switchable in off and on state.

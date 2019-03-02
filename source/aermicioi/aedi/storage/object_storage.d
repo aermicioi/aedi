@@ -212,14 +212,11 @@ import std.conv;
         	KeyType the last found identity in alias chain.
         **/
         const(KeyType) resolve(in KeyType alias_) const {
-            import std.typecons : Rebindable;
-            Rebindable!(const(KeyType)) aliased = alias_;
-
-            while ((aliased in this.aliasings) !is null) {
-                aliased = this.aliasings[aliased];
+            if (alias_ in this.aliasings) {
+                return this.resolve(this.aliasings[alias_]);
             }
 
-            return aliased;
+            return alias_;
         }
     }
 }

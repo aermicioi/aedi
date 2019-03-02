@@ -47,7 +47,6 @@ import aermicioi.aedi.factory.wrapping_factory : WrappingFactory;
 
 import std.traits;
 import std.meta;
-import std.typecons;
 import std.conv : to;
 import std.algorithm;
 import std.experimental.logger;
@@ -132,7 +131,7 @@ A factory policy that uses annotations implementing factory policy interface on 
 
         alias FactoryPolicies = getGenericFactoryPolicies!(T, T);
 
-        foreach (FactoryPolicy; tuple(FactoryPolicies)) {
+        foreach (FactoryPolicy; FactoryPolicies) {
             auto factory = FactoryPolicy.createFactory!T(locator);
 
             if (factory !is null) {
@@ -239,7 +238,7 @@ Set callback instance factory from @callbac annotation into GenericFactory!Z
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
 
-        foreach (CallbackFactory; tuple(getCallbackFactories!Z)) {
+        foreach (CallbackFactory; getCallbackFactories!Z) {
             debug(annotationScanDebug) trace(
                 typeid(Z),
                 " is annotated with @callback annotation, supplying component factory with construction callable of ",
@@ -269,7 +268,8 @@ Set value factory that takes component from @value annotation and provides it as
         locator = locator used by factory
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
-        foreach (ValueAnnotation; tuple(getValueFactories!Z)) {
+        auto generics = getValueFactories!Z;
+        foreach (ValueAnnotation; generics) {
             debug(annotationScanDebug) trace(typeid(Z), " is annotated with @value annotation, using ", ValueAnnotation.value, " as prebuilt component");
             instantiator.setInstanceFactory(new ValueInstanceFactory!Z(ValueAnnotation.value));
         }
@@ -296,7 +296,8 @@ A policy that uses annotations that implement isConfigurerPolicy interface to co
         locator = locator used by factory
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
-        foreach (Generic; tuple(getGenerics!(Z, T))) {
+        auto generics = getGenerics!(Z, T);
+        foreach (Generic; generics) {
             debug(annotationScanDebug) trace(
                 typeid(Z),
                 " is annotated with configuration policy ",
@@ -332,8 +333,8 @@ A policy that configures factory to use callback to destroy created components.
         Z = type of component created
     **/
     static void configure(T : GenericFactory!Z, Z)(T instantiator, Locator!() locator) {
-
-        foreach (CallbackDestructor; tuple!(getCallbackDestructors!(Z, T))) {
+        auto destructors = getCallbackDestructors!(Z, T);
+        foreach (CallbackDestructor; destructors) {
             debug(annotationsScanDebug) trace(
                 typeid(Z), " is annotated with @callbackDestructor callable of ", CallbackDestructor.dg, " with arguments of ", CallbackDestructor.args
             );
@@ -468,7 +469,8 @@ Method configurator policy that scans only constructors for @constructor annotat
                     allUDAs!(overload)
                 );
 
-                foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
+                auto configurers = staticMap!(toValue, Configurers);
+                foreach (Configurer; configurers) {
                     debug(annotationScanDebug) trace(
                         typeid(Z), " constructor", typeid(Parameters!overload),
                         " is annotated with @constructor annotation, using it as means to construct component using supplied arguments of ", Configurer.args
@@ -506,7 +508,8 @@ Method policy that scans constructors for @autowired annotation to use them to c
                     allUDAs!(overload)
                 );
 
-                foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
+                auto configurers = staticMap!(toValue, Configurers);
+                foreach (Configurer; configurers) {
                     auto references = makeFunctionParameterReferences!overload.expand;
                     debug(annotationScanDebug) trace(
                         typeid(Z), " constructor", typeid(Parameters!(overload)),
@@ -543,7 +546,8 @@ Field configurator policy that will set a field annotated @setter annotation to 
             allUDAs!(__traits(getMember, Z, member))
         );
 
-        foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
+        auto configurers = staticMap!(toValue, Configurers);
+        foreach (Configurer; configurers) {
             debug(annotationScanDebug) trace(
                 typeid(Z), ".", member,
                 " field is marked with @setter annotation. Using it to confiugre component with provided arguments of ", Configurer.args
@@ -574,7 +578,8 @@ Field configurator policy that will set a field to value returned by a callback 
             allUDAs!(__traits(getMember, Z, member))
         );
 
-        foreach (Callback; tuple(staticMap!(toValue, Callbacks))) {
+        auto callbacks = staticMap!(toValue, Callbacks);
+        foreach (Callback; callbacks) {
             debug(annotationScanDebug) trace(
                 typeid(Z), ".", member, " field is annotated with @callback annotation, using callback",
                 Callback.dg, " with ", Callback.args, " to inject field with data."
@@ -606,7 +611,8 @@ Field configurator policy that will try to inject a dependency that matches fiel
             allUDAs!(field)
         );
 
-        foreach (Callback; tuple(staticMap!(toValue, Callbacks))) {
+        auto callbacks = staticMap!(toValue, Callbacks);
+        foreach (Callback; callbacks) {
             RuntimeReference reference;
 
             mixin(transformToReference("reference", "field"));
@@ -641,7 +647,8 @@ Method configurator policy that will call a method with resolved arguments from 
                 allUDAs!(overload)
             );
 
-            foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
+            auto configurers = staticMap!(toValue, Configurers);
+            foreach (Configurer; configurers) {
                 debug(annotationScanDebug) trace(typeid(Z), ".", member, " method is marked with @setter annotation, injecting it with ", Configurer.args);
                 instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(Configurer.args));
             }
@@ -672,7 +679,8 @@ Method configurator policy that will call callback from @callback annotated meth
                 allUDAs!(overload)
             );
 
-            foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
+            auto configurers = staticMap!(toValue, Configurers);
+            foreach (Configurer; configurers) {
                 debug(annotationScanDebug) trace(typeid(Z), ".", member, " method is marked with @callback annotation, using callback", Configurer.dg, " with ", Configurer.args, " to configure component.");
                 instantiator.addPropertyConfigurer(callbackConfigurer!Z(Configurer.dg, Configurer.args));
             }
@@ -703,7 +711,8 @@ Method configurator policy that will call method annotated with @autowire with a
                     allUDAs!(overload)
                 );
 
-                foreach (Configurer; tuple(staticMap!(toValue, Configurers))) {
+                auto configurers = staticMap!(toValue, Configurers);
+                foreach (Configurer; configurers) {
                     auto references = makeFunctionParameterReferences!overload.expand;
 
                     debug(annotationScanDebug) trace(typeid(Z), ".", member, " method is marked with @autowired annotation, injecting it with ", references);
@@ -999,7 +1008,8 @@ Qualifier implementation of aliasing policy.
     **/
     static void link(alias T)(string identity, AliasAware!string aliasingContainer) {
 
-        foreach (Qualifier; tuple(staticMap!(toValue, allUDAs!T))) {
+        auto qualifiers = staticMap!(toValue, allUDAs!T);
+        foreach (Qualifier; qualifiers) {
             static if (isQualifierAnnotation!(typeof(Qualifier))) {
                 if (identity != Qualifier.id) {
                     debug(annotationScanDebug) trace(
@@ -1118,7 +1128,8 @@ A implementation storage locator policy that searches for storage of component b
     **/
     static Storage!(Factory!Object, string) search(alias T)(Factory!Object factory, Locator!() locator, Storage!(Factory!Object, string) storage) {
 
-        foreach (ContainedAnnotation; tuple(staticMap!(toValue, allUDAs!T))) {
+        auto containeds = staticMap!(toValue, allUDAs!T);
+        foreach (ContainedAnnotation; containeds) {
             static if (isContainedAnnotation!ContainedAnnotation) {
 
 
@@ -1211,7 +1222,8 @@ A policy for resolving identity of component by annotation.
     static string resolve(alias T)(Factory!Object factory) {
         string identity;
 
-        foreach (Qualifier; tuple(staticMap!(toValue, allUDAs!T))) {
+        auto qualifiers = staticMap!(toValue, allUDAs!T);
+        foreach (Qualifier; qualifiers) {
             static if (isQualifierAnnotation!(typeof(Qualifier))) {
                 debug(annotationScanDebug) trace(
                     fullyQualifiedName!T, " is marked with @qualifier annotation, using ", Qualifier.id, " as main identity for component."
@@ -1770,7 +1782,6 @@ Returns:
 **/
 auto prepare(alias overload, Args...)(Locator!() locator, out Parameters!overload parameters, Args args) {
     import std.traits : FunctionTypeOf;
-    import std.typecons : tuple;
 
     auto references = makeFunctionParameterReferences!(overload)().expand;
     static foreach (index, arg; parameters) {

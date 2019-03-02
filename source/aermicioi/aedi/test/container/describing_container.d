@@ -35,7 +35,6 @@ import aermicioi.aedi.test.fixture;
 import aermicioi.aedi.exception.circular_reference_exception;
 import aermicioi.aedi.exception.not_found_exception;
 import std.algorithm;
-import std.typecons;
 import std.exception;
 
 unittest {
@@ -78,10 +77,10 @@ unittest {
     container.set(f1, "mock1");
 
     assert(container.getFactories().map!(
-            a => a[1].among(
+            a => a.key.among(
                     "mock",
                     "mock1"
-            ) && (a[0] !is null)
+            ) && (a.value !is null)
         ).fold!((a, b) => (a == true) && (b > 0))(true));
 
     container.remove("mock");

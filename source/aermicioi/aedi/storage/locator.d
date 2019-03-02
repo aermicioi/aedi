@@ -32,6 +32,7 @@ Authors:
 module aermicioi.aedi.storage.locator;
 
 import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.util.typecons : Pair, pair;
 
 /**
  Interface for objects that can serevr Type elements.
@@ -77,7 +78,6 @@ Exposes the list of locators contained in it.
     Locator!(Type, KeyType) {
 
     import std.range.interfaces : InputRange;
-    import std.typecons : Tuple;
 
     public {
 
@@ -95,7 +95,7 @@ Exposes the list of locators contained in it.
         Returns:
         	InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) a range of locator => identity
         **/
-        InputRange!(Tuple!(Locator!(Type, KeyType), LocatorKeyType)) getLocators();
+        InputRange!(Pair!(Locator!(Type, KeyType), LocatorKeyType)) getLocators();
 
         /**
         Check if aggregate locator contains a specific locator.

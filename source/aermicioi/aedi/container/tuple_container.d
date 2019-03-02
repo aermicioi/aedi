@@ -36,7 +36,6 @@ import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.util.range : inheritance;
 import std.range.interfaces;
-import std.typecons;
 
 /**
 An aggregate container with knowledge of concrete types of aggregated containers.

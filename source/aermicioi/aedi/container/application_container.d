@@ -37,7 +37,6 @@ import aermicioi.aedi.storage;
 import aermicioi.aedi.exception;
 
 import std.range.interfaces;
-import std.typecons;
 
 /**
 Application container

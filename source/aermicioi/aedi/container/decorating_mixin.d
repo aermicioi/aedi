@@ -215,7 +215,7 @@ the logic to decorated container.
 **/
 @safe mixin template FactoryLocatorMixin(T : FactoryLocator!W, W) {
     import std.range.interfaces : InputRange;
-    import std.typecons : Tuple;
+    import aermicioi.aedi.util.typecons : Pair, pair;
     /**
     Get factory for constructed component identified by identity.
 
@@ -242,7 +242,7 @@ the logic to decorated container.
     Returns:
         InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
     **/
-    InputRange!(Tuple!(W, string)) getFactories()
+    InputRange!(Pair!(W, string)) getFactories()
     {
         return this.decorated.getFactories();
     }

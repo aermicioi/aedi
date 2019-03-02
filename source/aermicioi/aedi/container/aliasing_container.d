@@ -30,6 +30,7 @@ Authors:
 module aermicioi.aedi.container.aliasing_container;
 
 import aermicioi.aedi.container.container;
+import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.decorator;
@@ -38,7 +39,6 @@ import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.storage.alias_aware;
 
 import std.range.interfaces;
-import std.typecons;
 
 /**
 Decorating container adding ability to alias contained element a new identity.
@@ -169,17 +169,18 @@ template AliasingContainer(T) {
             	string the last found identity in alias chain.
             **/
             const(string) resolve(in string alias_) const {
-                import std.typecons : Rebindable;
-                Rebindable!(const(string)) aliased = alias_;
+                string aliased = alias_[];
 
                 while ((aliased in this.aliasings) !is null) {
-                    aliased = this.aliasings[aliased];
+                    aliased = this.aliasings[aliased][];
                 }
 
                 return aliased;
             }
 
             static if (is(T : FactoryLocator!ObjectFactory)) {
+
+                mixin FactoryLocatorMixin!(typeof(this)) DefaultFactoryMixin;
 
                 /**
                 Get factory for constructed component identified by identity.
@@ -196,18 +197,6 @@ template AliasingContainer(T) {
                 **/
                 ObjectFactory getFactory(string identity) {
                     return this.decorated.getFactory(this.resolve(identity));
-                }
-
-                /**
-                Get all factories available in container.
-
-                Get all factories available in container.
-
-                Returns:
-                	InputRange!(Tuple!(T, string)) a tuple of factory => identity.
-                **/
-                InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
-                    return this.decorated.getFactories();
                 }
             }
 

@@ -47,7 +47,6 @@ import aermicioi.aedi.util.traits;
 
 import std.traits;
 import std.meta;
-import std.typecons;
 import std.conv : to;
 import std.algorithm;
 import std.experimental.allocator;
@@ -317,7 +316,7 @@ struct CallbackFactoryAnnotation(Z, Dg, Args...)
     **/
     this(Dg dg, ref Args args) {
         this.dg = dg;
-        this.args = tuple(args);
+        this.args = args;
     }
 }
 
@@ -378,7 +377,7 @@ struct CallbackConfigurerAnnotation(Z, Dg, Args...)
     **/
     this(Dg dg, ref Args args) {
         this.dg = dg;
-        this.args = tuple(args);
+        this.args = args;
     }
 }
 

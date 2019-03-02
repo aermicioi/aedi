@@ -47,7 +47,6 @@ import std.conv : to;
 import std.experimental.logger;
 import std.meta;
 import std.traits;
-import std.typecons;
 
 /**
 Interface for objects that are executing delayed/defferred actions.
@@ -583,20 +582,6 @@ mixin template ParameterHolder(Args...) {
 
     protected {
         Args args;
-    }
-
-    public {
-
-        /**
-        Get args
-
-        Returns:
-            Tuple!Args arguments stored by argument holder
-        **/
-        Tuple!Args arguments()() @safe nothrow {
-        	return tuple(this.args);
-        }
-
     }
 }
 

@@ -42,7 +42,6 @@ import std.meta;
 import std.traits;
 
 import std.range.interfaces;
-import std.typecons;
 
 /**
 Decorating container that will decorate all passed factories with gc registering factory.

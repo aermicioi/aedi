@@ -31,12 +31,12 @@ module aermicioi.aedi.container.aggregate_container;
 
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.util.typecons : Pair, pair;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.util.range;
 import std.range.interfaces;
-import std.typecons;
 import std.range : chain;
 import std.algorithm : filter, map;
 
@@ -48,10 +48,7 @@ managed by it.
 @safe class AggregateContainer : Container, Storage!(Container, string), AggregateLocator!(Object, string) {
 
     private {
-        struct Entry {
-            Container container;
-            string identity;
-        }
+        alias Entry = Pair!(Container, string);
 
         Entry[] containers;
     }
@@ -90,7 +87,7 @@ managed by it.
         **/
         AggregateContainer remove(string identity) {
             import std.array : array;
-        	this.containers = this.containers.filter!(entry => entry.identity != identity).array;
+        	this.containers = this.containers.filter!(entry => entry.key != identity).array;
 
         	return this;
         }
@@ -110,15 +107,15 @@ managed by it.
         	Object the object contained in one of containers or a container itself.
         **/
         Object get(string identity) {
-            foreach (entry; this.containers.filter!(entry => entry.identity == identity)) {
-                Object container = (() scope @trusted => cast(Object) entry.container)();
+            foreach (entry; this.containers.filter!(entry => entry.key == identity)) {
+                Object container = (() scope @trusted => cast(Object) entry.value)();
 
                 if (container !is null) {
                     return container;
                 }
             }
 
-            foreach (container; this.containers.map!(entry => entry.container)) {
+            foreach (container; this.containers.map!(entry => entry.value)) {
                 foreach (type; typeid(container).inheritance.chain(
                     typeid((() @trusted => cast(Object) container)()).inheritance)
                 ) {
@@ -128,7 +125,7 @@ managed by it.
                 }
             }
 
-        	foreach (container; this.containers.map!(entry => entry.container)) {
+        	foreach (container; this.containers.map!(entry => entry.value)) {
         	    if (container.has(identity)) {
         	        return container.get(identity);
         	    }
@@ -150,14 +147,14 @@ managed by it.
         **/
         bool has(in string identity) inout {
             foreach (entry; this.containers) {
-                if (entry.identity == identity) {
+                if (entry.key == identity) {
                     return true;
                 }
             }
 
             foreach (entry; this.containers) {
-                foreach (type; typeid(entry.container).inheritance.chain(
-                    typeid((() @trusted => cast(Object) entry.container)()).inheritance)
+                foreach (type; typeid(entry.value).inheritance.chain(
+                    typeid((() @trusted => cast(Object) entry.value)()).inheritance)
                 ) {
                     if (type.name == identity) {
                         return true;
@@ -166,7 +163,7 @@ managed by it.
             }
 
             foreach (entry; this.containers) {
-                if (entry.container.has(identity)) {
+                if (entry.value.has(identity)) {
                     return true;
                 }
             }
@@ -184,7 +181,7 @@ managed by it.
         **/
         AggregateContainer instantiate() {
 
-            foreach (container; this.containers.map!(entry => entry.container)) {
+            foreach (container; this.containers.map!(entry => entry.value)) {
                 container.instantiate;
             }
 
@@ -198,7 +195,7 @@ managed by it.
         by it.
         **/
         AggregateContainer terminate() {
-            foreach (container; this.containers.map!(entry => entry.container)) {
+            foreach (container; this.containers.map!(entry => entry.value)) {
                 container.terminate;
             }
 
@@ -213,7 +210,7 @@ managed by it.
         **/
         Locator!(Object, string) getLocator(string identity) {
 
-            return this.containers.filter!(entry => entry.identity = identity).front.container;
+            return this.containers.filter!(entry => entry.key == identity).front.value;
         }
 
         /**
@@ -222,12 +219,10 @@ managed by it.
         Returns:
         	InputRange!(Tuple!(Locator!(Object, string), string)) a range of container => identity
         **/
-        InputRange!(Tuple!(Locator!(Object, string), string)) getLocators() {
+        InputRange!(Pair!(Locator!(), string)) getLocators() {
             import std.algorithm : map;
 
-            return this.containers.map!(
-                entry => tuple(cast(Locator!()) entry.container, entry.identity)
-            ).inputRangeObject;
+            return this.containers.map!(entry => Pair!(Locator!(), string)(entry.value, entry.key)).inputRangeObject;
         }
 
         /**
@@ -239,7 +234,7 @@ managed by it.
         bool hasLocator(string identity) inout {
 
             foreach (entry; this.containers) {
-                if (entry.identity == identity) {
+                if (entry.key == identity) {
                     return true;
                 }
             }

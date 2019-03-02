@@ -624,7 +624,7 @@ auto makeFunctionParameterReferences(alias FunctionType, alias transformer = tra
     static if (is(FunctionTypeOf!FunctionType params == __parameters)) {
         import std.meta : Repeat;
         import std.conv : to;
-        import std.typecons : tuple;
+        import aermicioi.aedi.util.typecons : tuple;
         import aermicioi.aedi.util.traits : toType;
 
         Repeat!(params.length, RuntimeReference) references;

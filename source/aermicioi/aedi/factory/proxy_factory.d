@@ -44,8 +44,7 @@ import std.algorithm;
 import std.meta;
 import std.range;
 import std.traits;
-import std.typecons;
-
+import std.typecons : AutoImplement;
 
 /**
 Creates a proxy to an object or interface of type T,

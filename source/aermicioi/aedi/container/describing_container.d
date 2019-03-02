@@ -42,7 +42,6 @@ import std.meta;
 import std.traits;
 
 import std.range.interfaces;
-import std.typecons;
 
 /**
 Description of a component.
@@ -103,7 +102,7 @@ Provides a set of descriptions used for help information.
 Interface for component that is able to provide description for passed components.
 **/
 @safe interface Describer(ComponentType = Object, IdentityType = string) {
-    import std.typecons : Nullable;
+    import aermicioi.aedi.util.typecons : Optional, optional;
 
     public {
 
@@ -116,12 +115,12 @@ Interface for component that is able to provide description for passed component
         Returns:
             A description or empty if it is not describable by this describer
         **/
-        Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) @safe const;
+        Optional!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) @safe const;
 
         /**
         ditto
         **/
-        final Nullable!(const(Description!IdentityType)) describe(const IdentityType identity, const ComponentType component) @safe const {
+        final Optional!(const(Description!IdentityType)) describe(const IdentityType identity, const ComponentType component) @safe const {
             return this.describe(identity, component);
         }
     }
@@ -131,7 +130,7 @@ Interface for component that is able to provide description for passed component
 Describer that stores a list of descriptions based on identity, based on which it is describing passed components.
 **/
 @safe class IdentityDescriber(ComponentType = Object, IdentityType = string) : Describer!(ComponentType, IdentityType), DescriptionsProvider!IdentityType {
-    import std.typecons : Nullable, nullable;
+    import aermicioi.aedi.util.typecons : Optional, optional;
 
     private {
         Description!IdentityType[] descriptions;
@@ -201,17 +200,16 @@ Describer that stores a list of descriptions based on identity, based on which i
         Returns:
             A description or empty if it is not describable by this describer
         **/
-        Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) @safe const {
-            import std.typecons : nullable, Nullable;
+        Optional!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) @safe const {
             import std.algorithm.searching : countUntil;
 
             ptrdiff_t index = this.descriptions.countUntil!(d => d.identity == identity);
 
             if (index > -1) {
-                return this.descriptions[index].nullable;
+                return this.descriptions[index].optional;
             }
 
-            return Nullable!(const(Description!IdentityType))();
+            return Optional!(const(Description!IdentityType))();
         }
 
         /**
@@ -235,7 +233,7 @@ Describer that stores a list of descriptions based on identity, based on which i
 Describer that creates descriptions on the fly based on passed identity and component.
 **/
 @safe class TypeDescriber(ComponentType = Object, IdentityType = string) : Describer!(ComponentType, IdentityType) {
-    import std.typecons : Nullable;
+    import aermicioi.aedi.util.typecons : Optional, optional;
 
     private {
         string title;
@@ -306,7 +304,7 @@ Describer that creates descriptions on the fly based on passed identity and comp
         Returns:
             A description or empty if it is not describable by this describer
         **/
-        Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
+        Optional!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
             import std.algorithm.iteration : substitute;
             import std.array : array;
             import std.utf : byChar;
@@ -315,7 +313,7 @@ Describer that creates descriptions on the fly based on passed identity and comp
                 identity,
                 title.substitute("${identity}", identityFormatter(identity), "${component}", componentFormatter(component)).byChar.array.idup,
                 description.substitute("${identity}", identityFormatter(identity), "${component}", componentFormatter(component)).byChar.array.idup,
-            )).nullable;
+            )).optional;
         }
 
         /**
@@ -329,6 +327,7 @@ Describer that creates descriptions on the fly based on passed identity and comp
 A describer that provides same description for any component
 **/
 @safe class StaticDescriber(ComponentType = Object, IdentityType = string) : Describer!(ComponentType, IdentityType) {
+    import aermicioi.aedi.util.typecons : Optional, optional;
     private {
         const Description!IdentityType description;
     }
@@ -372,13 +371,13 @@ A describer that provides same description for any component
         Returns:
             A description or empty if it is not describable by this describer
         **/
-        Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
+        Optional!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
             if (identity != IdentityType.init) {
 
-                return (cast(const) Description!IdentityType(identity, this.description.title, this.description.description)).nullable;
+                return (cast(const) Description!IdentityType(identity, this.description.title, this.description.description)).optional;
             }
 
-            return this.description.nullable;
+            return this.description.optional;
         }
 
         /**
@@ -392,6 +391,7 @@ A describer that provides same description for any component
 A describer that provides empty descriptions (i.e. no descriptions at all)
 **/
 @safe class NullDescriber(ComponentType = Object, IdentityType = string) : Describer!(ComponentType, IdentityType) {
+    import aermicioi.aedi.util.typecons : Optional, optional;
     public {
         /**
         Give no description at all.
@@ -402,8 +402,8 @@ A describer that provides empty descriptions (i.e. no descriptions at all)
         Returns:
             A description or empty if it is not describable by this describer
         **/
-        Nullable!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
-            return Nullable!(const(Description!IdentityType))();
+        Optional!(const(Description!IdentityType)) describe(const ref IdentityType identity, const ref ComponentType component) const @safe {
+            return Optional!(const(Description!IdentityType))();
         }
 
         /**
@@ -437,6 +437,7 @@ Params:
 template DescribingContainer(T)
 {
     import std.conv : text;
+    import aermicioi.aedi.util.typecons : Optional, optional;
 
     /**
     Set which the switchable container will decorate for T. By default
@@ -487,7 +488,7 @@ template DescribingContainer(T)
             }
 
             alias describe = Describer!(Object, string).describe;
-            Nullable!(const(Description!string)) describe(const ref string identity, const ref Object component) const @safe {
+            Optional!(const(Description!string)) describe(const ref string identity, const ref Object component) const @safe {
                 if (component is decorated) {
                     return container.describe(null, this.decorated);
                 }

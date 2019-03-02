@@ -71,7 +71,7 @@ Provide an interface for accessing factories used by containers to instantiate c
 **/
 @safe interface FactoryLocator(T : Factory!Z, Z) {
     import std.range.interfaces : InputRange;
-    import std.typecons : Tuple;
+    import aermicioi.aedi.util.typecons : Pair, pair;
 
     public {
 
@@ -98,6 +98,6 @@ Provide an interface for accessing factories used by containers to instantiate c
         Returns:
         	InputRange!(Tuple!(T, string)) a tuple of factory => identity.
         **/
-        InputRange!(Tuple!(T, string)) getFactories();
+        InputRange!(Pair!(T, string)) getFactories();
     }
 }

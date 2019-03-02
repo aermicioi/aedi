@@ -37,7 +37,6 @@ import aermicioi.aedi.test.fixture;
 import aermicioi.aedi.storage.locator;
 import std.exception;
 import std.algorithm;
-import std.typecons;
 
 unittest {
     ApplicationContainer container = new ApplicationContainer();
@@ -60,7 +59,7 @@ unittest {
 
     assertNotThrown(container.getLocator("singleton"));
     assert(container.getLocators().map!(
-        a => a[0].among(
+        a => a.value.among(
                 container.locate!SingletonContainer,
                 container.locate!PrototypeContainer,
                 container.locate!ValueContainer

@@ -43,10 +43,8 @@ import aermicioi.aedi.util.range : inheritance;
 import std.algorithm;
 import std.array;
 import std.range;
-import std.typecons;
 import std.traits;
 import std.meta;
-import std.container.rbtree;
 
 /**
 A decorating container that can provide for requested
@@ -96,14 +94,10 @@ template TypeBasedContainer(T) {
     @safe class TypeBasedContainer : InheritanceSet {
 
         private {
-            ObjectStorage!(RedBlackTree!(string), string) candidates;
+            string[][TypeInfo] entries;
         }
 
         public {
-            this() {
-                this.candidates = new ObjectStorage!(RedBlackTree!string, string);
-            }
-
             mixin MutableDecoratorMixin!T;
 
             import aermicioi.aedi.container.decorating_mixin : ContainerMixin;
@@ -130,11 +124,12 @@ template TypeBasedContainer(T) {
                 ClassInfo info = cast(ClassInfo) factory.type;
                 if (info !is null) {
                     foreach (TypeInfo inherited; info.inheritance) {
-                        if (!this.candidates.has(inherited.toString())) {
-                            this.candidates.set(new RedBlackTree!string, inherited.toString());
+                        if (
+                            (inherited !in this.entries) ||
+                            !this.entries[inherited].canFind(identity)
+                        ) {
+                            this.entries[inherited] ~= identity;
                         }
-
-                        this.candidates.get(inherited.toString()).insert(identity);
                     }
                 }
 
@@ -157,11 +152,9 @@ template TypeBasedContainer(T) {
             TypeBasedContainer remove(string identity) @trusted {
                 decorated.remove(identity);
 
-                foreach (pair; this.candidates.contents.byKeyValue.array) {
-                    pair.value.removeKey(identity);
-
-                    if (pair.value.empty) {
-                        this.candidates.remove(pair.key);
+                foreach (type, candidates; this.entries) {
+                    if (candidates.canFind(identity)) {
+                        this.entries[type] = candidates.filter!(entry => entry != identity).array;
                     }
                 }
 
@@ -191,11 +184,10 @@ template TypeBasedContainer(T) {
                     return this.decorated.get(identity);
                 }
 
-                if (this.candidates.has(identity)) {
-                    return
-                    this.decorated.get(
-                        this.candidates.get(identity).front
-                    );
+                foreach (type, candidates; this.entries) {
+                    if (identity == type.toString) {
+                        return this.decorated.get(candidates.front);
+                    }
                 }
 
                 throw new NotFoundException("Component ${identity} not found.", identity);
@@ -220,7 +212,13 @@ template TypeBasedContainer(T) {
                     return true;
                 }
 
-                return this.candidates.has(identity);
+                foreach (type, candidates; this.entries) {
+                    if (identity == type.toString) {
+                        return !candidates.empty;
+                    }
+                }
+
+                return false;
             }
 
             static if (is(T : AliasAware!string)) {

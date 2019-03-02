@@ -32,12 +32,12 @@ module aermicioi.aedi.container.prototype_container;
 
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.object_storage;
+import aermicioi.aedi.util.typecons : Pair, pair;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception;
 import aermicioi.aedi.container.factory;
 
 import std.range.interfaces;
-import std.typecons;
 
 /**
  Prototype container.
@@ -233,13 +233,13 @@ import std.typecons;
         Get all factories available in container.
 
         Returns:
-        	InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
+        	InputRange!(Pair!(ObjectFactory, string)) a pair of factory => identity.
         **/
-        InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+        InputRange!(Pair!(ObjectFactory, string)) getFactories() {
             import std.algorithm : map;
 
             return this.factories.contents.byKeyValue.map!(
-                a => tuple(a.value, a.key)
+                a => Pair!(ObjectFactory, string)(a.value, a.key)
             ).inputRangeObject;
         }
     }
