@@ -37,139 +37,182 @@ import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.storage;
 import std.experimental.allocator : RCIAllocator, theAllocator;
 import std.traits;
+import std.meta : AliasSeq;
 
 @safe:
 
+struct RegistrationContext(Policies...)
+    if (Policies.length > 1) {
+    /**
+    Storage into which to store components;
+    **/
+    Storage!(ObjectFactory, string) storage;
+
+    /**
+    Locator used for fetching components dependencies;
+    **/
+    Locator!(Object, string) locator;
+
+    /**
+    Allocator used for registered components.
+    **/
+    RCIAllocator allocator;
+
+    alias ConfigurableFactoryType(T) = ConfigurableFactory!(T, FactoryPolicyExtractor!Policies);
+
+    ref typeof(this) initialize() {
+        static foreach (Policy; Policies) {
+            Policy.initialize(storage, locator, allocator);
+        }
+
+        return this;
+    }
+
+    /**
+    Register a component of type T by identity, type, or interface it implements.
+
+    Register a component of type T by identity, type, or interface it implements.
+
+    Params:
+        Interface = interface of registered component that it implements
+        T = type of registered component
+        identity = identity by which component is stored in storage
+
+    Returns:
+        GenericFactory!T factory for component for further configuration
+    **/
+    ConfigurableFactoryType!T register(T, string file = __FILE__, size_t line = __LINE__)(string identity) {
+        ConfigurableFactoryType!T factory = new ConfigurableFactoryType!T();
+        static if (is(typeof(factory) : Class!(ComponentType, FactoryPolicies), alias Class, ComponentType, FactoryPolicies...)) {
+            static foreach (FactoryPolicy; FactoryPolicies) {
+                static if (__traits(isSame, FactoryPolicy, StoragePolicy)) {
+                    factory.storage = storage;
+                    factory.identity = identity;
+                }
+
+                static if (__traits(isSame, FactoryPolicy, DecoratingFactoryPolicy)) {
+                    factory.locator = locator;
+                    factory.allocator = allocator;
+                }
+
+                static if (__traits(isSame, FactoryPolicy, RegistrationStorePolicy)) {
+                    factory.file = file;
+                    factory.line = line;
+                }
+            }
+        }
+
+        static foreach (Policy; Policies) {
+            Policy.apply(factory);
+        }
+
+        return factory;
+    }
+
+    /**
+    ditto
+    **/
+    ConfigurableFactoryType!T register(T, string file = __FILE__, size_t line = __LINE__)() {
+        return register!(T, file, line)(fullyQualifiedName!T);
+    }
+
+    /**
+    ditto
+    **/
+    ConfigurableFactoryType!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)()
+        if (!is(T == Interface)) {
+        return register!(T, file, line)(fullyQualifiedName!Interface);
+    }
+
+    /**
+    Register a component of type T by identity, type, or interface it implements with a default value.
+
+    Register a component of type T by identity, type, or interface it implements with a default value.
+
+    Params:
+        Interface = interface of registered component that it implements
+        T = type of registered component
+        identity = identity by which component is stored in storage
+        value = initial value of component;
+
+    Returns:
+        GenericFactory!T factory for component for further configuration
+    **/
+    ConfigurableFactoryType!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value, string identity) {
+        import aermicioi.aedi.configurer.register.factory_configurer : val = value;
+
+        ConfigurableFactoryType!T factory = register!(T, file, line)(identity);
+
+        factory.val(value);
+
+        return factory;
+    }
+
+    /**
+    ditto
+    **/
+    ConfigurableFactoryType!T register(T, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+        if (!is(T == string)) {
+
+        return register!(T, file, line)(value, fullyQualifiedName!T);
+    }
+
+    /**
+    ditto
+    **/
+    ConfigurableFactoryType!T register(Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)(auto ref T value)
+        if (!is(T == Interface)) {
+
+        return register!(T, file, line)(value, fullyQualifiedName!Interface);
+    }
+}
+
 /**
-A component registration interface for storage.
-
-Registration context registers components into storage,
-and uses a locator as a source of dependencies for components.
-
-Params:
-	ObjectWrappingFactory = factory used to wrap components that are not
-	derived from Object.
+Policy responsible for creation of generic factory that will create component T.
 **/
-struct RegistrationContext(
-    alias ObjectWrappingFactory = WrappingFactory
-) {
-    public {
+struct GenericFactoryPolicy {
 
-        /**
-        Storage into which to store components;
-        **/
-        Storage!(ObjectFactory, string) storage;
+    alias FactoryPolicy = DecoratingFactoryPolicy;
 
-        /**
-        Locator used for fetching components dependencies;
-        **/
-        Locator!(Object, string) locator;
+    static void initialize(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator) {
 
-        /**
-        Allocator used for registered components.
-        **/
-        RCIAllocator allocator;
+    }
 
-        /**
-        Constructor for RegistrationContext
+    static void apply(Z : ConfigurableFactory!(T, Policies), T, Policies...)(Z factory) {
+        factory.decorated = new GenericFactoryImpl!T(factory.locator);
+        factory.decorated.allocator = factory.allocator;
+    }
+}
 
-        Params:
-            storage = storage where to put registered components
-            locator = locator used to get registered component's dependencies
-            allocator = allocator used as default allocation strategy for component
-        **/
-        this(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator = theAllocator) {
-            this.storage = storage;
-            this.locator = locator;
-            this.allocator = allocator;
-        }
+/**
+Policy responsible for creation of factory wrapper suitable for storing into storage.
+**/
+struct WrappingFactoryPolicy {
 
-        /**
-        Register a component of type T by identity, type, or interface it implements.
+    alias FactoryPolicy = WrapperStorePolicy;
 
-        Register a component of type T by identity, type, or interface it implements.
+    static void initialize(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator) {
 
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
+    }
 
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T)(string identity) {
-            ConfigurationContextFactory!T factory = new ConfigurationContextFactory!T();
+    static void apply(Z : ConfigurableFactory!(T, Policies), T, Policies...)(Z factory) {
+        factory.wrapper = new WrappingFactory!(Factory!T)(factory);
+    }
+}
 
-            GenericFactoryImpl!T implementation = new GenericFactoryImpl!T(locator);
-            ObjectWrappingFactory!(Factory!T) wrapper = new ObjectWrappingFactory!(Factory!T)(implementation);
+/**
+Policy responsible for persisting wrapper into storage by some identity.
+**/
+struct PersistingFactoryPolicy {
 
-            factory.decorated = implementation;
-            factory.wrapper = wrapper;
-            factory.locator = locator;
-            factory.storage = storage;
-            factory.allocator = allocator;
-            factory.identity = identity;
+    alias FactoryPolicy = StoragePolicy;
 
-            storage.set(wrapper, identity);
-            return factory;
-        }
+    static void initialize(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator) {
 
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T)() {
-            return register!T(fullyQualifiedName!T);
-        }
+    }
 
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(Interface, T : Interface)()
-            if (!is(T == Interface)) {
-            return register!T(fullyQualifiedName!Interface);
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-        	value = initial value of component;
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T)(auto ref T value, string identity) {
-            import aermicioi.aedi.configurer.register.factory_configurer : val = value;
-
-            ConfigurationContextFactory!T factory = register!T(identity);
-
-            factory.val(value);
-
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T)(auto ref T value)
-            if (!is(T == string)) {
-
-            return register(value, fullyQualifiedName!T);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(Interface, T : Interface)(auto ref T value)
-            if (!is(T == Interface)) {
-
-            return register(value, fullyQualifiedName!Interface);
-        }
+    static void apply(Z : ConfigurableFactory!(T, Policies), T, Policies...)(Z factory) {
+        factory.storage.set(factory.wrapper, factory.identity);
     }
 }
 
@@ -186,19 +229,63 @@ Params:
 Returns:
 	RegistrationContext context with registration interface used to register components.
 **/
-RegistrationContext!ObjectWrappingFactory configure
-        (alias ObjectWrappingFactory = WrappingFactory)
-        (Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator = theAllocator) {
-    return RegistrationContext!ObjectWrappingFactory(storage, locator, allocator);
+RegistrationContext!Policies configure(Policies...)
+    (Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator = theAllocator)
+    if (Policies.length > 0) {
+    return RegistrationContext!(Policies)(storage, locator, allocator).initialize();
 }
 
 /**
 ditto
 **/
-RegistrationContext!ObjectWrappingFactory configure
-        (alias ObjectWrappingFactory = WrappingFactory)
-        (Locator!(Object, string) locator, Storage!(ObjectFactory, string) storage, RCIAllocator allocator = theAllocator) {
-    return RegistrationContext!ObjectWrappingFactory(storage, locator, allocator);
+RegistrationContext!Policies configure(Policies...)
+    (Locator!(Object, string) locator, Storage!(ObjectFactory, string) storage, RCIAllocator allocator = theAllocator)
+    if (Policies.length > 0) {
+    return RegistrationContext!(Policies)(storage, locator, allocator).initialize();
+}
+
+/**
+ditto
+**/
+RegistrationContext!(
+    GenericFactoryPolicy,
+    WrappingFactoryPolicy,
+    DeferredFactoryPolicy,
+    RegistrationAwarePolicy,
+    PersistingFactoryPolicy
+) configure(
+        Storage!(ObjectFactory, string) storage,
+        Locator!(Object, string) locator,
+        RCIAllocator allocator = theAllocator)
+{
+    return storage.configure!(
+        GenericFactoryPolicy,
+        WrappingFactoryPolicy,
+        DeferredFactoryPolicy,
+        RegistrationAwarePolicy,
+        PersistingFactoryPolicy)(locator, allocator);
+}
+
+/**
+ditto
+**/
+RegistrationContext!(
+    GenericFactoryPolicy,
+    WrappingFactoryPolicy,
+    DeferredFactoryPolicy,
+    RegistrationAwarePolicy,
+    PersistingFactoryPolicy
+) configure(
+        Locator!(Object, string) locator,
+        Storage!(ObjectFactory, string) storage,
+        RCIAllocator allocator = theAllocator)
+{
+    return storage.configure!(
+        GenericFactoryPolicy,
+        WrappingFactoryPolicy,
+        DeferredFactoryPolicy,
+        RegistrationAwarePolicy,
+        PersistingFactoryPolicy)(locator, allocator);
 }
 
 /**
@@ -213,10 +300,10 @@ Params:
 Returns:
 	RegistrationContext context with registration interface used to register components.
 **/
-RegistrationContext!ObjectWrappingFactory configure(T, alias ObjectWrappingFactory = WrappingFactory)(T container, RCIAllocator allocator = theAllocator)
+auto configure(T)(T container, RCIAllocator allocator = theAllocator)
     if (is(T : Storage!(ObjectFactory, string)) && is(T : Locator!(Object, string))) {
 
-    return configure(cast(Locator!(Object, string)) container, container, allocator);
+    return configure(cast(Storage!(ObjectFactory, string)) container, container, allocator);
 }
 
 /**
@@ -230,42 +317,53 @@ Params:
     allocator = default allocation strategy for registered components
 
 Returns:
-	RegistrationContext context with registration interface used to register components.
+	RegistrationContext!Policies context with registration interface used to register components.
 **/
-RegistrationContext!ObjectWrappingFactory configure
-        (alias ObjectWrappingFactory = WrappingFactory)
-        (Locator!(Object, string) locator, string storage, RCIAllocator allocator = theAllocator) {
-    return configure!ObjectWrappingFactory(locator, locator.locate!(Storage!(ObjectFactory, string))(storage), allocator);
+RegistrationContext!Policies configure(Policies...)(Locator!(Object, string) locator, string storage, RCIAllocator allocator = theAllocator)
+    if (Policies.length > 1) {
+    return configure!Policies(locator, locator.locate!(Storage!(ObjectFactory, string))(storage), allocator);
+}
+
+auto configure(Locator!(Object, string) locator, string storage, RCIAllocator allocator = theAllocator) {
+    return configure(locator, locator.locate!(Storage!(ObjectFactory, string))(storage), allocator);
 }
 
 /**
-Use locator or storage as basis for registering components.
+Use locator/storage/allocator as basis for registering components.
 
-Use locator or storage as basis for registering components.
+Use locator/storage/allocator as basis for registering components.
 
 Params:
-    registrationContext = context for which to set new configured storage, or used locator
+    context = context for which to set new configured storage, or used locator
 	storage = store registered components into it.
 	locator = locator of dependencies for registered components
+    allocator = allocator used as default allocation strategy for components.
 
 Returns:
-	RegistrationContext context with registration interface used to register components.
+	RegistrationContext!Policies context with registration interface used to register components.
 **/
-Context along
-        (Context : RegistrationContext!T, alias T)
-        (Context registrationContext, Storage!(ObjectFactory, string) storage) {
-    registrationContext.storage = storage;
+RegistrationContext!Policies along(Policies...)(RegistrationContext!Policies context, Storage!(ObjectFactory, string) storage) {
+    context.storage = storage;
 
-    return registrationContext;
+    return context.initialize;
 }
 
 /**
 ditto
 **/
-Context along(Context : RegistrationContext!T, alias T)(Context registrationContext, Locator!(Object, string) locator) {
-    registrationContext.locator = locator;
+RegistrationContext!Policies along(Policies...)(RegistrationContext!Policies context, Locator!(Object, string) locator) {
+    context.locator = locator;
 
-    return registrationContext;
+    return context.initialize;
+}
+
+/**
+ditto
+**/
+RegistrationContext!Policies along(Policies...)(RegistrationContext!Policies context, RCIAllocator allocator) {
+    context.allocator = allocator;
+
+    return context.initialize;
 }
 
 /**
@@ -274,36 +372,40 @@ Use storage as basis for registering components.
 Use storage as basis for registering components.
 
 Params:
-    registrationContext = context for which to set new configured storage, or used locator
+    context = context for which to set new configured storage, or used locator
 	storage = identity of a storage located in locator that should be used by registrationContext to store components.
 
 Returns:
 	RegistrationContext context with registration interface used to register components.
 **/
-Context along(Context : RegistrationContext!T, alias T)(Context registrationContext, string storage) {
+RegistrationContext!Policies along(Policies...)(RegistrationContext!Policies context, string storage) {
     import aermicioi.aedi.exception.invalid_cast_exception : InvalidCastException;
 
-    registrationContext.storage = registrationContext.locator.locate!(Storage!(ObjectFactory, string))(storage);
+    context.storage = context.locator.locate!(Storage!(ObjectFactory, string))(storage);
 
-    return registrationContext;
+    return context.initialize;
 }
 
 /**
-Use allocator as default version for registered components.
-
-Use allocator as default version for registered components.
+Apply a policy after existing policies in a registration context, or at a position if specified.
 
 Params:
-    registrationContext = configuration context for registered components.
-    allocator = allocator used as default allocation strategy for components.
+    context = context to which add a new policy
+    at = position at whicht to apply policy
+    Policy = new policy to inject into registration context
 
 Returns:
-    registrationContext
+    RegistrationContext!(Policies, Policy)
 **/
-Context along(Context: RegistrationContext!T, alias T)(Context registrationContext, RCIAllocator allocator) {
-    registrationContext.allocator = allocator;
+RegistrationContext!(Policies, Policy) applying(Policy, Policies...)(RegistrationContext!Policies context) {
+    return RegistrationContext!(Policies, Policy)(context.storage, context.locator, context.allocator).initialize;
+}
 
-    return registrationContext;
+/**
+ditto
+**/
+RegistrationContext!(Policies[0 .. at], Policy, Policies[at .. $]) applying(size_t at, Policy, Policies...)(RegistrationContext!Policies context) {
+    return RegistrationContext!(Policies[0 .. at], Policy, Policies[at .. $])(context.storage, context.locator, context.allocator).initialize;
 }
 
 /**
@@ -428,515 +530,55 @@ Adds registration location information in component's factory for easier debuggi
 Params:
     context = original preconfigured registration context to use as basis.
 **/
-struct RegistrationInfoTaggedRegistrationContext(T : RegistrationContext!Z, alias Z) {
-    import aermicioi.aedi.factory.decorating_factory : RegistrationAwareDecoratingFactory;
+struct RegistrationAwarePolicy {
 
-    public {
+    alias FactoryPolicy = RegistrationStorePolicy;
 
-        /**
-        Underlying registration context.
-        **/
-        T context;
+    static void initialize(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator) {
 
-        alias context this;
-
-        /**
-        Constructor for RegistrationInfoTaggedRegistrationContext
-
-        Params:
-            context = underlying context used for registration
-        **/
-        this(T context) {
-            this.context = context;
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements.
-
-        Register a component of type T by identity, type, or interface it implements.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)(string identity) {
-            auto factory = this.context.register!T(identity);
-
-            this.inject(factory, file, line);
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T, string file = __FILE__, size_t line = __LINE__)() {
-            auto factory = this.context.register!T();
-
-            this.inject(factory, file, line);
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register
-                (Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)()
-            if (!is(T == Interface)) {
-            auto factory = this.context.register!(Interface, T)();
-
-            this.inject(factory, file, line);
-            return factory;
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-        	value = initial value of component;
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register
-                (T, string file = __FILE__, size_t line = __LINE__)
-                (auto ref T value, string identity) {
-            auto factory = this.context.register!T(value, identity);
-
-            this.inject(factory, file, line);
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register
-                (T, string file = __FILE__, size_t line = __LINE__)
-                (auto ref T value)
-            if (!is(T == string)) {
-            auto factory = this.context.register!T(value);
-
-            this.inject(factory, file, line);
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register
-                (Interface, T : Interface, string file = __FILE__, size_t line = __LINE__)
-                (auto ref T value)
-            if (!is(T == Interface)) {
-            auto factory = this.context.register!(Interface, T)(value);
-
-            this.inject(factory, file, line);
-            return factory;
-        }
     }
 
-    private {
-        void inject(T)(ConfigurationContextFactory!T factory, string file, size_t line) {
-            RegistrationAwareDecoratingFactory!Object wrapper = new RegistrationAwareDecoratingFactory!Object();
-            wrapper.file = file;
-            wrapper.line = line;
+    static void apply(Z : ConfigurableFactory!(T, Policies), T, Policies...)(Z factory) {
+        import aermicioi.aedi.factory.decorating_factory : RegistrationAwareDecoratingFactory;
+        RegistrationAwareDecoratingFactory!Object wrapper = new RegistrationAwareDecoratingFactory!Object();
+        wrapper.file = factory.file;
+        wrapper.line = factory.line;
 
-            wrapper.decorated = factory.wrapper;
-            factory.wrapper = wrapper;
+        wrapper.decorated = factory.wrapper;
+        factory.wrapper = wrapper;
+    }
+}
 
-            factory.storage.set(factory.wrapper, factory.identity);
+struct DeferredFactoryPolicy {
+    import aermicioi.aedi.factory.deferring_factory : DeferralContext;
+
+    alias FactoryPolicy = AliasSeq!();
+
+    static void initialize(Storage!(ObjectFactory, string) storage, Locator!(Object, string) locator, RCIAllocator allocator)
+    in (storage !is null, "Storage is required for initialization of deferred policy.")
+    in (locator !is null, "Locator is required for initialization of deferred policy.")
+    in (!allocator.isNull, "Allocator is required for initialization of deferred policy.") {
+
+    }
+
+    static void apply(Z : ConfigurableFactory!(T, Policies), T, Policies...)(Z factory) {
+        import aermicioi.aedi.exception.not_found_exception : NotFoundException;
+        import aermicioi.aedi.factory.deferring_factory;
+        import aermicioi.aedi.util.typecons : optional;
+        import aermicioi.aedi.factory.reference : lref;
+
+        if (factory.locator.has(fullyQualifiedName!DeferralContext)) {
+            DeferringFactory!T deferring = new DeferringFactory!T(factory.decorated, factory.locator.locate!DeferralContext);
+            factory.decorated = deferring;
         }
     }
 }
 
-/**
-ditto
-**/
-auto withRegistrationInfo(T : RegistrationContext!Z, alias Z)(auto ref T context) {
-    return RegistrationInfoTaggedRegistrationContext!T(context);
-}
+private template FactoryPolicyExtractor(Policies...) {
 
-/**
-A component registration interface for storage.
-
-Registration context registers components into storage,
-and uses a locator as a source of dependencies for components.
-
-Params:
-	ObjectWrappingFactory = factory used to wrap components that are not
-	derived from Object.
-**/
-struct DefferredConfigurationContext(
-    R,
-    Args...
-) {
-    public {
-
-        /**
-        Identity of deffered executioner used for deffering construction, in case as circular reference error.
-        **/
-        string executionerIdentity;
-
-        /**
-        Underlying configuration context to which actual registration is deffered.
-        **/
-        R context;
-
-        alias context this;
-
-        /**
-        Constructor for RegistrationContext
-
-        Params:
-            storage = storage where to put registered components
-            locator = locator used to get registered component's dependencies
-        **/
-        this(R context, string executionerIdentity)
-        in (executionerIdentity !is null, "Expected identity of deferred executioner where to store deffered actions") {
-            this.context = context;
-            this.executionerIdentity = executionerIdentity;
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements.
-
-        Register a component of type T by identity, type, or interface it implements.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T)(string identity) {
-            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
-            import aermicioi.aedi.storage.decorator : decorators, filterByInterface;
-
-            ConfigurationContextFactory!T factory = this.context.register!T(identity);
-
-            auto candidates = factory.wrapper
-                .decorators!ObjectFactory
-                .filterByInterface!DefferredExecutionerAware
-                .chain(factory.decorated.only.filterByInterface!DefferredExecutionerAware);
-
-            if (!candidates.empty) {
-                auto executioner = this.context.locator.locate!DefferredExecutioner();
-                candidates.front.executioner = executioner;
-            }
-
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T)() {
-            return register!T(fullyQualifiedName!T);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(Interface, T : Interface)()
-            if (!is(T == Interface)) {
-            return register!T(fullyQualifiedName!Interface);
-        }
-
-        alias register = this.context.register;
+    static if (Policies.length > 1) {
+        alias FactoryPolicyExtractor = AliasSeq!(Policies[0].FactoryPolicy, FactoryPolicyExtractor!(Policies[1 .. $]));
+    } else {
+        alias FactoryPolicyExtractor = Policies[0].FactoryPolicy;
     }
-}
-
-/**
-A decorating component registration interface for container, that adds configuration deferring ability if possible.
-
-A decorating component registration interface for container, that adds configuration deferring ability if possible.
-The registration interface will automatically add deffering abilities to configured components if and
-only if locator for components used by created factories provide a deferred action executioner, and
-created factory supports usage of defferred action executioner.
-
-Params:
-	R context to override.
-**/
-struct DefferredConfigurationContext(
-    R
-) {
-    public {
-        import aermicioi.aedi.configurer.register.factory_configurer : defferredConfiguration;
-
-        /**
-        Identity of deffered executioner used for deffering construction, in case as circular reference error.
-        **/
-        string executionerIdentity;
-        /**
-        Underlying configuration context to which actual registration is deffered.
-        **/
-        R context;
-
-        alias context this;
-
-        /**
-        Constructor for RegistrationContext
-
-        Params:
-            storage = storage where to put registered components
-            locator = locator used to get registered component's dependencies
-        **/
-        this(R context, string executionerIdentity)
-        in (executionerIdentity !is null, "Expected identity of deferred executioner where to store deffered actions") {
-            this.context = context;
-            this.executionerIdentity = executionerIdentity;
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements.
-
-        Register a component of type T by identity, type, or interface it implements.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T)(string identity) {
-            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
-
-            ConfigurationContextFactory!T factory = this.context.register!T(identity);
-
-            return factory.defferredConfiguration(this.executionerIdentity);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T)() {
-            return register!T(fullyQualifiedName!T);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(Interface, T : Interface)()
-            if (!is(T == Interface)) {
-            return register!T(fullyQualifiedName!Interface);
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-        	value = initial value of component;
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T)(auto ref T value, string identity) {
-            import aermicioi.aedi.configurer.register.factory_configurer : val = value;
-
-            ConfigurationContextFactory!T factory = register!T(identity);
-
-            factory.val(value);
-
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T)(auto ref T value)
-            if (!is(T == string)) {
-
-            return register(value, fullyQualifiedName!T);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(Interface, T : Interface)(auto ref T value)
-            if (!is(T == Interface)) {
-
-            return register(value, fullyQualifiedName!Interface);
-        }
-    }
-}
-
-/**
-Wrap a configuration context into a defferring configuration context.
-
-Params:
-    context = the context to be wrapped up into.
-    executionerIdentity = the identity of executioner that is searched in
-    factory locator to be used for defferring configuration to the last minute.
-
-Returns:
-    DefferredConfigurationContext!T
-**/
-auto withConfigurationDefferring(T)(T context, string executionerIdentity) {
-    return DefferredConfigurationContext!(T)(context, executionerIdentity);
-}
-
-/**
-ditto
-**/
-auto withConfigurationDefferring(T)(T context) {
-    return DefferredConfigurationContext!(T)(context, fullyQualifiedName!DefferredExecutioner);
-}
-
-/**
-A decorating component registration interface for container, that adds construction deferring ability if possible.
-
-A decorating component registration interface for container, that adds construction deferring ability if possible.
-The registration interface will automatically add deffering abilities to configured components if and
-only if locator for components used by created factories provide a deferred action executioner, and
-created factory supports usage of defferred action executioner.
-
-Params:
-	R context to override.
-**/
-struct DefferredConstructionContext(
-    R
-) {
-    public {
-        import aermicioi.aedi.configurer.register.factory_configurer : defferredConstruction;
-
-        /**
-        Identity of deffered executioner used for deffering construction, in case as circular reference error.
-        **/
-        string executionerIdentity;
-
-        /**
-        Underlying configuration context to which actual registration is deffered.
-        **/
-        R context;
-
-        alias context this;
-
-        /**
-        Constructor for RegistrationContext
-
-        Params:
-            storage = storage where to put registered components
-            locator = locator used to get registered component's dependencies
-        **/
-        this(R context, string executionerIdentity)
-        in (executionerIdentity !is null, "Expected identity of deferred executioner where to store deffered actions") {
-            this.executionerIdentity = executionerIdentity;
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements.
-
-        Register a component of type T by identity, type, or interface it implements.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T)(string identity) {
-            import aermicioi.aedi.exception.not_found_exception : NotFoundException;
-
-            ConfigurationContextFactory!T factory = this.context.register!T(identity);
-
-            return factory.defferredConstruction(this.executionerIdentity);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T)() {
-            return register!T(fullyQualifiedName!T);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(Interface, T : Interface)()
-            if (!is(T == Interface)) {
-            return register!T(fullyQualifiedName!Interface);
-        }
-
-        /**
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Register a component of type T by identity, type, or interface it implements with a default value.
-
-        Params:
-            Interface = interface of registered component that it implements
-        	T = type of registered component
-        	identity = identity by which component is stored in storage
-        	value = initial value of component;
-
-        Returns:
-        	GenericFactory!T factory for component for further configuration
-        **/
-        ConfigurationContextFactory!T register(T)(auto ref T value, string identity) {
-            import aermicioi.aedi.configurer.register.factory_configurer : val = value;
-
-            ConfigurationContextFactory!T factory = register!T(identity);
-
-            factory.val(value);
-
-            return factory;
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(T)(auto ref T value)
-            if (!is(T == string)) {
-
-            return register(value, fullyQualifiedName!T);
-        }
-
-        /**
-        ditto
-        **/
-        ConfigurationContextFactory!T register(Interface, T : Interface)(auto ref T value)
-            if (!is(T == Interface)) {
-
-            return register(value, fullyQualifiedName!Interface);
-        }
-    }
-}
-
-/**
-Wrap a configuration context into a defferring construction context.
-
-Params:
-    context = the context to be wrapped up into.
-    executionerIdentity = the identity of executioner that is searched in
-    factory locator to be used for defferring the construction
-
-Returns:
-    DefferredConstructionContext!T
-**/
-auto withConstructionDefferring(T)(T context, string executionerIdentity) {
-    return DefferredConstructionContext!(T)(context, executionerIdentity);
-}
-
-/**
-ditto
-**/
-auto withConstructionDefferring(T)(T context) {
-    return DefferredConstructionContext!(T)(context, fullyQualifiedName!DefferredExecutioner);
 }

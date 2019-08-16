@@ -32,46 +32,42 @@ module aermicioi.aedi.test.container.subscribable_container;
 import aermicioi.aedi.container.subscribable_container;
 import aermicioi.aedi.test.fixture;
 import aermicioi.aedi.container.singleton_container;
+import aermicioi.aedi.factory.factory : ObjectFactory;
+import aermicioi.aedi.util.typecons : Optional;
 import std.algorithm;
 import std.exception;
 
 unittest {
     SubscribableContainer!SingletonContainer container = new SubscribableContainer!SingletonContainer;
-    scope(exit) container.terminate;
     container.decorated = new SingletonContainer;
-
     assert(container.decorated !is null);
 
-    auto f = new MockFactory!MockObject;
-    auto f1 = new MockFactory!MockObject;
+    container.subscribe(ContainerInstantiationEventType.pre, () => assert(container.getFactory("mock1") !is null));
+    container.subscribe(ContainerInstantiationEventType.post, () => assertThrown(container.getFactory("unknown") !is null));
 
-    container.set(f, "mock");
-    container.set(f1, "mock1");
+    container.subscribe(ContainerInstantiationEventType.pre, delegate void(typeof(container) passed) => assert(passed.getFactory("mock1") !is null));
+    container.subscribe(ContainerInstantiationEventType.post, delegate void(typeof(container) passed) => assertThrown(passed.getFactory("unknown") !is null));
 
-    assert(container.get("mock") !is null);
+    container.subscribe(ContainerTerminationEventType.pre, () => assert(container.getFactory("mock1") !is null));
+    container.subscribe(ContainerTerminationEventType.post, () => assert(container.getFactory("mock1") !is null));
 
-    container.subscribe(ContainerInstantiationEventType.pre, {
-        assert(container.getFactory("mock1") !is null);
-    });
+    container.subscribe(ContainerTerminationEventType.pre, (typeof(container) passed) => assert(passed.getFactory("mock1") !is null));
+    container.subscribe(ContainerTerminationEventType.post, (typeof(container) passed) => assert(container.getFactory("mock1") !is null));
 
-    container.subscribe(ContainerInstantiationEventType.post, {
-        assertThrown(container.getFactory("mock") !is null);
-    });
+    container.subscribe(ContainerFactoryEventType.set, (ObjectFactory factory, string identity) => assert(factory.type is typeid(MockObject)));
+    container.subscribe(ContainerFactoryEventType.set, (ObjectFactory factory, string identity) => assert(identity !is null && (identity == "mock" || identity == "mock1")));
+    container.subscribe(ContainerFactoryEventType.remove, (ObjectFactory factory, string identity) => assert(factory is null));
+    container.subscribe(ContainerFactoryEventType.remove, (ObjectFactory factory, string identity) => assert(identity !is null && (identity == "mock" || identity == "mock1")));
 
-    container.link("mock", "alias");
-    assert(container.resolve("alias") == "mock");
-    container.unlink("alias");
-    assert(container.resolve("alias") != "mock");
-
-    assert(container.getFactories().map!(
-            a => a.key.among(
-                    "mock",
-                    "mock1"
-            ) && (a.value !is null)
-        ).fold!((a, b) => (a == true) && (b > 0))(true));
+    container.set(new MockFactory!MockObject, "mock");
+    container.set(new MockFactory!MockObject, "mock1");
 
     container.remove("mock");
-    assert(!container.has("mock"));
+    container.remove("mock1");
+
+    container.set(new MockFactory!MockObject, "mock");
+    container.set(new MockFactory!MockObject, "mock1");
 
     container.instantiate;
+    container.terminate;
 }

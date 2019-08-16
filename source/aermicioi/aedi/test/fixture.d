@@ -395,6 +395,44 @@ class MockObjectFactoryMethod {
     }
 }
 
+@safe class MockLocator : Locator!() {
+    import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
+
+    public {
+        /**
+		Get a Type that is associated with key.
+
+		Params:
+			identity = the element id.
+
+		Throws:
+			NotFoundException in case if the element wasn't found.
+
+		Returns:
+			Type element if it is available.
+		**/
+        Object get(string identity) {
+            return null;
+        }
+
+        /**
+        Check if an element is present in Locator by key id.
+
+        Note:
+        	This check should be done for elements that locator actually contains, and
+        	not in chained locator.
+        Params:
+        	identity = identity of element.
+
+    	Returns:
+    		bool true if an element by key is present in Locator.
+        **/
+        bool has(in string identity) inout {
+            return false;
+        }
+    }
+}
+
 //==================fixtures with more sane names================
 
 interface Identifiable(T) {

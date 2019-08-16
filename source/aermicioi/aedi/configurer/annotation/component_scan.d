@@ -210,11 +210,6 @@ Set allocator used by factory to instantiate component T.
 Set callback instance factory from @callbac annotation into GenericFactory!Z
 **/
 @safe struct CallbackFactoryConfiguratorPolicy {
-    private alias getCallbackFactories(alias T) = Filter!(
-            isCallbackFactoryAnnotation,
-            allUDAs!T
-        );
-
     /**
     Set callback instance factory from @callback annotation into GenericFactory!Z.
 
@@ -1764,18 +1759,6 @@ Default implementation of $(D_INLINECODE scan) family of functions featuring all
 **/
 mixin Scanner!(ContainerAdderImpl!());
 
-private template allUDAs(alias symbol) {
-    alias allUDAs = AliasSeq!(__traits(getAttributes, symbol));
-}
-
-private template toValue(T) {
-    enum toValue = T();
-}
-
-private template toValue(alias T) {
-     alias toValue = T;
-}
-
 /**
 A small utility function that will resolve method arguments using a locator and look also for annotations on arguments.
 
@@ -1815,13 +1798,17 @@ auto transformToReference(string reference, string symbol) {
     string delegate (string, string) alternateGen = (f, s) => f ~ ".alternate(" ~ s ~ ")";
 
     return transformToBasic(reference, symbol) ~ "
-                import std.meta : Filter;
+                import std.meta : AliasSeq;
                 import aermicioi.aedi.configurer.annotation.annotation : isQualifierAnnotation;
-                static foreach (qualifier; Filter!(
-                    isQualifierAnnotation,
-                    __traits(getAttributes, " ~ symbol ~ ")
-                )) {
-                    " ~ reference ~ " = " ~ alternateGen(typeEnforcedRefGen(symbol, lrefGen("qualifier.id")), typeEnforcedRefGen(symbol, reference)) ~ ";
+                alias Qualifiers = AliasSeq!(__traits(getAttributes, " ~ symbol ~ "));
+                static foreach (index; 0 .. Qualifiers.length) {
+                    static if (isQualifierAnnotation!(Qualifiers[index])) {
+                        " ~ reference ~ " = " ~ alternateGen(typeEnforcedRefGen(symbol, lrefGen("Qualifiers[index].id")), typeEnforcedRefGen(symbol, reference)) ~ ";
+                    }
                 }
             ";
+}
+
+private template allUDAs(alias symbol) {
+    alias allUDAs = AliasSeq!(__traits(getAttributes, symbol));
 }

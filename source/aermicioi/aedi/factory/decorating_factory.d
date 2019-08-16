@@ -33,12 +33,14 @@ Authors:
 module aermicioi.aedi.factory.decorating_factory;
 
 import aermicioi.aedi.factory.factory;
-import aermicioi.aedi.storage.allocator_aware;
+import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin, AllocatorAwareDecoratorMixin;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.storage.locator_aware;
 import aermicioi.aedi.exception.invalid_cast_exception;
 import aermicioi.aedi.exception.di_exception;
+import aermicioi.aedi.util.typecons : Subscribable, Optional, optional;
 
 alias ObjectFactoryDecorator = Decorator!ObjectFactory;
 
@@ -50,100 +52,13 @@ to decorated generic factory.
 
 	mixin AllocatorAwareDecoratorMixin!(typeof(this));
 	mixin DestructDecoratorMixin!(typeof(this));
-
-    private {
-        Locator!() locator_;
-        GenericFactory!T decorated_;
-    }
+	mixin LocatorAwareDecoratorMixin!(typeof(this));
+	mixin MutableDecoratorMixin!(GenericFactory!T);
+	mixin InstanceFactoryAwareDecoratorMixin!T;
+	mixin InstanceDestructorAwareDecoratorMixin!T;
+	mixin PropertyConfigurersAwareDecoratorMixin!T;
 
     public {
-        @property {
-
-			/**
-				Set locator
-
-				Params:
-					locator = locator used to search for created object dependencies
-				Returns:
-					typeof(this)
-			**/
-        	DecoratableGenericFactory!T locator(Locator!() locator) {
-        		this.locator_ = locator;
-
-				if (this.decorated !is null) {
-
-					this.decorated.locator = locator;
-				}
-
-        		return this;
-        	}
-
-			/**
-				Get locator
-
-				Returns:
-					Locator!()
-			**/
-        	Locator!() locator() {
-        		return this.locator_;
-        	}
-
-			/**
-            Set the decorated object for decorator.
-
-            Params:
-                decorated = decorated component
-
-            Returns:
-            	this
-            **/
-        	DecoratableGenericFactory!T decorated(GenericFactory!T decorated) @safe nothrow {
-        		this.decorated_ = decorated;
-
-        		return this;
-        	}
-
-			/**
-            Get the decorated object.
-
-            Returns:
-            	GenericFactory!T decorated object
-            **/
-        	inout(GenericFactory!T) decorated() @safe nothrow inout {
-        		return this.decorated_;
-        	}
-
-			/**
-            Sets the constructor of new object.
-
-            Params:
-            	factory = a factory of objects of type T.
-
-        	Returns:
-    			The GenericFactoryInstance
-            **/
-        	GenericFactory!T setInstanceFactory(InstanceFactory!T factory) {
-        	    this.decorated.setInstanceFactory(factory);
-
-        	    return this;
-        	}
-
-			/**
-            Set destructor
-
-            Params:
-                destructor = the destructor used to destruct components created by this factory.
-
-            Returns:
-                typeof(this)
-            **/
-            typeof(this) setInstanceDestructor(InstanceDestructor!T destructor) {
-                this.decorated.setInstanceDestructor(destructor);
-
-                return this;
-            }
-        }
-
 		/**
 		Instantiates something of type T.
 
@@ -162,21 +77,6 @@ to decorated generic factory.
 		**/
         TypeInfo type() @safe nothrow const {
             return this.decorated.type();
-        }
-
-		/**
-        Adds an configurer to the GenericFactory.
-
-        Params:
-        	configurer = a configurer that will be invoked after factory of an object.
-
-    	Returns:
-    		The GenericFactoryInstance
-        **/
-        GenericFactory!T addPropertyConfigurer(PropertyConfigurer!T configurer) {
-            this.decorated.addPropertyConfigurer(configurer);
-
-            return this;
         }
     }
 }
@@ -477,7 +377,7 @@ when decorated factory threws some kind of exception.
 					text(
 						"An error occured during instantiation of component registered in file: ",
 						this.file,
-						" at line ",
+						":",
 						this.line
 					),
 					null,
@@ -506,7 +406,7 @@ when decorated factory threws some kind of exception.
 					text(
 						"An error occured during destruction of component registered in file: ",
 						this.file,
-						" at line ",
+						":",
 						this.line
 					),
 					null,
@@ -516,6 +416,5 @@ when decorated factory threws some kind of exception.
                 );
 			}
 		}
-
     }
 }

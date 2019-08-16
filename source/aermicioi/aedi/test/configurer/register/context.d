@@ -32,7 +32,7 @@ module aermicioi.aedi.test.configurer.register.context;
 import aermicioi.aedi.configurer.register.context;
 import aermicioi.aedi.configurer.register.factory_configurer;
 import aermicioi.aedi.container.singleton_container;
-import aermicioi.aedi.container.deffered_container;
+import aermicioi.aedi.container.deferred_container;
 import aermicioi.aedi.container.application_container;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.object_storage;
@@ -84,46 +84,38 @@ unittest {
     Locator!() locator = container;
     scope(exit) container.terminate;
 
-    RegistrationContext!() context;
-
-    context = storage.configure(locator);
+    auto context = storage.configure(locator);
 
     assert(context.storage is storage);
     assert(context.locator is locator);
-    context = RegistrationContext!()();
 
     context = locator.configure(storage);
 
     assert(context.storage is storage);
     assert(context.locator is locator);
-    context = RegistrationContext!()();
 
     context = locator.configure("singleton");
 
     assert(context.storage is locator.locate!(Storage!(ObjectFactory, string))("singleton"));
     assert(context.locator is locator);
-    context = RegistrationContext!()();
 
-    context = storage.configure(null).along(locator);
-
-    assert(context.storage is storage);
-    assert(context.locator is locator);
-    context = RegistrationContext!()();
-
-    context = locator.configure(cast(Storage!(ObjectFactory, string)) null).along(storage);
+    context = storage.configure(new ObjectStorage!(Object, string)).along(locator);
 
     assert(context.storage is storage);
     assert(context.locator is locator);
-    context = RegistrationContext!()();
 
-    context = locator.configure(cast(Storage!(ObjectFactory, string)) null).along("singleton");
+    context = locator.configure(new ObjectStorage!(ObjectFactory, string)).along(storage);
+
+    assert(context.storage is storage);
+    assert(context.locator is locator);
+
+    context = locator.configure(new ObjectStorage!(ObjectFactory, string)).along("singleton");
 
     assert(context.storage is locator.locate!(Storage!(ObjectFactory, string))("singleton"));
     assert(context.locator is locator);
-    context = RegistrationContext!()();
 
     auto mallocator = Mallocator.instance.allocatorObject;
-    context = locator.configure(cast(Storage!(ObjectFactory, string)) null, theAllocator).along(storage);
+    context = locator.configure(new ObjectStorage!(ObjectFactory, string), theAllocator).along(storage);
 
     assert(context.allocator is theAllocator);
     context = context.along(mallocator);
@@ -149,7 +141,7 @@ unittest {
     SingletonContainer container = new SingletonContainer;
     scope(exit) container.terminate;
 
-    with (container.configure.withRegistrationInfo) {
+    with (container.configure) {
 
         register!MockObject("identity")
             .callback(
@@ -200,11 +192,10 @@ unittest {
 }
 
 unittest {
-    SingletonContainer singleton = new SingletonContainer;
-    DefferedContainer!SingletonContainer container = new DefferedContainer!SingletonContainer(singleton);
+    auto container = new DeferredContainer!SingletonContainer(new SingletonContainer);
     scope(exit) container.terminate;
 
-    with (container.configure.withConfigurationDefferring) {
+    with (container.configure.applying!DeferredFactoryPolicy) {
 
         register!CircularMockObject("first")
             .set!"circularDependency"("second".lref);
@@ -217,22 +208,3 @@ unittest {
         container.locate!CircularMockObject("second")
         );
 }
-
-// Closing it due to not being finished completely
-// unittest {
-//     SingletonContainer singleton = new SingletonContainer;
-//     DefferedContainer!SingletonContainer container = new DefferedContainer!SingletonContainer(singleton);
-
-//     with (container.configure.withConstructionDefferring) {
-
-//         register!MockCircularConstructionObject("first")
-//             .construct!("second".lref);
-//         register!MockCircularConstructionObject("second")
-//             .construct!("first".lref);
-//     }
-
-//     assert(
-//         container.locate!CircularMockObject("first").circularDependency is
-//         container.locate!CircularMockObject("second")
-//         );
-// }

@@ -83,13 +83,6 @@ unittest
 
 unittest
 {
-    auto container = deffered(singleton());
-
-    assert(typeid(container) is typeid(DefferedContainer!SingletonContainer));
-}
-
-unittest
-{
     auto container = gcRegistered(singleton());
 
     assert(typeid(container) is typeid(GcRegisteringContainer!SingletonContainer));
@@ -97,11 +90,19 @@ unittest
 
 unittest
 {
-    import aermicioi.aedi.storage.locator : locate;
-    import aermicioi.aedi.factory.generic_factory : DefferredExecutioner;
-    auto container = deffered(singleton(), "deff");
+    auto container = deferred(singleton());
 
-    assert(container.locate!DefferredExecutioner("deff") is container.executioner);
+    assert(typeid(container) is typeid(DeferredContainer!SingletonContainer));
+}
+
+unittest
+{
+    import aermicioi.aedi.storage.locator : locate;
+    import aermicioi.aedi.factory.deferring_factory;
+    import aermicioi.aedi.container.deferred_container;
+    auto container = deferred(singleton(), "deff");
+
+    assert(container.locate!DeferralContext("deff") !is null);
 }
 
 unittest

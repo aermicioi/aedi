@@ -30,56 +30,99 @@ Authors:
 module aermicioi.aedi.container.subscribable_container;
 
 import aermicioi.aedi.container.container;
-import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.storage.locator : LocatorMixin;
 import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.util.traits;
+import aermicioi.aedi.util.typecons : Subscribable, SubscribableMixin, Optional, optional;
 import std.meta;
 import std.traits;
 
 import std.range.interfaces;
 
 /**
-Interface for objects that can be subscribed to specific events emmited by them.
-**/
-@safe interface Subscribable(T)
-{
-
-    public
-    {
-
-        /**
-        Subscriber a delegate to a particular event emmited by object
-
-        Params:
-        	type = type of event emmited by object
-         subscriber = the callback to be called on event emmited
-        Returns:
-        	typeof(this)
-        **/
-        Subscribable subscribe(T type, void delegate() @safe subscriber);
-    }
-}
-
-/**
-Enumeration of events supported by SubscribableContainer for instantiation functionality.
+Denotes pointcuts at which events for instantiation will be run.
 **/
 enum ContainerInstantiationEventType
 {
 
     /**
-    Event run before beggining of instantiation process
+    Event emitted before beggining of instantiation process
     **/
     pre,
 
     /**
-    Event run after end of instantiation process
+    Event emitted after end of instantiation process
     **/
     post,
+}
+
+/**
+Denotes pointcuts at which events for termination will be run.
+**/
+enum ContainerTerminationEventType
+{
+    /**
+    Event emitted before termination of container started.
+    **/
+    pre,
+
+    /**
+    Event emitted after termination of container ended.
+    **/
+    post
+}
+
+/**
+Denotes store and removal of component factories.
+**/
+enum ContainerFactoryEventType
+{
+    /**
+    Event emitted before component is set in decorated container.
+    **/
+    set,
+
+    /**
+    Event emitted after component is removed from decorated container.
+    **/
+    remove
+}
+
+/**
+Denotes pointcuts at which element is accessed.
+**/
+enum ContainerAccessEventType
+{
+    /**
+    Event emitted before component is accessed in decorated container.
+    **/
+    pre,
+
+    /**
+    Event emitted after component is accessed in decorated container.
+    **/
+    post
+}
+
+/**
+Denotes pointcuts at which events for checking for component will be run.
+**/
+enum ContainerCheckEventType
+{
+    /**
+    Event emitted before component is checked in decorated container.
+    **/
+    pre,
+
+    /**
+    Event emitted after component is checked in decorated container.
+    **/
+    post
 }
 
 /**
@@ -127,48 +170,43 @@ template SubscribableContainer(T)
         ),
         InterfacesTuple!T),
         Container,
-        Subscribable!ContainerInstantiationEventType,
+        Subscribable!(ContainerInstantiationEventType, void delegate () @safe),
+        Subscribable!(ContainerInstantiationEventType, void delegate(SubscribableContainer!T container) @safe),
+        Subscribable!(ContainerTerminationEventType, void delegate() @safe),
+        Subscribable!(ContainerTerminationEventType, void delegate(SubscribableContainer!T container) @safe),
+        Subscribable!(ContainerFactoryEventType, void delegate(ObjectFactory factory, string) @safe),
+        Subscribable!(ContainerAccessEventType, void delegate (Optional!Object component, Optional!string key) @safe),
+        Subscribable!(ContainerCheckEventType, void delegate(Optional!bool existence, Optional!string key) @safe),
         Decorator!Container
     );
 
     @safe class SubscribableContainer : InheritanceSet
     {
-        private
-        {
-            void delegate() @safe[][ContainerInstantiationEventType] subscribers;
-        }
+        mixin MutableDecoratorMixin!T;
+
+        mixin SubscribableMixin!(ContainerInstantiationEventType, void delegate() @safe) InstantiationSubscribers;
+        mixin SubscribableMixin!(ContainerInstantiationEventType, void delegate(SubscribableContainer!T) @safe) InstantiationSubscribersWithContainerRef;
+
+        mixin SubscribableMixin!(ContainerTerminationEventType, void delegate() @safe) TerminationSubscribers;
+        mixin SubscribableMixin!(ContainerTerminationEventType, void delegate (SubscribableContainer!T) @safe) TerminationSubscribersWithContainerRef;
+
+        mixin SubscribableMixin!(ContainerFactoryEventType, void delegate(ObjectFactory factory, string) @safe) FactorySubscribers;
+
+        mixin SubscribableMixin!(ContainerAccessEventType, void delegate (Optional!Object, Optional!string) @safe) ContainerAccessSubscribers;
+        mixin SubscribableMixin!(ContainerCheckEventType, void delegate (Optional!bool, Optional!string) @safe) ContainerCheckSubscribers;
 
         public
         {
+            alias subscribe = InstantiationSubscribers.subscribe;
+            alias subscribe = InstantiationSubscribersWithContainerRef.subscribe;
 
-            /**
-            Default constructor for SubscribableContainer
-            **/
-            this()
-            {
-                subscribers[ContainerInstantiationEventType.pre] = null;
-                subscribers[ContainerInstantiationEventType.post] = null;
-            }
+            alias subscribe = TerminationSubscribers.subscribe;
+            alias subscribe = TerminationSubscribersWithContainerRef.subscribe;
 
-            mixin MutableDecoratorMixin!T;
-            mixin LocatorMixin!(typeof(this));
+            alias subscribe = FactorySubscribers.subscribe;
 
-            /**
-            Subscriber a delegate to a particular event emmited by object
-
-            Params:
-                event = type of event emmited by object
-                subscriber = the callback to be called on event emmited
-            Returns:
-           	    typeof(this)
-            **/
-            SubscribableContainer subscribe(ContainerInstantiationEventType event,
-                    void delegate() @safe subscriber)
-            {
-                this.subscribers[event] ~= subscriber;
-
-                return this;
-            }
+            alias subscribe = ContainerAccessSubscribers.subscribe;
+            alias subscribe = ContainerCheckSubscribers.subscribe;
 
             /**
             Sets up the internal state of container.
@@ -177,17 +215,11 @@ template SubscribableContainer(T)
             **/
             SubscribableContainer instantiate()
             {
-                foreach (preProcessor; this.subscribers[ContainerInstantiationEventType.pre])
-                {
-                    preProcessor();
-                }
-
+                InstantiationSubscribers.invoke(ContainerInstantiationEventType.pre);
+                InstantiationSubscribersWithContainerRef.invoke(ContainerInstantiationEventType.pre, this);
                 this.decorated.instantiate();
-
-                foreach (postProcessor; this.subscribers[ContainerInstantiationEventType.post])
-                {
-                    postProcessor();
-                }
+                InstantiationSubscribersWithContainerRef.invoke(ContainerInstantiationEventType.post, this);
+                InstantiationSubscribers.invoke(ContainerInstantiationEventType.post);
 
                 return this;
             }
@@ -199,14 +231,85 @@ template SubscribableContainer(T)
             by it.
             **/
             Container terminate() {
+                TerminationSubscribers.invoke(ContainerTerminationEventType.pre);
+                TerminationSubscribersWithContainerRef.invoke(ContainerTerminationEventType.pre, this);
                 this.decorated.terminate();
+                TerminationSubscribersWithContainerRef.invoke(ContainerTerminationEventType.post, this);
+                TerminationSubscribers.invoke(ContainerTerminationEventType.post);
 
                 return this;
             }
 
+            /**
+            Get component from decorated container.
+
+            Params:
+                key = identity of component
+            Returns:
+            Object
+            **/
+            Object get(string key)
+            {
+                ContainerAccessSubscribers.invoke(ContainerAccessEventType.pre, optional!Object, key.optional);
+                Object object = this.decorated.get(key);
+                ContainerAccessSubscribers.invoke(ContainerAccessEventType.post, object.optional, key.optional);
+
+                return object;
+            }
+
+            /**
+            Check if component exists in container.
+
+            Params:
+                key = identity of component.
+            Returns:
+                bool true if it exists.
+            **/
+            bool has(in string key) inout
+            {
+                ContainerCheckSubscribers.invoke(ContainerCheckEventType.pre, optional!bool, key[].optional);
+                bool result = this.decorated.has(key);
+                ContainerCheckSubscribers.invoke(ContainerCheckEventType.post, result.optional, key[].optional);
+
+                return result;
+            }
+
             static if (is(T : Storage!(ObjectFactory, string)))
             {
-                mixin StorageMixin!(typeof(this));
+                /**
+                Set component in decorated by identity.
+
+                Params:
+                    identity = identity of factory.
+                    element = factory that is to be saved in decorated.
+
+                Return:
+                    SwitchableContainer!T decorating decorated.
+                **/
+                typeof(this) set(ObjectFactory element, string identity) {
+                    FactorySubscribers.invoke(ContainerFactoryEventType.set, element, identity);
+                    this.decorated.set(element, identity);
+
+                    return this;
+                }
+
+                /**
+                Remove factory from decorated with identity.
+
+                Remove factory from decorated with identity.
+
+                Params:
+                    identity = the identity of factory to be removed.
+
+                Return:
+                    SwitchableContainer!T decorating decorated
+                **/
+                typeof(this) remove(string identity) {
+                    decorated.remove(identity);
+
+                    FactorySubscribers.invoke(ContainerFactoryEventType.remove, null, identity);
+                    return this;
+                }
             }
 
             static if (is(T : AliasAware!string))

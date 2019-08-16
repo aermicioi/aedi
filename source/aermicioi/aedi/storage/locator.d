@@ -149,3 +149,44 @@ ditto
 
     return locator.locate!T(id);
 }
+
+/**
+Mix in locator interface implementation that delegates
+the logic to decorated container.
+**/
+@safe mixin template LocatorMixin(T : Locator!(W, X), W, X) {
+    mixin LocatorMixin!(W, X);
+}
+
+/**
+ditto
+**/
+@safe mixin template LocatorMixin(W, X) {
+    /**
+    Get object created by a factory identified by key
+
+    Params:
+        key = identity of factory
+    Returns:
+    Object
+    **/
+    W get(X key)
+    in(decorated !is null, "Cannot get component out of decorated component container, when no container to decorate is provided.")
+    {
+        return this.decorated.get(key);
+    }
+
+    /**
+    Check if an object factory for it exists in container.
+
+    Params:
+        key = identity of factory
+    Returns:
+        bool
+    **/
+    bool has(in X key) inout
+    in(decorated !is null, "Cannot check if component is in decorated component container, when no container to decorate is provided.")
+    {
+        return this.decorated_.has(key);
+    }
+}

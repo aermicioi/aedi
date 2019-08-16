@@ -543,9 +543,9 @@ auto makeFunctionParameterReferences(alias FunctionType, alias transformer = tra
 
         Repeat!(params.length, RuntimeReference) references;
 
-        static foreach (index, reference; references) {
+        static foreach (index, reference; references) {{
             mixin(transformer("references[" ~ index.to!string ~ "]", "params[" ~ index.to!string ~ ".." ~ (index + 1).to!string ~ "]"));
-        }
+        }}
 
         return tuple(references);
     }

@@ -30,7 +30,6 @@ Authors:
 module aermicioi.aedi.container.type_based_container;
 
 import aermicioi.aedi.container.container;
-import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.storage;
@@ -100,7 +99,7 @@ template TypeBasedContainer(T) {
         public {
             mixin MutableDecoratorMixin!T;
 
-            import aermicioi.aedi.container.decorating_mixin : ContainerMixin;
+            import aermicioi.aedi.container.container : ContainerMixin;
             mixin ContainerMixin!(typeof(this));
 
             /**

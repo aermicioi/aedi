@@ -58,5 +58,5 @@ public import aermicioi.aedi.container.switchable_container;
 public import aermicioi.aedi.container.tuple_container;
 public import aermicioi.aedi.container.type_based_container;
 public import aermicioi.aedi.container.value_container;
-public import aermicioi.aedi.container.deffered_container;
+public import aermicioi.aedi.container.deferred_container;
 public import aermicioi.aedi.container.gc_registering_container;

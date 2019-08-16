@@ -87,7 +87,9 @@ A mixin that implements a destruct delegating mechanism to decorated factory
     Params:
         component = component that is to ve destroyed.
     **/
-    void destruct(ref Z component) @safe {
+    void destruct(ref Z component) @safe
+    in (decorator !is null, "A factory that decorates another cannot destroy a component when no decorated factory is set.")
+    {
 
         this.decorated.destruct(component);
     }
@@ -104,7 +106,9 @@ A mixin that implements a factory delegating mechanism to decorated factory
     Returns:
         T instantiated component.
     **/
-    Z factory() @safe {
+    Z factory() @safe
+    in (decorator !is null, "A factory that decorates another cannot create a component when no decorated factory is set.")
+    {
         return this.decorated.factory();
     }
 }

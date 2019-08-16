@@ -27,7 +27,7 @@ License:
 Authors:
 	aermicioi
 **/
-module aermicioi.aedi.test.container.deffered_container;
+module aermicioi.aedi.test.factory.deferring_factory;
 
 import aermicioi.aedi.container.singleton_container;
 import aermicioi.aedi.test.fixture;
@@ -35,33 +35,34 @@ import aermicioi.aedi.exception.circular_reference_exception;
 import aermicioi.aedi.exception.not_found_exception;
 import aermicioi.aedi.factory.wrapping_factory;
 import aermicioi.aedi.factory.generic_factory;
-import aermicioi.aedi.container.deffered_container;
-import aermicioi.aedi.factory.reference;
+import aermicioi.aedi.factory.deferring_factory;
+import aermicioi.aedi.factory.reference : lref;
 import aermicioi.aedi.storage.locator;
 
 import std.algorithm;
 import std.exception;
 
 unittest {
+    import aermicioi.aedi.container.singleton_container;
+    import aermicioi.aedi.factory.wrapping_factory;
     SingletonContainer storage = new SingletonContainer();
-    DefferedContainer!SingletonContainer deffered = new DefferedContainer!SingletonContainer(storage);
-
-    GenericFactoryImpl!CircularMockObject first = new GenericFactoryImpl!CircularMockObject(storage);
-    GenericFactoryImpl!CircularMockObject second = new GenericFactoryImpl!CircularMockObject(storage);
-    first.executioner = deffered.executioner;
-    second.executioner = deffered.executioner;
+    DeferralContext context = new DeferralContext();
+    GenericFactory!CircularMockObject first = new DeferringFactory!CircularMockObject(new GenericFactoryImpl!CircularMockObject(storage), context);
+    GenericFactory!CircularMockObject second = new DeferringFactory!CircularMockObject(new GenericFactoryImpl!CircularMockObject(storage), context);
 
     storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(first), "first");
     storage.set(new WrappingFactory!(GenericFactory!CircularMockObject)(second), "second");
 
-    first.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(new LocatorReference("second")));
-    second.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)(new LocatorReference("first")));
+    first.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)("second".lref));
+    second.addPropertyConfigurer(fieldConfigurer!("circularDependency_", CircularMockObject)("first".lref));
 
-    CircularMockObject fObject = deffered.locate!CircularMockObject("first");
-    CircularMockObject sObject = deffered.locate!CircularMockObject("second");
+    CircularMockObject fObject = storage.locate!CircularMockObject("first");
+    CircularMockObject sObject = storage.locate!CircularMockObject("second");
 
-    assert(deffered.locate!(DefferredExecutioner) is deffered.executioner);
+	if (context.pending) {
+		context.execute;
+	}
+
     assert(sObject.circularDependency_ !is null);
-    assert(deffered.has(name!DefferredExecutioner));
-    assert(deffered.has("first"));
+    assert(fObject.circularDependency_ !is null);
 }

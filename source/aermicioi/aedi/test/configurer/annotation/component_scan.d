@@ -159,6 +159,7 @@ class SetterFieldMockFactory {
 unittest {
     ObjectStorage!() storage = new ObjectStorage!();
     GenericFactory!SetterFieldMockFactory mock = new GenericFactoryImpl!SetterFieldMockFactory(storage);
+    mock.locator = new MockLocator;
     SetterFieldConfiguratorPolicy.configureField!"i"(mock, storage);
 
     assert(mock.factory.i == 10);
@@ -519,11 +520,27 @@ class CustomAllocatorMock {
 }
 
 unittest {
+    import aermicioi.aedi.storage.locator_aware : LocatorAwareMixin;
+
     ObjectStorage!() storage = new ObjectStorage!();
     GenericFactoryImpl!CustomAllocatorMock mock = new GenericFactoryImpl!CustomAllocatorMock(storage);
     AllocatorConfiguratorPolicy.configure(mock, storage);
+    RCIAllocator allocatorStorage;
+    mock.setInstanceFactory(new class() InstanceFactory!CustomAllocatorMock {
+        mixin LocatorAwareMixin!();
 
-    assert(!mock.allocator.isNull);
+        CustomAllocatorMock factory() @safe {
+            return new CustomAllocatorMock();
+        }
+
+        typeof(this) allocator(RCIAllocator allocator) @safe nothrow {
+            allocatorStorage = allocator;
+
+            return this;
+        }
+    });
+
+    assert(!allocatorStorage.isNull);
 }
 
 @component

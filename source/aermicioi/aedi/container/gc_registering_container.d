@@ -31,8 +31,8 @@ module aermicioi.aedi.container.gc_registering_container;
 
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.object_storage;
-import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.decorator;
+import aermicioi.aedi.storage.locator : LocatorMixin;
 import aermicioi.aedi.storage.alias_aware;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.factory.factory;

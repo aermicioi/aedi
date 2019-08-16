@@ -1,13 +1,13 @@
-module aermicioi.aedi.container.deffered_container;
+module aermicioi.aedi.container.deferred_container;
 
 import aermicioi.aedi.container.container;
 import aermicioi.aedi.storage.decorator;
-import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.alias_aware;
-import aermicioi.aedi.factory.generic_factory;
+import aermicioi.aedi.factory.deferring_factory;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
+import aermicioi.aedi.factory.reference : RuntimeReference, resolve;
 
 import std.meta;
 import std.traits;
@@ -33,7 +33,7 @@ Decorated container must implement following interfaces:
 Params:
     T = The decorated that switchable decorated will decorate.
 **/
-template DefferedContainer(T)
+template DeferredContainer(T)
 {
 
     /**
@@ -60,13 +60,12 @@ template DefferedContainer(T)
         Decorator!Container
     );
 
-    @safe class DefferedContainer : InheritanceSet
+    @safe class DeferredContainer : InheritanceSet
     {
         private
         {
-            DefferredExecutioner executioner_;
-            string identity_;
-            size_t depth;
+            DeferralContext context;
+            const string contextIdentity;
         }
 
         public
@@ -75,69 +74,17 @@ template DefferedContainer(T)
             /**
             Default constructor for DefferedContainer
             **/
-            this(string identity = typeid(DefferredExecutioner).toString())
+            this(T container)
             {
-                this.identity = identity;
-                this.executioner = new DefferredExecutionerImpl;
+                this.decorated = container;
+                context = new DeferralContext();
+                contextIdentity = typeid(DeferralContext).toString();
             }
 
-            this(T decorated, string identity = typeid(DefferredExecutioner).toString()) {
-                this(identity);
-
-                this.decorated = decorated;
-            }
-
-            @property
-            {
-                /**
-                Set executioner
-
-                Params:
-                    executioner = the executioner that stores and executed deffered actions.
-
-                Returns:
-                    typeof(this)
-                **/
-                typeof(this) executioner(DefferredExecutioner executioner) @safe nothrow pure {
-                    this.executioner_ = executioner;
-
-                    return this;
-                }
-
-                /**
-                Get executioner
-
-                Returns:
-                    DefferredExecutioner
-                **/
-                DefferredExecutioner executioner() @safe nothrow pure {
-                    return this.executioner_;
-                }
-
-                /**
-                Set identity
-
-                Params:
-                    identity = identity of executioner identified in container.
-
-                Returns:
-                    typeof(this)
-                **/
-                typeof(this) identity(string identity) @safe nothrow pure {
-                    this.identity_ = identity;
-
-                    return this;
-                }
-
-                /**
-                Get identity
-
-                Returns:
-                    string
-                **/
-                string identity() @safe nothrow pure {
-                    return this.identity_;
-                }
+            this(T container, string contextIdentity) {
+                this.decorated = container;
+                context = new DeferralContext();
+                this.contextIdentity = contextIdentity;
             }
 
             mixin MutableDecoratorMixin!T;
@@ -167,16 +114,14 @@ template DefferedContainer(T)
             **/
             Object get(string key)
             {
-                if (key == this.identity) {
-                    return (() @trusted => cast(Object) this.executioner)();
+                if (key == contextIdentity) {
+                    return context;
                 }
 
-                ++this.depth;
                 Object result = this.decorated.get(key);
-                --this.depth;
 
-                if (this.depth == 0) {
-                    this.executioner.execute;
+                if (context.pending) {
+                    context.execute;
                 }
 
                 return result;
@@ -192,7 +137,7 @@ template DefferedContainer(T)
             **/
             bool has(in string key) inout
             {
-                if (key == this.identity_) {
+                if (key == this.contextIdentity) {
                     return true;
                 }
 

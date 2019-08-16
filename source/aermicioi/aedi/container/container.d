@@ -67,6 +67,41 @@ Interface for objects that instantiate and manage the lifetime of objects in it.
 }
 
 /**
+Mix in container interface implementation that delegates
+it to decorated container.
+**/
+@safe mixin template ContainerMixin(T : Container) {
+
+    /**
+    Sets up the internal state of container.
+
+    Sets up the internal state of container (Ex, for singleton container it will spawn all objects that locator contains).
+    **/
+    typeof(this) instantiate()
+    in (this.decorated !is null, "A container that decorates another container cannot instantiate components when no decorated container has been set")
+    {
+        this.decorated.instantiate();
+
+        return this;
+    }
+
+
+    /**
+    Destruct all managed components.
+
+    Destruct all managed components. The method denotes the end of container lifetime, and therefore destruction of all managed components
+    by it.
+    **/
+    typeof(this) terminate()
+    in (this.decorated !is null, "A container that decorates another container cannot terminate components when no decorated container has been set.")
+    {
+        this.decorated.terminate();
+
+        return this;
+    }
+}
+
+/**
 Provide an interface for accessing factories used by containers to instantiate component.
 **/
 @safe interface FactoryLocator(T : Factory!Z, Z) {
@@ -99,5 +134,47 @@ Provide an interface for accessing factories used by containers to instantiate c
         	InputRange!(Tuple!(T, string)) a tuple of factory => identity.
         **/
         InputRange!(Pair!(T, string)) getFactories();
+    }
+}
+
+/**
+Mix in factory locator interface implementation that delegates
+the logic to decorated container.
+**/
+@safe mixin template FactoryLocatorMixin(T : FactoryLocator!W, W) {
+    import std.range.interfaces : InputRange;
+    import aermicioi.aedi.util.typecons : Pair, pair;
+
+    /**
+    Get factory for constructed component identified by identity.
+
+    Get factory for constructed component identified by identity.
+    Params:
+        identity = the identity of component that factory constructs.
+
+    Throws:
+        NotFoundException when factory for it is not found.
+
+    Returns:
+        ObjectFactory the factory for constructed component.
+    **/
+    W getFactory(string identity)
+    in (decorated !is null, "A container that is decorating factory locator interface cannot operate without a decorated container")
+    {
+        return this.decorated.getFactory(identity);
+    }
+
+    /**
+    Get all factories available in container.
+
+    Get all factories available in container.
+
+    Returns:
+        InputRange!(Tuple!(ObjectFactory, string)) a tuple of factory => identity.
+    **/
+    InputRange!(Pair!(W, string)) getFactories()
+    in (decorated !is null, "A container that is decorating factory locator interface cannot operate without a decorated container")
+    {
+        return this.decorated.getFactories();
     }
 }

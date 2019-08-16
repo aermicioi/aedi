@@ -30,7 +30,6 @@ Authors:
 module aermicioi.aedi.container.describing_container;
 
 import aermicioi.aedi.container.container;
-import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.object_storage;
 import aermicioi.aedi.storage.decorator;
 import aermicioi.aedi.storage.alias_aware;
@@ -206,7 +205,7 @@ Describer that stores a list of descriptions based on identity, based on which i
             ptrdiff_t index = this.descriptions.countUntil!(d => d.identity == identity);
 
             if (index > -1) {
-                return this.descriptions[index].optional;
+                return cast(Optional!(const(Description!IdentityType))) this.descriptions[index].optional;
             }
 
             return Optional!(const(Description!IdentityType))();

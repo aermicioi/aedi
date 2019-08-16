@@ -92,7 +92,9 @@ ditto
         Returns:
             typeof(this)
         **/
-        typeof(this) locator(Locator!(Type, KeyType) locator) @safe {
+        typeof(this) locator(Locator!(Type, KeyType) locator) @safe nothrow
+        in (locator !is null, "A locator is expected not null.")
+        {
             this.locator_ = locator;
 
             return this;
@@ -104,8 +106,49 @@ ditto
         Returns:
             Locator!(Type, KeyType)
         **/
-        inout(Locator!(Type, KeyType)) locator() @safe nothrow inout {
+        inout(Locator!(Type, KeyType)) locator() @safe nothrow inout
+        out(lc; lc !is null, "Cannot return a locator, when it wasn't set in first case.") {
             return this.locator_;
+        }
+    }
+}
+
+/**
+Mixin implementing LocatorAware interface for a component of type T delegating to a decorated instance.
+**/
+@safe mixin template LocatorAwareDecoratorMixin(T : LocatorAware!(Z, X), Z, X) {
+    mixin LocatorAwareDecoratorMixin!(Z, X);
+}
+
+@safe mixin template LocatorAwareDecoratorMixin(Type = Object, KeyType = string) {
+    import aermicioi.aedi.storage.locator;
+    @property {
+        /**
+        Set locator
+
+        Params:
+            locator = the locator used somehow by locator aware component
+
+        Returns:
+            typeof(this)
+        **/
+        typeof(this) locator(Locator!(Type, KeyType) locator) @safe
+        in (locator !is null, "A locator is expected not null.")
+        {
+            this.decorated.locator = locator;
+
+            return this;
+        }
+
+        /**
+        Get locator
+
+        Returns:
+            Locator!(Type, KeyType)
+        **/
+        inout(Locator!(Type, KeyType)) locator() @safe inout
+        out(lc; lc !is null, "Cannot return a locator, when it wasn't set in first case.") {
+            return this.decorated.locator;
         }
     }
 }

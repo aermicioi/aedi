@@ -72,7 +72,7 @@ Returns:
 	Z.
 **/
 
-auto construct(Z : InstanceFactoryAware!T, T, Args...)(Z factory, auto ref Args args) {
+Z construct(Z : InstanceFactoryAware!T, T, Args...)(Z factory, auto ref Args args) {
     factory.setInstanceFactory(constructorBasedFactory!T(args));
 
     return factory;
@@ -146,7 +146,7 @@ Params:
 Returns:
 	Z.
 **/
-auto set(string property, Z : PropertyConfigurersAware!T, T, Args...)(Z factory, auto ref Args args)
+Z set(string property, Z : PropertyConfigurersAware!T, T, Args...)(Z factory, auto ref Args args)
     if (!isField!(T, property)) {
     mixin assertObjectMethodCompatible!(T, property, Args);
 
@@ -170,7 +170,7 @@ Params
 Returns:
 	Z.
 **/
-auto set(string property, Z : PropertyConfigurersAware!T, T, Arg)(Z factory, auto ref Arg arg)
+Z set(string property, Z : PropertyConfigurersAware!T, T, Arg)(Z factory, auto ref Arg arg)
     if (isField!(T, property)) {
     mixin assertFieldCompatible!(T, property, Arg);
 
@@ -192,7 +192,7 @@ Params:
 Returns:
 	Z.
 **/
-auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T delegate(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
+Z callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T delegate(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
     factory.setInstanceFactory(callbackFactory!T(dg, args));
 
     return factory;
@@ -201,7 +201,7 @@ auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T delegate(RCIA
 /**
 ditto
 **/
-auto callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T function(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
+Z callback(Z : InstanceFactoryAware!T, T, Args...)(Z factory, T function(RCIAllocator, Locator!(), Args) dg, auto ref Args args) {
     factory.setInstanceFactory(callbackFactory!T(dg, args));
 
     return factory;
@@ -220,7 +220,7 @@ Params:
 Returns:
     Z
 **/
-auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delegate(Locator!(), T, Args) dg, auto ref Args args) {
+Z callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delegate(Locator!(), T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(dg, args));
 
     return factory;
@@ -229,7 +229,7 @@ auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delega
 /**
 ditto
 **/
-auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void function(Locator!(), T, Args) dg, auto ref Args args) {
+Z callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void function(Locator!(), T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(dg, args));
 
     return factory;
@@ -238,7 +238,7 @@ auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void functi
 /**
 ditto
 **/
-auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delegate(Locator!(), ref T, Args) dg, auto ref Args args) {
+Z callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delegate(Locator!(), ref T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(dg, args));
 
     return factory;
@@ -247,7 +247,7 @@ auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void delega
 /**
 ditto
 **/
-auto callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void function(Locator!(), ref T, Args) dg, auto ref Args args) {
+Z callback(Z : PropertyConfigurersAware!T, T, Args...)(Z factory, void function(Locator!(), ref T, Args) dg, auto ref Args args) {
     factory.addPropertyConfigurer(callbackConfigurer!T(dg, args));
 
     return factory;
@@ -273,7 +273,7 @@ Params:
 Returns:
     Z
 **/
-auto autowire(Z : InstanceFactoryAware!T, T)(Z factory)
+Z autowire(Z : InstanceFactoryAware!T, T)(Z factory)
     if (getMembersWithProtection!(T, "__ctor", "public").length > 0) {
 
     alias ctor = getMembersWithProtection!(T, "__ctor", "public")[0];
@@ -284,7 +284,7 @@ auto autowire(Z : InstanceFactoryAware!T, T)(Z factory)
 /**
 ditto
 **/
-auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
+Z autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
     if (getMembersWithProtection!(T, member, "public").length > 0) {
     alias method = getMembersWithProtection!(T, member, "public")[0];
 
@@ -300,7 +300,7 @@ auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
 /**
 ditto
 **/
-auto autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
+Z autowire(string member, Z : PropertyConfigurersAware!T, T)(Z factory)
     if (isField!(T, member)) {
 
     alias field = getMember!(T, member);
@@ -322,7 +322,7 @@ Params:
     factory = ConfigurationContextFactory where to inject the constructor or method configurer
     value = default value used to instantiate component
 **/
-auto value(Z : InstanceFactoryAware!T, T)(Z factory, auto ref T value) {
+Z value(Z : InstanceFactoryAware!T, T)(Z factory, auto ref T value) {
     factory.setInstanceFactory(new ValueInstanceFactory!T(value));
 
     return factory;
@@ -336,7 +336,7 @@ Params:
     factory = factory that uses the parent factory for component instantiation
     delegated = the factory used by factory to instantiate an object.
 **/
-auto parent(Z : InstanceFactoryAware!T, T, X : Factory!W, W : T)(Z factory, X delegated) {
+Z parent(Z : InstanceFactoryAware!T, T, X : Factory!W, W : T)(Z factory, X delegated) {
     factory.setInstanceFactory(new DelegatingInstanceFactory!(T, W)(delegated));
 
     return factory;
@@ -354,31 +354,35 @@ Params:
 Returns:
 	factory
 **/
-auto tag(W : ConfigurationContextFactory!T, T, Z)(W factory, auto ref Z tag) {
-    Taggable!Z taggable;
+W tag(Z, W : ConfigurableFactory!(T, Policies), T, Policies...)(W factory, auto ref Z tag) {
+    static if (ContainsPolicy!(WrapperStorePolicy, Policies)) {
+        Taggable!Z taggable;
 
-    import std.range : chain, only;
-    import aermicioi.aedi.util.range : filterByInterface;
+        import std.range : chain, only;
+        import aermicioi.aedi.util.range : filterByInterface;
 
-    auto candidates = factory.wrapper
-        .decorators!ObjectFactory
-        .filterByInterface!(Taggable!Z)
-        .chain(factory.decorated.only.filterByInterface!(Taggable!Z));
+        auto candidates = factory.wrapper
+            .decorators!ObjectFactory
+            .filterByInterface!(Taggable!Z)
+            .chain(factory.decorated.only.filterByInterface!(Taggable!Z));
 
-    if (candidates.empty) {
-        auto taggableDecorator = new TaggableFactoryDecorator!(Object, Z);
-        taggableDecorator.decorated = factory.wrapper;
-        factory.wrapper = taggableDecorator;
+        if (candidates.empty) {
+            auto taggableDecorator = new TaggableFactoryDecorator!(Object, Z);
+            taggableDecorator.decorated = factory.wrapper;
+            factory.wrapper = taggableDecorator;
 
-        taggable = taggableDecorator;
-        factory.storage.set(factory.wrapper, factory.identity);
+            taggable = taggableDecorator;
+            factory.storage.set(factory.wrapper, factory.identity);
+        } else {
+            taggable = candidates.front;
+        }
+
+        taggable.tag(tag);
+
+        return factory;
     } else {
-        taggable = candidates.front;
+        static assert(false, "Cannot tag component, expected for configurable factory to implement " ~ fullyQualifiedName!WrapperStorePolicy);
     }
-
-    taggable.tag(tag);
-
-    return factory;
 }
 
 /**
@@ -393,19 +397,23 @@ Params:
 Returns:
     Configuration context
 **/
-auto describe(W : ConfigurationContextFactory!T, T)(W factory, string title, string description = null) {
-    import aermicioi.aedi.container.describing_container : IdentityDescriber;
+W describe(W : ConfigurableFactory!(T, Policies), T, Policies...)(W factory, string title, string description = null) {
+    static if (ContainsPolicy!(StoragePolicy, Policies)) {
+        import aermicioi.aedi.container.describing_container : IdentityDescriber;
 
-    IdentityDescriber!() describer = factory.locator.locate!(IdentityDescriber!());
-    describer.register(factory.identity, title, description);
+        IdentityDescriber!() describer = factory.locator.locate!(IdentityDescriber!());
+        describer.register(factory.identity, title, description);
 
-    return factory;
+        return factory;
+    } else {
+        static assert(false, "Cannot describe component, expected for configurable factory to implement " ~ fullyQualifiedName!StoragePolicy);
+    }
 }
 
 /**
 ditto
 **/
-auto describe(ValueRegistrationContext.ValueContext instance, string title, string description = null) {
+ValueRegistrationContext.ValueContext describe(ValueRegistrationContext.ValueContext instance, string title, string description = null) {
     import aermicioi.aedi.container.describing_container : IdentityDescriber;
 
     IdentityDescriber!() describer = instance.locator.locate!(IdentityDescriber!());
@@ -423,8 +431,7 @@ Params:
 Returns:
     factory
 **/
-auto scan(W : GenericFactory!T, T)(W factory)
-    if (!is(W : ConfigurationContextFactory!T, T)) {
+W scan(W : GenericFactory!T, T)(W factory) {
     import aermicioi.aedi.configurer.annotation.component_scan : ConfiguratorPolicyImpl;
     ConfiguratorPolicyImpl.configure(factory, factory.locator);
 
@@ -434,12 +441,16 @@ auto scan(W : GenericFactory!T, T)(W factory)
 /**
 ditto
 **/
-auto scan(W : ConfigurationContextFactory!T, T)(W factory) {
-    import aermicioi.aedi.configurer.annotation.component_scan : ContainerAdderImpl, ConfiguratorPolicyImpl;
-    ContainerAdderImpl!().scan!T(factory.locator, factory.storage);
-    ConfiguratorPolicyImpl.configure(factory, factory.locator);
+W scan(W : ConfigurableContainer!(T, Policies), T, Policies...)(W factory) {
+    static if (ContainsPolicy!(StoragePolicy, Policies)) {
+        import aermicioi.aedi.configurer.annotation.component_scan : ContainerAdderImpl, ConfiguratorPolicyImpl;
+        ContainerAdderImpl!().scan!T(factory.locator, factory.storage);
+        ConfiguratorPolicyImpl.configure(factory, factory.locator);
 
-    return factory;
+        return factory;
+    } else {
+        static assert(false, "Cannot scan component, expected for configurable factory to implement " ~ fullyQualifiedName!StoragePolicy);
+    }
 }
 
 /**
@@ -453,7 +464,7 @@ Params:
 Returns:
 	factory
 **/
-auto proxy(Z : ConfigurationContextFactory!T, T)(Z factory) @trusted {
+W proxy(W : ConfigurableFactory!(T, Policies), T, Policies...)(W factory) @trusted {
     import aermicioi.aedi.factory.proxy_factory : ProxyFactory, ProxyObjectFactory;
     import aermicioi.aedi.container.proxy_container : ProxyContainer;
     import aermicioi.aedi.util.range : filterByInterface;
@@ -483,7 +494,7 @@ Params:
 Returns:
     factory
 **/
-auto destructor(Z : InstanceDestructorAware!T, T, Args...)(
+Z destructor(Z : InstanceDestructorAware!T, T, Args...)(
     Z factory,
     void delegate(RCIAllocator, ref T, Args) dg,
     Args args
@@ -507,7 +518,7 @@ Params:
 Returns:
     factory
 **/
-auto destructor(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
+Z destructor(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
     Z factory,
     X destructor,
     Args args
@@ -520,89 +531,11 @@ auto destructor(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
 /**
 ditto
 **/
-auto destructor(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
+Z destructor(string method, X, Z : InstanceDestructorAware!T, T, Args...)(
     Z factory,
     Args args
 ) {
     factory.setInstanceDestructor(factoryMethodInstanceDestructor!(T, method, X, Args)(args));
 
     return factory;
-}
-
-/**
-Configure factory to defer configuration for later time using deffered executioner stored in locator by defferedExecutionerIdentity or
-by DefferedExecutioner interface.
-
-Configure factory to defer configuration for later time using deffered executioner stored in locator by defferedExecutionerIdentity.
-Factory has to implement DefferredExecutionerAware interface in order for it to be configured with deffered executioner, otherwise
-the factory will be ignored.
-
-Params:
-    factory = factory that will defer configuration.
-    defferedExecutionerIdentity = identity of executioner that will execute deffered actions.
-
-Returns:
-    factory
-**/
-auto defferredConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) @trusted {
-    import aermicioi.aedi.util.range : filterByInterface;
-    auto candidates = factory.wrapper
-        .decorators!(Factory!T)
-        .filterByInterface!DefferredExecutionerAware
-        .chain(factory.decorated.only.filterByInterface!DefferredExecutionerAware);
-
-    if (!candidates.empty) {
-
-        candidates.front.executioner = factory.locator.locate!DefferredExecutioner(defferedExecutionerIdentity);
-    }
-
-    return factory;
-}
-
-/**
-ditto
-**/
-auto defferedConfiguration(Z : ConfigurationContextFactory!T, T)(Z factory) {
-    return factory.defferredConfiguration(fullyQualifiedName!DefferredExecutioner);
-}
-
-/**
-Configure factory to defer construction for later time using deffered executioner stored in locator by defferedExecutionerIdentity or
-by DefferedExecutioner interface.
-
-Configure factory to defer construction for later time using deffered executioner stored in locator by defferedExecutionerIdentity or
-by DefferedExecutioner interface. Any factory will be wrapped in DefferedProxyWrapper factory that will supply proxy component instead of
-original and defer construction of component, in case when component is possible to construct.
-
-Params:
-    factory = factory that will defer construction.
-    defferedExecutionerIdentity = identity of executioner that will execute deffered actions.
-
-Returns:
-    factory
-**/
-auto defferredConstruction(Z : ConfigurationContextFactory!T, T : Object)(Z factory, string defferedExecutionerIdentity) {
-    if (factory.locator.has(defferedExecutionerIdentity)) {
-
-        auto proxy = new DefferedProxyWrapper!(Factory!T)(factory.decorated);
-        factory.wrapper.decorated = proxy;
-        proxy.executioner = factory.locator.locate!DefferredExecutioner;
-    }
-
-    return factory;
-}
-
-/**
-ditto
-**/
-auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory) {
-    return factory.defferredConfiguration(fullyQualifiedName!DefferredExecutioner);
-}
-
-/**
-ditto
-**/
-auto defferredConstruction(Z : ConfigurationContextFactory!T, T)(Z factory, string defferedExecutionerIdentity) {
-
-    return factory.defferredConfiguration(defferedExecutionerIdentity);
 }

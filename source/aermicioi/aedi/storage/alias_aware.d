@@ -74,3 +74,68 @@ Interface for objects that are able to alias an identity and resolve an alias to
         const(Type) resolve(in Type alias_) const;
     }
 }
+
+/**
+Mix in alias aware interface implementation that delegates
+the logic to decorated container.
+**/
+@safe mixin template AliasAwareMixin(T : AliasAware!W, W) {
+    /**
+    Alias a identity to an alias_.
+
+    Params:
+        identity = the originial identity which is to be aliased.
+        alias_ = the alias of identity.
+
+    Returns:
+        this
+    **/
+    AliasAware!W link(W identity, W alias_)
+    in (decorator !is null, "Cannot alias/link one identity to another when decorated aliaser doesn't have decorated object set.")
+    {
+        decorated.link(identity, alias_);
+
+        return this;
+    }
+
+    /**
+    Removes alias.
+
+    Params:
+        alias_ = alias to remove.
+
+    Returns:
+        this
+
+    **/
+    AliasAware!W unlink(W alias_)
+    in (decorator !is null, "Cannot dealias/unlink one identity to another when decorated aliaser doesn't have decorated object set.")
+    {
+        decorated.unlink(alias_);
+
+        return this;
+    }
+
+    /**
+    Resolve an alias to original identity, if possible.
+
+    Params:
+        alias_ = alias of original identity
+
+    Returns:
+        Type the last identity in alias chain.
+
+    **/
+    const(W) resolve(in W alias_) const
+    in (decorator !is null, "Cannot resolve alias to real identity when decorated aliaser doesn't have decorated object set.")
+    {
+        return decorated_.resolve(alias_);
+    }
+}
+
+/**
+ditto
+**/
+@safe mixin template AliasAwareMixin(T) {
+
+}

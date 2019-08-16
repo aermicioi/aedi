@@ -12,7 +12,7 @@
 			"name": "dip1000-library",
 			"targetType": "sourceLibrary",
 			"dflags": [
-				"-dip1000"
+				"-dip1000", "-dip25"
 			]
 		},
 		{

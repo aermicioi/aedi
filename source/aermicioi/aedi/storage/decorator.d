@@ -171,7 +171,13 @@ Mixin implementing MutableDecorator for a decorated element of T.
 		Returns:
 			typeof(this)
 		**/
-		typeof(this) decorated(T decorated) @safe nothrow pure {
+		typeof(this) decorated(T decorated) @safe nothrow pure
+		in {
+			static if (is(T == class) || is(T == interface) || is(T == X*, X)) {
+				assert(decorated !is null, "Expected a decorated value, passed null.");
+			}
+		}
+		do {
 			this.decorated_ = decorated;
 
 			return this;
@@ -183,9 +189,14 @@ Mixin implementing MutableDecorator for a decorated element of T.
 		Returns:
 			T
 		**/
-		inout(T) decorated() @safe nothrow pure inout {
-			auto t = this.decorated_;
-			return t;
+		inout(T) decorated() @safe nothrow pure inout
+		out(result) {
+			static if (is(T == class) || is(T == interface) || is(T == X*, X)) {
+				assert(result !is null, "Attempted to return decorated instance, however none was configured in decorator itself.");
+			}
+		}
+		do {
+			return this.decorated_;
 		}
 	}
 }

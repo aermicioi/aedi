@@ -86,6 +86,8 @@ ditto
                 static if (is(Z == class) || is(Z == interface)) {
 
                     assert(allocator !is null, "Expected an allocator, not null.");
+                } else static if (is(Z == RCIAllocator)) {
+                    assert(!allocator.isNull, "Expected an allocator, not null.");
                 }
             }
             body {
@@ -101,7 +103,14 @@ ditto
                 Z
             **/
             inout(Z) allocator() @safe nothrow inout
-            out(allocator; !allocator.isNull, "Allocator wasn't set yet. Please provide an allocator before it is queried for usage.") {
+            out(allocator) {
+                static if (is(typeof(allocator) == class) || is(typeof(allocator) == interface)) {
+                    assert(!allocator.isNull, "Allocator wasn't set yet. Please provide an allocator before it is queried for usage.");
+                } else static if (is(typeof(allocator) == RCIAllocator)) {
+                    assert(!allocator.isNull, "Expected an allocator, not null.");
+                }
+            }
+            do {
                 return this.allocator_;
             }
         }
@@ -128,28 +137,12 @@ Mixin containing default forwarding allocator properties for decorating componen
             Returns:
                 typeof(this)
             **/
-            typeof(this) allocator(Z allocator) @safe nothrow {
+            typeof(this) allocator(Z allocator) @safe nothrow
+            in (decorator !is null, "Cannot set allocator on decorated allocator aware object when it is not provided.")
+            {
                 this.decorated.allocator = allocator;
 
                 return this;
-            }
-
-
-            static if (is(T : Decorator!X, X) &&
-                Filter!(
-                eq!0,
-                staticMap!(arity, __traits(getOverloads, X, "allocator"))
-            ).length == 1) {
-
-                /**
-                Get allocator
-
-                Returns:
-                    RCIAllocator
-                **/
-                inout(Z) allocator() @safe nothrow inout {
-                    return this.decorated.allocator;
-                }
             }
         }
     }

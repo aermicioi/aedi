@@ -130,29 +130,29 @@ auto aliasing(T)(auto ref T container) {
 }
 
 /**
-Wrap up a container into a defferring container.
+Wrap up a container into a deferring container.
 
-Wraps up container into a defferring container which executes defferred actions
+Wraps up container into a deferring container which executes deferred actions
 when a component from it is requested from exterior and not interior of container.
-Therefore with help of it, is possible to solve circular dependency errors by defferring
+Therefore with help of it, is possible to solve circular dependency errors by deferring
 setting a dependency at a later time when dependents are fully constructed.
 
 Params:
 	container = container to wrap up in defferred container
-	defferedExecutionerIdentity = identity of container for defferred actions that will be used by contained factories if needed.
+	deferredExecutionerIdentity = identity of container for defferred actions that will be used by contained factories if needed.
 
 Returns:
 	DefferedContainer!T
 **/
-auto deffered(T)(auto ref T container, string defferedExecutionerIdentity) {
-	return (new DefferedContainer!T(container, defferedExecutionerIdentity));
+auto deferred(T)(auto ref T container, string deferredExecutionerIdentity) {
+	return (new DeferredContainer!T(container, deferredExecutionerIdentity));
 }
 
 /**
 ditto
 **/
-auto deffered(T)(auto ref T container) {
-	return (new DefferedContainer!T(container));
+auto deferred(T)(auto ref T container) {
+	return (new DeferredContainer!T(container));
 }
 
 /**
@@ -261,7 +261,7 @@ auto application(string title, string description) {
 	)
 	.aliasing
 	.gcRegistered
-	.deffered
+	.deferred
 	.describing(title, description)
 	.subscribable;
 }

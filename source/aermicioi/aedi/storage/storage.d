@@ -70,3 +70,46 @@ Interface for objects that are able to store elements of Type by identity of Key
  ditto
 **/
 alias Aggregator(Type = Object, KeyType = string, StorageIdentityType = KeyType) = Storage!(Type, KeyType);
+
+/**
+Mix in storage interface implementation that delegates
+the logic to decorated container.
+**/
+@safe mixin template StorageMixin(T : Storage!(W, X), W, X) {
+    /**
+    Set component in decorated by identity.
+
+    Params:
+        identity = identity of factory.
+        element = factory that is to be saved in decorated.
+
+    Return:
+        SwitchableContainer!T decorating decorated.
+    **/
+    T set(W element, X identity)
+    in(decorated !is null, "Cannot store component in decorated component container, when no container to decorate is provided")
+    {
+        this.decorated.set(element, identity);
+
+        return this;
+    }
+
+    /**
+    Remove factory from decorated with identity.
+
+    Remove factory from decorated with identity.
+
+    Params:
+        identity = the identity of factory to be removed.
+
+    Return:
+        SwitchableContainer!T decorating decorated
+    **/
+    T remove(X identity)
+    in(decorated !is null, "Cannot remove component in decorated component container, when no container to decorate is provided")
+    {
+        decorated.remove(identity);
+
+        return this;
+    }
+}

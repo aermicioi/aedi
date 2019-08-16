@@ -30,7 +30,6 @@ Authors:
 module aermicioi.aedi.container.aliasing_container;
 
 import aermicioi.aedi.container.container;
-import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.decorator;
@@ -88,7 +87,7 @@ template AliasingContainer(T) {
             alias decorated this;
 
             static if (is(T : Container)) {
-                import aermicioi.aedi.container.decorating_mixin : ContainerMixin;
+                import aermicioi.aedi.container.container : ContainerMixin;
                 mixin ContainerMixin!(typeof(this));
             }
 

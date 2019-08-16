@@ -32,69 +32,318 @@ Authors:
 **/
 module aermicioi.aedi.configurer.register.configuration_context_factory;
 
+import aermicioi.aedi.util.typecons : ArgsConstructor;
 import aermicioi.aedi.factory.decorating_factory;
 import aermicioi.aedi.factory.factory;
 import aermicioi.aedi.factory.generic_factory;
 import aermicioi.aedi.storage.storage;
+import aermicioi.aedi.storage.decorator : MutableDecoratorMixin;
+import aermicioi.aedi.storage.locator : Locator;
+import std.experimental.allocator : RCIAllocator;
 
-package {
+package
+{
 
-    /**
-    A decorator over generic factory, that sole purpose is to contain
-    additional metadata usable for register api primitives.
-    **/
-    @safe class ConfigurationContextFactory(T) : DecoratableGenericFactory!T {
+	@safe class ConfigurableFactory(T, Policies...) : GenericFactory!T
+	{
 
-        private {
-            Storage!(ObjectFactory, string) storage_;
-            ObjectFactory wrapper_;
-            GenericFactory!T decorated_;
-            string identity_;
-            string storageIdentity_;
-        }
+		static foreach (Policy; Policies)
+		{
+			mixin Policy!();
+		}
+	}
 
-        public {
-            @property {
-            	ConfigurationContextFactory!T storage(Storage!(ObjectFactory, string) storage) @safe nothrow {
-            		this.storage_ = storage;
+	mixin template DecoratingFactoryPolicy()
+	{
+		import aermicioi.aedi.storage.allocator_aware : AllocatorAwareMixin;
+		import aermicioi.aedi.storage.locator_aware : LocatorAwareMixin;
+		mixin MutableDecoratorMixin!(GenericFactory!T);
+		mixin InstanceDestructorAwareDecoratorMixin!T;
+		mixin InstanceFactoryAwareDecoratorMixin!T;
+		mixin PropertyConfigurersAwareDecoratorMixin!T;
 
-            		return this;
-            	}
+		/**
+		Instantiates component of type T.
 
-            	Storage!(ObjectFactory, string) storage() @safe nothrow {
-            		return this.storage_;
-            	}
+		Returns:
+			T instantiated component.
+		**/
+		T factory() @safe {
+			return this.decorated.factory();
+		}
 
-            	ConfigurationContextFactory!T identity(string identity) @safe nothrow {
-            		this.identity_ = identity;
+		/**
+		Destructs a component of type T.
 
-            		return this;
-            	}
+		Params:
+			component = component that is to ve destroyed.
+		**/
+		void destruct(ref T component) @safe {
+			this.decorated.destruct(component);
+		}
 
-            	string identity() @safe nothrow {
-            		return this.identity_;
-            	}
+		@property {
 
-            	ConfigurationContextFactory!T storageIdentity(string storageIdentity) @safe nothrow {
-            		this.storageIdentity_ = storageIdentity;
+			/**
+			Get the type info of T that is created.
 
-            		return this;
-            	}
+			Returns:
+				TypeInfo object of created component.
+			**/
+			TypeInfo type() @safe nothrow const {
+				return this.decorated.type();
+			}
+		}
 
-            	string storageIdentity() @safe nothrow {
-            		return this.storageIdentity_;
-            	}
+		// allocator section, required due to more advanced logic that storing.
+		import std.experimental.allocator : RCIAllocator, make, theAllocator;
+		private {
+			RCIAllocator allocator_;
+		}
 
-            	ConfigurationContextFactory!T wrapper(ObjectFactory wrapper) @safe nothrow {
-            		this.wrapper_ = wrapper;
+		public {
+			@property {
+				/**
+				Set allocator
 
-            		return this;
-            	}
+				Params:
+					allocator = allocator used to create components
 
-            	ObjectFactory wrapper() @safe nothrow {
-            		return this.wrapper_;
-            	}
-            }
-        }
-    }
+				Returns:
+					typeof(this)
+				**/
+				typeof(this) allocator(RCIAllocator allocator) @safe nothrow
+				in {
+					assert(!allocator.isNull, "Expected an allocator, not null.");
+				}
+				do {
+					this.allocator_ = allocator;
+
+					if (this.decorated_ !is null) {
+						this.decorated.allocator = allocator;
+					}
+
+					return this;
+				}
+
+				/**
+				Get allocator
+
+				Returns:
+					Z
+				**/
+				inout(RCIAllocator) allocator() @safe nothrow inout
+				out(allocator) {
+					assert(!allocator.isNull, "Expected an allocator, not null.");
+				}
+				do {
+					return this.allocator_;
+				}
+			}
+		}
+
+		// Locator storage, same reason as for allocator.
+		import aermicioi.aedi.storage.locator;
+		private {
+			Locator!() locator_;
+		}
+
+		@property {
+			/**
+			Set locator
+
+			Params:
+				locator = the locator used somehow by locator aware component
+
+			Returns:
+				typeof(this)
+			**/
+			typeof(this) locator(Locator!() locator) @safe nothrow
+			in (locator !is null, "A locator is expected not null.")
+			{
+				this.locator_ = locator;
+
+				if (this.decorated_ !is null) {
+					this.decorated.locator = locator;
+				}
+
+				return this;
+			}
+
+			/**
+			Get locator
+
+			Returns:
+				Locator!()
+			**/
+			inout(Locator!()) locator() @safe nothrow inout
+			out(lc; lc !is null, "Cannot return a locator, when it wasn't set in first case.") {
+				return this.locator_;
+			}
+		}
+	}
+
+	mixin template RegistrationStorePolicy()
+	{
+		private string file_;
+		private size_t line_;
+
+		/**
+		Set file
+
+		Params:
+			file = location in d module where it was registered
+		Returns:
+			typeof(this)
+		**/
+		typeof(this) file(string file) @safe nothrow pure
+		{
+			this.file_ = file;
+
+			return this;
+		}
+
+		/**
+		Get file
+
+		Returns:
+			string
+		**/
+		inout(string) file() @safe nothrow pure inout
+		{
+			return this.file_;
+		}
+
+		/**
+		Set line
+
+		Params:
+			line = line on which registration happened
+
+		Returns:
+			typeof(this)
+		**/
+		typeof(this) line(size_t line) @safe nothrow pure
+		{
+			this.line_ = line;
+
+			return this;
+		}
+
+		/**
+		Get line
+
+		Returns:
+			size_t
+		**/
+		inout(size_t) line() @safe nothrow pure inout
+		{
+			return this.line_;
+		}
+	}
+
+	mixin template WrapperStorePolicy()
+	{
+		ObjectFactory wrapper_;
+
+		/**
+		Set wrapper
+
+		Params:
+			wrapper = wrapper of factory stored in storage
+		Returns:
+			typeof(this)
+		**/
+		typeof(this) wrapper(ObjectFactory wrapper) @safe nothrow pure
+		{
+			this.wrapper_ = wrapper;
+
+			return this;
+		}
+
+		/**
+		Get wrapper
+
+		Returns:
+			ObjectFactory
+		**/
+		inout(ObjectFactory) wrapper() @safe nothrow pure inout
+		{
+			return this.wrapper_;
+		}
+	}
+
+	mixin template StoragePolicy()
+	{
+		Storage!(ObjectFactory, string) storage_;
+		string identity_;
+
+		/**
+		Set storage
+
+		Params:
+			storage = storage that stores component factories
+		Returns:
+			typeof(this)
+		**/
+		typeof(this) storage(Storage!(ObjectFactory, string) storage) @safe nothrow pure
+		{
+			this.storage_ = storage;
+
+			return this;
+		}
+
+		/**
+		Get storage
+
+		Returns:
+			Storage!(ObjectFactory, string)
+		**/
+		inout(Storage!(ObjectFactory, string)) storage() @safe nothrow pure inout
+		{
+			return this.storage_;
+		}
+
+		/**
+		Set identity
+
+		Params:
+			identity = identity of component in storage
+
+		Returns:
+			typeof(this)
+		**/
+		typeof(this) identity(string identity) @safe nothrow pure
+		{
+			this.identity_ = identity;
+
+			return this;
+		}
+
+		/**
+		Get identity
+
+		Returns:
+			string
+		**/
+		inout(string) identity() @safe nothrow pure inout
+		{
+			return this.identity_;
+		}
+	}
+
+	template ContainsPolicy(alias Policy, Policies...) {
+		import std.traits : fullyQualifiedName;
+		static foreach (Testable; Policies) {
+			static if (!is(typeof(Result)) && __traits(isSame, Testable, Policy)) {
+				enum Result = true;
+			}
+		}
+
+		static if (!is(typeof(Result))) {
+			enum Result = false;
+		}
+
+		alias ContainsPolicy = Result;
+	}
 }

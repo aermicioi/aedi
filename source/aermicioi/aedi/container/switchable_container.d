@@ -30,7 +30,6 @@ Authors:
 module aermicioi.aedi.container.switchable_container;
 
 import aermicioi.aedi.container.container;
-import aermicioi.aedi.container.decorating_mixin;
 import aermicioi.aedi.storage.storage;
 import aermicioi.aedi.storage.locator;
 import aermicioi.aedi.storage.decorator;
