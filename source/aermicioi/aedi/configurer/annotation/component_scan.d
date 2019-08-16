@@ -439,18 +439,19 @@ Method configurator policy that scans only constructors for @constructor annotat
 
                 alias Configurers = allUDAs!overload;
 
-                static foreach (index; 0 .. Configurers.length) {
+                static foreach (index; 0 .. Configurers.length) {{
                     static if (isConstructorAnnotation!(Configurers[index])) {
 
                         debug(annotationScanDebug) trace(
                             typeid(Z), " constructor", typeid(Parameters!overload),
                             " is annotated with @constructor annotation, using it as means to construct component using supplied arguments of ", Configurers[index].args
                         );
+                        auto tuple = Configurers[index].args;
                         instantiator.setInstanceFactory(
-                            constructorBasedFactory!Z(Configurers[index].args)
+                            constructorBasedFactory!Z(tuple)
                         );
                     }
-                }
+                }}
             }}
         }
     }
@@ -513,16 +514,18 @@ Field configurator policy that will set a field annotated @setter annotation to 
 
         alias Configurers = allUDAs!(__traits(getMember, Z, member));
 
-        static foreach (index; 0 .. Configurers.length) {
+        static foreach (index; 0 .. Configurers.length) {{
             static if (isSetterAnnotation!(Configurers[index])) {
 
                 debug(annotationScanDebug) trace(
                     typeid(Z), ".", member,
                     " field is marked with @setter annotation. Using it to confiugre component with provided arguments of ", Configurers[index].args
                 );
-                instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(Configurers[index].args));
+
+                auto tuple = Configurers[index].args;
+                instantiator.addPropertyConfigurer(fieldConfigurer!(member, Z)(tuple));
             }
-        }
+        }}
     }
 }
 
@@ -611,12 +614,13 @@ Method configurator policy that will call a method with resolved arguments from 
 
             alias Configurers = allUDAs!overload;
 
-            static foreach (index; 0 .. Configurers.length) {
+            static foreach (index; 0 .. Configurers.length) {{
                 static if (isSetterAnnotation!(Configurers[index])) {
                     debug(annotationScanDebug) trace(typeid(Z), ".", member, " method is marked with @setter annotation, injecting it with ", Configurers[index].args);
-                    instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(Configurers[index].args));
+                    auto tuple = Configurers[index].args;
+                    instantiator.addPropertyConfigurer(methodConfigurer!(member, Z)(tuple));
                 }
-            }
+            }}
         }}
     }
 }

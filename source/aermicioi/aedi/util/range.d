@@ -251,7 +251,13 @@ ditto
         stack = [ component ];
     }
 
-    private this(ref InheritanceRange range) {
+    /**
+    Copy constructor for InheritanceRange, ala save.
+
+    Params:
+        range = copied range.
+    **/
+    this(ref InheritanceRange range) {
         this.stack = range.stack[];
         this.processed = range.processed[];
     }

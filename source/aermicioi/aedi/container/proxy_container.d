@@ -209,7 +209,7 @@ template ProxyContainerImpl(T)
             	Return:
             		ProxyContainer decorating container
                 **/
-                ProxyContainerImpl remove(string identity)
+                Storage!(ObjectFactory, string) remove(string identity)
                 {
                     if (this.proxies.has(identity)) {
                         auto temporary = this.proxies.get(identity);
@@ -219,6 +219,16 @@ template ProxyContainerImpl(T)
 
                     this.decorated.remove(identity);
                     this.proxyFactories.remove(identity);
+
+                    return this;
+                }
+
+                /**
+                ditto
+                **/
+                Storage!(ProxyObjectFactory, string) remove(string identity)
+                {
+                    (cast(Storage!(ObjectFactory, string)) this).remove(identity);
 
                     return this;
                 }
