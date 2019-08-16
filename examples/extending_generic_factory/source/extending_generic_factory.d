@@ -261,7 +261,7 @@ class TireConstructorInstanceFactory : InstanceFactory!Tire {
             }
         }
 
-        Tire factory() {
+        Tire factory() @trusted {
             Tire tire;
 
             import std.stdio;
@@ -313,7 +313,7 @@ class TireInstanceDestructor : InstanceDestructor!Tire {
     mixin AllocatorAwareMixin!TireInstanceDestructor;
 
     public {
-        void destruct(ref Tire destructable) {
+        void destruct(ref Tire destructable) @trusted {
             write("Destroying tire: ");
             this.allocator.dispose(destructable);
             writeln("\t[..OK..]");

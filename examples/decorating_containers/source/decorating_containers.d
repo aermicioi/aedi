@@ -307,6 +307,7 @@ Authors:
 module decorating_containers;
 
 import aermicioi.aedi;
+import aermicioi.aedi.util.range : exceptions, filterByInterface;
 import std.stdio;
 import std.algorithm;
 import std.range;
@@ -637,7 +638,7 @@ auto decorated() {
         gasoline, "gasoline",
         electric, "electric",
         diesel, "diesel"
-    ).aliasing.gcRegistered.deffered.describing("Car factory", "Car factory, please see available contents of our factory");
+    ).aliasing.gcRegistered.deferred.describing("Car factory", "Car factory, please see available contents of our factory");
 
     return cont
         .subscribable
@@ -695,7 +696,7 @@ void main(string[] args) {
             .describe("The car", "The car our factory constructed");
     }
 
-    with (cont.configure("prototype").withConfigurationDefferring) {
+    with (cont.configure("prototype")) {
         register!Tire
             .autowire!"car"
             .set!"size"(17)

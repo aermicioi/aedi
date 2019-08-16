@@ -239,7 +239,7 @@ class LoggingFactory(T) : Factory!T {
             }
         }
 
-        T factory() {
+        T factory() @trusted {
             import std.experimental.logger;
 
             info("Creating component");
@@ -253,7 +253,7 @@ class LoggingFactory(T) : Factory!T {
             return t;
         }
 
-        void destruct(ref T component) {
+        void destruct(ref T component) @trusted {
             import std.experimental.logger;
 
             info("Destroying component");

@@ -296,11 +296,20 @@ mixin template SubscribableMixin(EventType, Callback) {
             args = list of arguments to subscriber
         **/
         ReturnType!Callback invoke(EventType type, Params params) const {
+            import std.range : empty;
             static if (!is(ReturnType!Callback == void)) {
                 ReturnType result;
             }
 
             auto subscribers = subscribersOfEvent(type);
+
+            if (subscribers.empty) {
+                static if (!is(ReturnType!Callback == void)) {
+                    return result;
+                } else {
+                    return;
+                }
+            }
 
             foreach (subscriber; subscribers[0 .. $ - 1]) {
                 subscriber(params);

@@ -182,11 +182,12 @@ Authors:
 module extending_containers;
 
 import aermicioi.aedi;
+import aermicioi.aedi.util.typecons : Pair, pair;
 import std.stdio;
 import std.range;
 import std.typecons;
 
-class MySingletonContainer : ConfigurableContainer {
+@safe class MySingletonContainer : ConfigurableContainer {
     import std.stdio;
     private {
 
@@ -266,7 +267,7 @@ class MySingletonContainer : ConfigurableContainer {
                 pair.value.destruct(this.singletons[pair.key]);
             }
 
-            this.singletons.clear();
+            (() @trusted => this.singletons.clear())();
 
             return this;
         }
@@ -300,11 +301,11 @@ class MySingletonContainer : ConfigurableContainer {
             return this.factories[identity];
         }
 
-        InputRange!(Tuple!(ObjectFactory, string)) getFactories() {
+        InputRange!(Pair!(ObjectFactory, string)) getFactories() {
             import std.algorithm;
 
             return this.factories.byKeyValue.map!(
-                a => tuple(a.value, a.key)
+                a => pair(a.value, a.key)
             ).inputRangeObject;
         }
     }

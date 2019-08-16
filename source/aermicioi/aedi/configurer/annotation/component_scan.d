@@ -1194,12 +1194,12 @@ A policy for resolving identity of component by annotation.
 
         alias Qualifiers = allUDAs!T;
         static foreach (index; 0 .. Qualifiers.length) {{
-            static if (isQualifierAnnotation!(Qualifiers[index])) {
+            static if (!is(typeof(found)) && isQualifierAnnotation!(Qualifiers[index])) {
                 debug(annotationScanDebug) trace(
                     fullyQualifiedName!T, " is marked with @qualifier annotation, using ", Qualifiers[index].id, " as main identity for component."
                 );
                 identity = Qualifiers[index].id;
-                break;
+                enum found = true;
             }
         }}
 
@@ -1448,7 +1448,7 @@ Params:
     ContainerAdderPolicy = policy run on not ignored packages.
 **/
 @safe struct IgnoringContainerAdder(string pack, ContainerAdderPolicy) {
-    import std.algorithm : startsWith;
+    import std.algorithm : startsWith, canFind;
     import std.traits : packageName;
     /**
     Check if T symbol is a module.
@@ -1459,7 +1459,7 @@ Params:
     Returns:
         true if it is a module, false otherwise
     **/
-    enum bool isSupported(alias T) = !packageName!T.startsWith(pack) && ContainerAdderPolicy.isSupported!T;
+    enum bool isSupported(alias T) = (!moduleName!T.canFind(".") || !moduleName!T.startsWith(pack)) && ContainerAdderPolicy.isSupported!T;
 
     /**
     Scan T if it is not in ignored package.
